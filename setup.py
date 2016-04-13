@@ -6,6 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
+import glob
 from setuptools import setup, find_packages
 
 setup(
@@ -18,5 +19,6 @@ setup(
     author_email="gregcaporaso@gmail.com",
     description="A QIIME 2 plugin for Qiita",
     license="BSD",
+    scripts=glob.glob('scripts/*'),
     url="http://www.qiime.org",
 )

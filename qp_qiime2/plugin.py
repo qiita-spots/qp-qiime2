@@ -32,7 +32,7 @@ def job_id_to_workflow_executor_arguments(job_id, plugin_manager):
     wf = plugin_manager.plugins[plugin_name].workflows[workflow_name]
 
     input_artifact_fps = {}
-    for artifact_name, artifact_data in job_id_to_input_artifacts(job_id):
+    for artifact_name, artifact_data in job_id_to_input_artifacts(job_id, wf.signature.input_artifacts.keys()):
         # TODO: actually make this a randomly generated file name
         temp_file_name = "random-in.qtf"
         input_artifact_fps[artifact_name] = temp_file_name
@@ -40,7 +40,7 @@ def job_id_to_workflow_executor_arguments(job_id, plugin_manager):
                       wf.signature.input_artifacts[artifact_name],
                       None,
                       temp_file_name)
-    input_parameters = job_id_to_input_parameters(job_id)
+    input_parameters = job_id_to_input_parameters(job_id, wf.signature.input_parameters.keys())
     # TODO: actually make this a randomly generated file name
     output_artifacts = {name: 'random-out.qtf'
                         for name in wf.signature.output_artifacts.keys()}
@@ -62,8 +62,11 @@ def execute_job(url, job_id, output_dir):
 
     completed_process = future_.result()
     if completed_process.returncode == 0:
-        # send data to Qiita
+        # TODO: send data to Qiita
+        # for now, just show what the output artifacts are
         print(output_artifacts)
+        # or even load the first result into its object and print it
+        print(Artifact(list(output_artifacts.values())[0]).data)
     else:
         print(completed_process.stdout)
         exit(-1)
