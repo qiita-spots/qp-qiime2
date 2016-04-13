@@ -1,5 +1,7 @@
 # qp-qiime2
-Qiime 2 plugin for Qiita
+Prototype of ideas for a Qiime 2 plugin for Qiita
+
+This repository is an early experiment at creating a QIIME 2 plugin for Qiita.
 
 To install and use this see the following steps. As this is depending on several experimental packages, it's possible that these steps won't work, but we'll make an effort to keep them up to date.
 
