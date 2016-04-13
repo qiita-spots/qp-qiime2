@@ -1,0 +1,23 @@
+# ----------------------------------------------------------------------------
+# Copyright (c) 2016--, QIIME development team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file LICENSE, distributed with this software.
+# ----------------------------------------------------------------------------
+
+import click
+
+from qp_qiime2.plugin import execute_job
+
+
+@click.command()
+@click.argument('url', required=True)
+@click.argument('job_id', required=True)
+@click.argument('output_dir', required=True)
+def execute(url, job_id, output_dir):
+    """Executes the task given by job_id and puts the output in output_dir"""
+    execute_job(url, job_id, output_dir)
+
+if __name__ == '__main__':
+    execute()
