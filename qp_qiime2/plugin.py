@@ -6,52 +6,64 @@
 # The full license is in the file LICENSE, distributed with this software.
 # -----------------------------------------------------------------------------
 
-import os
+import traceback
+import sys
+from os.path import join, dirname, abspath
+from os import environ
+from configparser import ConfigParser
+
+from qiita_client import QiitaClient
 
 from biom import example_table
 from qiime.sdk import PluginManager, Artifact, SubprocessExecutor
 
-def job_id_to_plugin_workflow_name(job_id):
-    # the available QIIME 2 plugins and their associated workflows should
-    # be made available through another entry point, so Qiita can ask one of
-    # its plugins what workflows it has available
-    # TODO: actually pull this info from Qiita
-    return ('feature-table', 'rarefy')
 
-def job_id_to_input_artifacts(job_id, artifact_names):
-    # TODO: actually pull this info from Qiita
-    return [('table', example_table)]
-
-def job_id_to_input_parameters(job_id, parameter_names):
-    # TODO: actually pull this info from Qiita
-    return {'depth': 2}
+def get_plugin_workflow_lookup():
+    plugin_manager = PluginManager()
+    result = {}
+    for plugin_name, plugin in plugin_manager.plugins.items():
+        for workflow_name, workflow in plugin.workflows:
+            result['%s: %s' % (plugin_name, workflow_name)] = workflow
+    return result
 
 
-def job_id_to_workflow_executor_arguments(job_id, plugin_manager):
-    plugin_name, workflow_name = job_id_to_plugin_workflow_name(job_id)
-    wf = plugin_manager.plugins[plugin_name].workflows[workflow_name]
+def retrieve_artifact_info(artifact_id, artifact_type):
+    # TODO: retrieve the artifact information from the Qiita server
+    artifact_data = example_table
+    # TODO: actually make this a randomly generated file name
+    temp_file_name = "random-in.qtf"
+    # TODO: None is the provenance
+    Artifact.save(artifact_data, artifact_type, None, temp_file_name)
+    return temp_file_name
+
+
+def job_id_to_workflow_executor_arguments(job_id, job_info):
+    wf_lookup = get_plugin_workflow_lookup()
+    wf = wf_lookup[job_info['command']]
+    parameters = job_info['parameters']
 
     input_artifact_fps = {}
-    for artifact_name, artifact_data in job_id_to_input_artifacts(job_id, wf.signature.input_artifacts.keys()):
-        # TODO: actually make this a randomly generated file name
-        temp_file_name = "random-in.qtf"
-        input_artifact_fps[artifact_name] = temp_file_name
-        Artifact.save(artifact_data,
-                      wf.signature.input_artifacts[artifact_name],
-                      None,
-                      temp_file_name)
-    input_parameters = job_id_to_input_parameters(job_id, wf.signature.input_parameters.keys())
+    for ia_name, ia_type in wf.signature.input_artifacts.items():
+        artifact_fp = retrieve_artifact_info(parameters[ia_name])
+        input_artifact_fps[ia_name] = artifact_fp
+
+    input_parameters = {ip_name: parameters[ip_name]
+                        for ip_name in wf.signature.input_parameters}
+
     # TODO: actually make this a randomly generated file name
     output_artifacts = {name: 'random-out.qtf'
                         for name in wf.signature.output_artifacts.keys()}
+
     return wf, input_artifact_fps, input_parameters, output_artifacts
 
 
-def execute_job(url, job_id, output_dir):
-    plugin_manager = PluginManager()
+def format_artifacts_info(output_artifacts):
+    pass
 
+
+def execute_task(job_id, job_info):
     wf, input_artifact_fps, input_parameters, output_artifacts = \
-        job_id_to_workflow_executor_arguments(job_id, plugin_manager)
+        job_id_to_workflow_executor_arguments(job_id, job_info)
 
     # execute workflow
     executor = SubprocessExecutor()
@@ -62,11 +74,46 @@ def execute_job(url, job_id, output_dir):
 
     completed_process = future_.result()
     if completed_process.returncode == 0:
-        # TODO: send data to Qiita
-        # for now, just show what the output artifacts are
-        print(output_artifacts)
-        # or even load the first result into its object and print it
-        print(Artifact(list(output_artifacts.values())[0]).data)
+        success = True
+        error_msg = ""
+        artifacts_info = format_artifacts_info(output_artifacts)
     else:
-        print(completed_process.stdout)
-        exit(-1)
+        success = False
+        error_msg = "StdOut: %s\nStdErr: %s" % (completed_process.stdout,
+                                                completed_process.stderr)
+        artifacts_info = None
+
+    return success, artifacts_info, error_msg
+
+
+def execute_job(url, job_id, output_dir):
+    # Set up the QiitaClient - Probably another function?
+    dflt_conf_fp = join(dirname(abspath(__file__)), 'support_files',
+                        'config_file.cfg')
+    conf_fp = environ.get('QP_QIIME2_CONFIG_FP', dflt_conf_fp)
+    config = ConfigParser()
+    with open(conf_fp, 'U') as conf_file:
+        config.readfp(conf_file)
+
+    qclient = QiitaClient(url, config.get('main', 'CLIENT_ID'),
+                          config.get('main', 'CLIENT_SECRET'),
+                          server_cert=config.get('main', 'SERVER_CERT'))
+
+    # Request job information. If there is a problem retrieving the job
+    # information, the QiitaClient already raises an error
+    job_info = qclient.get_job_info(job_id)
+    # Starting the heartbeat
+    qclient.start_heartbeat(job_id)
+
+    try:
+        success, artifacts_info, error_msg = execute_task(job_id, job_info)
+    except Exception:
+        exc_str = repr(traceback.format_exception(*sys.exc_info()))
+        error_msg = ("Error executing %s:\n%s" % (job_info['command'],
+                                                  exc_str))
+        success = False
+        artifacts_info = None
+
+    # The job completed
+    qclient.complete_job(job_id, success, error_msg=error_msg,
+                         artifacts_info=artifacts_info)
