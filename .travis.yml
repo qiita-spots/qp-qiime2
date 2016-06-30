@@ -1,0 +1,49 @@
+language: python
+sudo: false
+env:
+    - PYTHON_VERSION=3.5
+before_install:
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+  - chmod +x miniconda.sh
+  - ./miniconda.sh -b
+  - export PATH=/home/travis/miniconda3/bin:$PATH
+  # Update conda itself
+  - conda update --yes conda
+install:
+  - travis_retry conda create --yes -n qiita_env python=2.7 pip nose flake8
+    pyzmq networkx pyparsing natsort mock future libgfortran
+    'pandas>=0.18' 'scipy>0.13.0' 'numpy>=1.7' 'h5py>=2.3.1'
+  - source activate qiita_env
+  - pip install sphinx sphinx-bootstrap-theme coveralls ipython[all]==2.4.1
+  # Installing the simplify REST api branch - change once it has been merged to master
+  # - pip install https://github.com/biocore/qiita/archive/master.zip
+  - pip install https://github.com/biocore/qiita/archive/simplify-restAPI.zip
+  - ipython profile create qiita-general --parallel
+  - qiita-env start_cluster qiita-general
+  - qiita-env make --no-load-ontologies
+  - export QIITA_SERVER_CERT=$HOME/miniconda3/envs/qiita_env/lib/python2.7/site-packages/qiita_core/support_files/server.crt
+  - source deactivate
+  - travis_retry conda create -c biocore --yes -n env_name python=$PYTHON_VERSION pip nose flake8 coverage scikit-bio h5py
+  - source activate env_name
+  - pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
+  - pip install https://github.com/qiime2/qiime2/archive/master.zip
+  - pip install https://github.com/qiime2/q2-types/archive/master.zip
+  - pip install https://github.com/qiime2/q2-feature-table/archive/master.zip
+  - travis_retry pip install .
+before_script:
+  - source activate qiita_env
+  - export MOI_CONFIG_FP=$HOME/miniconda3/envs/qiita_env/lib/python2.7/site-packages/qiita_core/support_files/config_test.cfg
+  - qiita pet webserver start &
+  - psql -U postgres -d qiita_test install-plugin.sql
+script:
+  - source activate env_name
+  - sleep 5 # give enough time to the webserver to start
+  - nosetests --with-doctest --with-coverage
+  - flake8 qp_qiime2 setup.py scripts
+addons:
+  postgresql: "9.3"
+services:
+  - redis-server
+  - postgresql
+after_success:
+  - coveralls

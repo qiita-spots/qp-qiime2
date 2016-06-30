@@ -13,7 +13,7 @@ setup(
     name="qp_qiime2",
     version="0.0.0-dev",
     packages=find_packages(),
-    install_requires=['q2-feature-table', 'scikit-bio >= 0.4.2, < 0.5.0',
+    install_requires=['q2-feature-table', 'scikit-bio',
                       'qiime >= 2.0.0', 'click', 'qiita_client', 'h5py'],
     author="Greg Caporaso",
     author_email="gregcaporaso@gmail.com",

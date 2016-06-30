@@ -13,39 +13,32 @@ from os import environ, close
 from configparser import ConfigParser
 from tempfile import mkstemp
 
-from qiita_client import QiitaClient
+from qiita_client import QiitaClient, ArtifactInfo
 from q2_types import (
     FeatureTable, Frequency, RelativeFrequency, PresenceAbsence)
 
-from biom import load_table
+from biom import load_table, Table
 from biom.util import biom_open
-from qiime.sdk import PluginManager, Artifact, SubprocessExecutor
+from qiime.sdk import PluginManager, Artifact
 
 
-def get_plugin_workflow_lookup():
+def get_plugin_method_lookup():
     plugin_manager = PluginManager()
     result = {}
     for plugin_name, plugin in plugin_manager.plugins.items():
-        for workflow_name, workflow in plugin.workflows.items():
-            key = '%s: %s' % (plugin_name, workflow_name)
-            result[key] = workflow
+        for method_name, method in plugin.methods.items():
+            key = '%s: %s' % (plugin_name, method_name)
+            result[key] = method
     return result
 
 
 def biom_artifact_input_translator(filepaths):
-    # TODO (JOSE): Change filepaths to be a dictionary - ongoing work - qiita
-    biom_fp = None
-
-    for fp, fp_type in filepaths:
-        if fp_type == 'biom':
-            biom_fp = fp
-            break
-
+    biom_fp = filepaths['biom'][0]
     return load_table(biom_fp)
 
 
 def biom_artifact_output_translator(artifact):
-    biom_table = artifact.data
+    biom_table = artifact.view(Table)
     fd, temp_file_name = mkstemp(suffix=".biom")
     close(fd)
     with biom_open(temp_file_name, 'w') as f:
@@ -59,56 +52,38 @@ def get_artifact_translators_lookup():
     biom_tuple = (biom_artifact_input_translator,
                   biom_artifact_output_translator,
                   'BIOM')
-    return {str(FeatureTable): biom_tuple,
-            str(FeatureTable[Frequency]): biom_tuple,
-            str(FeatureTable[RelativeFrequency]): biom_tuple,
-            str(FeatureTable[PresenceAbsence]): biom_tuple}
+    return {FeatureTable: biom_tuple,
+            FeatureTable[Frequency]: biom_tuple,
+            FeatureTable[RelativeFrequency]: biom_tuple,
+            FeatureTable[PresenceAbsence]: biom_tuple}
 
 
 def retrieve_artifact_info(qclient, artifact_id, artifact_type):
-    fps_info = qclient.get("/qiita_db/artifacts/%s/filepaths/" % artifact_id)
-    filepaths = fps_info['filepaths']
+    a_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
+    filepaths = a_info['files']
     translator_lookup = get_artifact_translators_lookup()
-    input_translator, _, _ = translator_lookup[str(artifact_type)]
+    input_translator, _, _ = translator_lookup[artifact_type[0]]
     artifact_data = input_translator(filepaths)
-    fd, temp_file_name = mkstemp(suffix='.qtf')
-    close(fd)
     # TODO: None is the provenance
-    Artifact.save(artifact_data, artifact_type, None, temp_file_name)
-    return temp_file_name
+    a = Artifact._from_view(artifact_data, artifact_type[0], None)
+    return a
 
 
-def job_id_to_workflow_executor_arguments(qclient, job_id, job_info):
-    wf_lookup = get_plugin_workflow_lookup()
-    wf = wf_lookup[job_info['command']]
-    parameters = job_info['parameters']
-
-    input_artifact_fps = {}
-    for ia_name, ia_type in wf.signature.input_artifacts.items():
-        artifact_fp = retrieve_artifact_info(qclient, parameters[ia_name],
-                                             ia_type)
-        input_artifact_fps[ia_name] = artifact_fp
-
-    input_parameters = {ip_name: parameters[ip_name]
-                        for ip_name in wf.signature.input_parameters}
-
-    output_artifacts = {}
-    for name in wf.signature.output_artifacts.keys():
-        fd, temp_file_name = mkstemp(suffix='.qtf')
-        close(fd)
-        output_artifacts[name] = temp_file_name
-
-    return wf, input_artifact_fps, input_parameters, output_artifacts
+def job_id_to_method(qclient, job_id, job_info):
+    method_lookup = get_plugin_method_lookup()
+    method = method_lookup[job_info['command']]
+    return method
 
 
-def format_artifacts_info(output_artifacts):
+def format_artifacts_info(output_names, output_artifacts):
     result = []
     translator_lookup = get_artifact_translators_lookup()
-    for output_name, fp in output_artifacts.items():
-        a = Artifact(fp)
-        _, output_translator, qiita_type = translator_lookup[str(a.type)]
+
+    for output_name, a in zip(output_names, output_artifacts):
+        _, output_translator, qiita_type = translator_lookup[a.type]
         out_file, fp_type = output_translator(a)
-        result.append([output_name, qiita_type, [(out_file, fp_type)]])
+        result.append(
+            ArtifactInfo(output_name, qiita_type, [(out_file, fp_type)]))
         # TODO: figure out how to hadle the case where multiple qiime artifacts
         # map to one Qiita artifact
 
@@ -116,28 +91,32 @@ def format_artifacts_info(output_artifacts):
 
 
 def execute_task(qclient, job_id, job_info):
-    wf, input_artifact_fps, input_parameters, output_artifacts = \
-        job_id_to_workflow_executor_arguments(qclient, job_id, job_info)
+    method = job_id_to_method(qclient, job_id, job_info)
+
+    parameters = job_info['parameters']
 
     # execute workflow
-    executor = SubprocessExecutor()
-    future_ = executor(wf,
-                       input_artifact_fps,
-                       input_parameters,
-                       output_artifacts)
+    inputs = {
+        ia_name: retrieve_artifact_info(qclient, parameters[ia_name], ia_type)
+        for ia_name, ia_type in method.signature.inputs.items()}
+    input_parameters = {}
+    input_parameters = {ip_name: parameters[ip_name]
+                        for ip_name in method.signature.parameters}
 
-    completed_process = future_.result()
-    if completed_process.returncode == 0:
-        success = True
-        error_msg = ""
-        artifacts_info = format_artifacts_info(output_artifacts)
-    else:
-        success = False
-        error_msg = "StdOut: %s\nStdErr: %s" % (completed_process.stdout,
-                                                completed_process.stderr)
-        artifacts_info = None
+    args = inputs
+    args.update(input_parameters)
+    # Method can return either None, a single artifact or a tuple of artifacts
+    output_artifacts = method(**args)
 
-    return success, artifacts_info, error_msg
+    if output_artifacts is None:
+        return None
+    elif isinstance(output_artifacts, Artifact):
+        output_artifacts = (output_artifacts, )
+
+    artifacts_info = format_artifacts_info(method.signature.outputs,
+                                           output_artifacts)
+
+    return True, artifacts_info, ""
 
 
 def execute_job(url, job_id, output_dir):
