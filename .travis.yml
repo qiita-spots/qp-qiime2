@@ -33,8 +33,8 @@ install:
 before_script:
   - source activate qiita_env
   - export MOI_CONFIG_FP=$HOME/miniconda3/envs/qiita_env/lib/python2.7/site-packages/qiita_core/support_files/config_test.cfg
+  - psql -U postgres -d qiita_test -f install-plugin.sql
   - qiita pet webserver start &
-  - psql -U postgres -d qiita_test install-plugin.sql
 script:
   - source activate env_name
   - sleep 5 # give enough time to the webserver to start
