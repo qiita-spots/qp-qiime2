@@ -49,6 +49,9 @@ def rarefy(qclient, job_id, parameters, out_dir):
         mkdir(out_dir)
 
     rarefied = b.subsample(rarefy_level)
+    if rarefied.sum() == 0:
+        return False, None, "Rarefaction level too high %d" % rarefy_level
+
     rarefied_fp = join(out_dir, 'rarefied.biom')
     with biom_open(rarefied_fp, 'w') as bf:
         rarefied.to_hdf5(bf, "Qiita's Qiime2 plugin")

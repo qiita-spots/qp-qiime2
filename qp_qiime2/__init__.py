@@ -20,7 +20,7 @@ plugin = QiitaPlugin(
 # Define the rarefy command
 req_params = {'i-table': ('artifact', ['BIOM'])}
 opt_params = {
-    'p-sampling-depth': ['integer', '10000']
+    'p-sampling-depth': ['integer', '1000']
 }
 outputs = {'o-table': 'BIOM'}
 dflt_param_set = {

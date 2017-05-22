@@ -64,6 +64,23 @@ class qiime2Tests(PluginTestCase):
         # samples
         self.assertEqual(2 * 7, rb.sum())
 
+    def test_rarefy_error(self):
+        params = {'p-sampling-depth': 200000, 'i-table': 5}
+        data = {'user': 'demo@microbio.me',
+                'command': dumps(['qiime2', '4.2017', 'Rarefy']),
+                'status': 'running',
+                'parameters': dumps(params)}
+
+        jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
+
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = rarefy(self.qclient, jid, params, out_dir)
+        self.assertEqual(False, success)
+        self.assertIsNone(ainfo)
+        self.assertEqual('Rarefaction level too high 200000', msg)
+
 
 if __name__ == '__main__':
     main()
