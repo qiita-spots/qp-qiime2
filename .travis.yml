@@ -24,7 +24,7 @@ install:
   - export QIITA_SERVER_CERT=$HOME/miniconda3/envs/qiita_env/lib/python2.7/site-packages/qiita_core/support_files/server.crt
   - source deactivate
   # installing this plugin
-  - conda create --yes -n qiime2 python=$PYTHON_VERSION --file --file https://raw.githubusercontent.com/qiime2/environment-files/master/latest/staging/qiime2-latest-conda-linux-64.txt
+  - conda create --yes -n qiime2 python=$PYTHON_VERSION --file https://raw.githubusercontent.com/qiime2/environment-files/master/latest/staging/qiime2-latest-conda-linux-64.txt
   - source activate qiime2
   - pip install coveralls
   - pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
