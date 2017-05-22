@@ -33,9 +33,9 @@ install:
 before_script:
   - source activate qiita_env
   - qiita pet webserver start &
-script:
-  - source activate env_name
   - sleep 10 # give enough time to the webserver to start
+script:
+  - source activate qiime2
   - configure_qiime2 --env-script "source activate qiime2" --server-cert $QIITA_SERVER_CERT
   - nosetests --with-doctest --with-coverage --cover-package=qp_qiime2
   - flake8 qp_qiime2 setup.py scripts
