@@ -10,7 +10,10 @@
 
 from setuptools import setup
 
-__version__ = "1.0.2"
+from qiime2 import __version__ as qiime2_version
+
+
+__version__ = qiime2_version
 
 classes = """
     Development Status :: 3 - Alpha
@@ -44,7 +47,5 @@ setup(name='qp-qiime2',
       scripts=['scripts/configure_qiime2', 'scripts/start_qiime2'],
       extras_require={'test': ["nose >= 0.10.1", "pep8"]},
       install_requires=['click >= 3.3', 'future'],
-      dependency_links=[
-        ('https://github.com/qiita-spots/qiita-files/archive/master.zip#'
-         'egg=qiita-files-0.1.0-dev')],
+      dependency_links=[],
       classifiers=classifiers)

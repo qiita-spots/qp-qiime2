@@ -9,19 +9,21 @@
 from qiita_client import QiitaPlugin, QiitaCommand
 
 from .qiime2 import rarefy
+from qiime2 import __version__ as qiime2_version
 
 __all__ = ['qiime2']
 
 
 # Initialize the plugin
 plugin = QiitaPlugin(
-    'qiime2', '4.2017', 'QIIME 2')
+    'qiime2', qiime2_version, 'QIIME 2')
 
 # Define the rarefy command
-req_params = {'i-table': ('artifact', ['BIOM'])}
-opt_params = {
-    'p-sampling-depth': ['integer', '1000']
+req_params = {
+    'i-table': ('artifact', ['BIOM']),
+    'p-sampling-depth': ['integer', 1000]
 }
+opt_params = {}
 outputs = {'o-table': 'BIOM'}
 dflt_param_set = {
     'Defaults': {

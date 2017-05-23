@@ -16,6 +16,7 @@ from biom import load_table
 
 from qiita_client.testing import PluginTestCase
 
+from qiime2 import __version__ as qiime2_version
 
 from qp_qiime2 import plugin
 from qp_qiime2.qiime2 import (rarefy)
@@ -40,7 +41,7 @@ class qiime2Tests(PluginTestCase):
     def test_rarefy(self):
         params = {'p-sampling-depth': 2, 'i-table': 5}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', '4.2017', 'Rarefy']),
+                'command': dumps(['qiime2', qiime2_version, 'Rarefy']),
                 'status': 'running',
                 'parameters': dumps(params)}
 
@@ -67,7 +68,7 @@ class qiime2Tests(PluginTestCase):
     def test_rarefy_error(self):
         params = {'p-sampling-depth': 200000, 'i-table': 5}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', '4.2017', 'Rarefy']),
+                'command': dumps(['qiime2', qiime2_version, 'Rarefy']),
                 'status': 'running',
                 'parameters': dumps(params)}
 
