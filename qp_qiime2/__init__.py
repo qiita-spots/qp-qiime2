@@ -31,5 +31,6 @@ dflt_param_set = {
 }
 qiime_cmd = QiitaCommand(
     "Rarefy", "Rarefy",
-    rarefy, req_params, opt_params, outputs, dflt_param_set)
+    rarefy, req_params, opt_params, outputs, dflt_param_set,
+    analysis_only=True)
 plugin.register_command(qiime_cmd)
