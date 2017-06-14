@@ -11,7 +11,7 @@ from os import remove
 from shutil import rmtree
 from tempfile import mkdtemp
 from json import dumps
-from os.path import exists, isdir, join
+from os.path import exists, isdir, join, realpath, dirname
 from biom import load_table
 
 from qiita_client.testing import PluginTestCase
@@ -19,7 +19,7 @@ from qiita_client.testing import PluginTestCase
 from qiime2 import __version__ as qiime2_version
 
 from qp_qiime2 import plugin
-from qp_qiime2.qiime2 import (rarefy)
+from qp_qiime2.qiime2 import (rarefy, beta_diversity)
 
 
 class qiime2Tests(PluginTestCase):
@@ -81,6 +81,79 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(False, success)
         self.assertIsNone(ainfo)
         self.assertEqual('Rarefaction level too high 200000', msg)
+
+    def test_beta(self):
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        # qiime2 currently only works with rarefied tables so we need to
+        # rarefy it
+        params = {'p-sampling-depth': 10, 'i-table': 5}
+        data = {'user': 'demo@microbio.me',
+                'command': dumps(['qiime2', qiime2_version, 'Rarefy']),
+                'status': 'running',
+                'parameters': dumps(params)}
+        jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
+        success, ainfo, msg = rarefy(self.qclient, jid, params, out_dir)
+        data = {'filepaths': dumps(ainfo[0].files), 'type': "BIOM",
+                'name': "Rarefied biom", 'analysis': 1, 'data_type': '16S'}
+        reply = self.qclient.post('/apitest/artifact/', data=data)
+        aid = reply['artifact']
+
+        # # actually test non phylogenetic beta diversity
+        params = {
+            'i-table': aid, 'p-metric': 'euclidean',
+            'i-tree': None}
+        data = {'user': 'demo@microbio.me',
+                'command': dumps(['qiime2', qiime2_version, 'beta_diversity']),
+                'status': 'running',
+                'parameters': dumps(params)}
+        jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
+        success, ainfo, msg = beta_diversity(
+            self.qclient, jid, params, out_dir)
+        self.assertEqual('', msg)
+        self.assertEqual(True, success)
+        # only 1 element
+        self.assertEqual(len(ainfo), 1)
+        # and that element [0] should have this file
+        exp = [(join(out_dir, 'beta_diversity/dtx/distance-matrix.tsv'),
+                'distance_matrix')]
+        self.assertEqual(exp, ainfo[0].files)
+
+        params['p-metric'] = 'unweighted'
+        params['i-tree'] = join(
+            dirname(realpath(__file__)), 'prune_97_gg_13_8.tre')
+        jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
+        success, ainfo, msg = beta_diversity(
+            self.qclient, jid, params, out_dir)
+        self.assertEqual('', msg)
+        self.assertEqual(True, success)
+        # only 1 element
+        self.assertEqual(len(ainfo), 1)
+        # and that element [0] should have this file
+        exp = [(join(out_dir, 'beta_diversity/dtx/distance-matrix.tsv'),
+                'distance_matrix')]
+        self.assertEqual(exp, ainfo[0].files)
+
+    def test_beta_errors(self):
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        # no rarefied - this testes that the non rarefied table conversion
+        # works and that if qiime fails it raises the correct error_msg
+        params = {
+            'i-table': 5, 'p-metric': 'braycurtis', 'i-tree': None}
+        data = {'user': 'demo@microbio.me',
+                'command': dumps(['qiime2', qiime2_version, 'beta_diversity']),
+                'status': 'running',
+                'parameters': dumps(params)}
+        jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
+        success, ainfo, msg = beta_diversity(
+            self.qclient, jid, params, out_dir)
+
+        self.assertIn("Argument to input 'table' is not a subtype of "
+                      "FeatureTable[Frequency]", msg)
+        self.assertEqual(False, success)
 
 
 if __name__ == '__main__':
