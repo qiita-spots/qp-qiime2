@@ -29,6 +29,7 @@ install:
   - conda install --yes -n qiime2 -c anaconda flake8
   - pip install coveralls
   - pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
+  - pip install https://github.com/qiita-spots/qtp-diversity/archive/master.zip
   - travis_retry pip install .
 before_script:
   - source activate qiita_env
