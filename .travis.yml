@@ -29,7 +29,9 @@ install:
   - conda install --yes -n qiime2 -c anaconda flake8
   - pip install coveralls
   - pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
+  # we are gonna use the same qiime2 environmen to install qtp-diversity
   - pip install https://github.com/qiita-spots/qtp-diversity/archive/master.zip
+  - configure_diversity_types --env-script "source activate qiime2" --server-cert $QIITA_SERVER_CERT
   - travis_retry pip install .
 before_script:
   - source activate qiita_env
