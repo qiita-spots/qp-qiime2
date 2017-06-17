@@ -35,6 +35,7 @@ install:
   - travis_retry pip install .
 before_script:
   - source activate qiita_env
+  - qiita plugins update
   - qiita pet webserver start &
   - sleep 10 # give enough time to the webserver to start
 script:
