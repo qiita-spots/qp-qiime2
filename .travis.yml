@@ -1,5 +1,7 @@
 language: python
-sudo: false
+sudo: required
+compiler:
+  - clang
 env:
   - PYTHON_VERSION=3.5
 before_install:
@@ -26,9 +28,11 @@ install:
   # installing this plugin
   - conda create --yes -n qiime2 python=$PYTHON_VERSION --file https://raw.githubusercontent.com/qiime2/environment-files/master/latest/staging/qiime2-latest-conda-linux-64.txt
   - source activate qiime2
-  - conda install --yes -n qiime2 -c anaconda flake8
+  - conda install --yes -n qiime2 -c anaconda flake8 conda-forge hdf5 h5py
   - pip install coveralls
   - pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
+  - sed -i 's/^CXXBASE=.*/CXXBASE=clang++/' `which h5c++`
+  - sed -i 's/^CXXLINKERBASE=.*/CXXLINKERBASE=clang++/' `which h5c++`
   - pip install https://github.com/wasade/q2-state-unifrac/archive/master.zip
   # we are gonna use the same qiime2 environmen to install qtp-diversity
   - pip install https://github.com/qiita-spots/qtp-diversity/archive/master.zip
