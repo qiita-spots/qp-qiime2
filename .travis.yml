@@ -11,17 +11,17 @@ before_install:
   - conda update --yes conda
 install:
   # installing Qiita in it's own environment python2.7
-  - travis_retry conda create --yes -n qiita_env python=2.7 pip nose flake8
+  - travis_retry conda create --yes -n qiita python=2.7 pip nose flake8
     pyzmq networkx pyparsing natsort mock future libgfortran
     'pandas>=0.18' 'scipy>0.13.0' 'numpy>=1.7' 'h5py>=2.3.1'
-  - source activate qiita_env
+  - source activate qiita
   - pip install sphinx sphinx-bootstrap-theme coveralls ipython[all]==2.4.1
   - pip install https://github.com/biocore/qiita/archive/analysis-refactor.zip --process-dependency-links
-  - export MOI_CONFIG_FP=$HOME/miniconda3/envs/qiita_env/lib/python2.7/site-packages/qiita_core/support_files/config_test.cfg
+  - export MOI_CONFIG_FP=$HOME/miniconda3/envs/qiita/lib/python2.7/site-packages/qiita_core/support_files/config_test.cfg
   - ipython profile create qiita-general --parallel
   - qiita-env start_cluster qiita-general
   - qiita-env make --no-load-ontologies
-  - export QIITA_SERVER_CERT=$HOME/miniconda3/envs/qiita_env/lib/python2.7/site-packages/qiita_core/support_files/server.crt
+  - export QIITA_SERVER_CERT=$HOME/miniconda3/envs/qiita/lib/python2.7/site-packages/qiita_core/support_files/server.crt
   - source deactivate
   # installing this plugin
   - conda create --yes -n qiime2 python=$PYTHON_VERSION --file https://raw.githubusercontent.com/qiime2/environment-files/master/latest/staging/qiime2-latest-conda-linux-64.txt
@@ -34,7 +34,7 @@ install:
   - configure_diversity_types --env-script "source activate qiime2" --server-cert $QIITA_SERVER_CERT
   - travis_retry pip install .
 before_script:
-  - source activate qiita_env
+  - source activate qiita
   - qiita plugins update
   - qiita pet webserver --no-build-docs start --master &
   - sleep 10 # give enough time to the webserver to start
