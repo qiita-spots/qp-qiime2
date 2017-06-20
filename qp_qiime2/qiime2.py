@@ -36,9 +36,9 @@ def rarefy(qclient, job_id, parameters, out_dir):
     out_dir = join(out_dir, 'rarefy')
 
     qclient.update_job_step(job_id, "Step 1 of 2: Collecting information")
-    artifact_id = parameters['i-table']
-    rarefy_level = parameters['p-sampling-depth']
-    artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
+    artifact_id = int(parameters['i-table'])
+    rarefy_level = int(parameters['p-sampling-depth'])
+    artifact_info = qclient.get("/qiita_db/artifacts/%d/" % artifact_id)
 
     # getting just the biom file, [0] it should be only one
     to_rarefy = artifact_info['files']['biom'][0]
@@ -56,7 +56,6 @@ def rarefy(qclient, job_id, parameters, out_dir):
     with biom_open(rarefied_fp, 'w') as bf:
         rarefied.to_hdf5(bf, "Qiita's Qiime2 plugin")
 
-    ainfo = [ArtifactInfo('rarefied table @ %d' % rarefy_level, 'BIOM',
-                          [(rarefied_fp, 'biom')])]
+    ainfo = [ArtifactInfo('o-table', 'BIOM', [(rarefied_fp, 'biom')])]
 
     return True, ainfo, ""
