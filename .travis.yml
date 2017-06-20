@@ -36,7 +36,7 @@ install:
 before_script:
   - source activate qiita_env
   - qiita plugins update
-  - qiita pet webserver start &
+  - qiita pet webserver --no-build-docs start --master &
   - sleep 10 # give enough time to the webserver to start
 script:
   - source activate qiime2
