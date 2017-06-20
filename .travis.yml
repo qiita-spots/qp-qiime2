@@ -16,7 +16,7 @@ install:
     'pandas>=0.18' 'scipy>0.13.0' 'numpy>=1.7' 'h5py>=2.3.1'
   - source activate qiita_env
   - pip install sphinx sphinx-bootstrap-theme coveralls ipython[all]==2.4.1
-  - pip install https://github.com/biocore/qiita/archive/master.zip --process-dependency-links
+  - pip install https://github.com/biocore/qiita/archive/analysis-refactor.zip --process-dependency-links
   - export MOI_CONFIG_FP=$HOME/miniconda3/envs/qiita_env/lib/python2.7/site-packages/qiita_core/support_files/config_test.cfg
   - ipython profile create qiita-general --parallel
   - qiita-env start_cluster qiita-general
