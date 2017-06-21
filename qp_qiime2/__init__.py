@@ -46,12 +46,12 @@ opt_params = {
          '"cityblock", "sokalmichener", "cosine", "wminkowski", "seuclidean", '
          '"chebyshev", "canberra", "unweighted", "weighted-normalized", '
          '"weighted-unnormalized"]'), 'jaccard'],
-    'i-tree': ['choice:["default"]', 'default']}
-outputs = {'dissimilarity-table': 'distance_matrix'}
+    'i-tree': ['choice:["default", "None"]', 'None']}
+outputs = {'distance-matrix': 'distance_matrix'}
 dflt_param_set = {
     'Defaults': {
-        'p-metric': 'unweighted',
-        'i-tree': 'default'}
+        'p-metric': 'jaccard',
+        'i-tree': 'None'}
 }
 qiime_cmd = QiitaCommand(
     "beta_diversity", "Beta Diversity",

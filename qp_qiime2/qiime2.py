@@ -131,9 +131,13 @@ def beta_diversity(qclient, job_id, parameters, out_dir):
     if tree is not None and metric in STATE_UNIFRAC_METRICS:
         cmd = ('qiime state-unifrac %s --i-table %s --i-phylogeny %s '
                '--o-distance-matrix %s' % (metric, biom_qza, tree, dtx_fp))
-    else:
+    elif metric not in STATE_UNIFRAC_METRICS:
         cmd = ('qiime diversity beta --i-table %s --p-metric %s '
                '--o-distance-matrix %s' % (biom_qza, metric, dtx_fp))
+    else:
+        return False, None, ('Phylogentic metric %s selected but no tree '
+                             'exists' % metric)
+
     std_out, std_err, return_value = system_call(cmd)
     if return_value != 0:
         error_msg = ("Error in beta div %s:\nStd out: %s\nStd err: %s"
@@ -151,6 +155,6 @@ def beta_diversity(qclient, job_id, parameters, out_dir):
                      "%s\nStd err: %s" % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('%s distance matrix' % metric, 'distance_matrix',
+    ainfo = [ArtifactInfo('distance-matrix', 'distance_matrix',
                           [(ffp, 'distance_matrix')])]
     return True, ainfo, ""

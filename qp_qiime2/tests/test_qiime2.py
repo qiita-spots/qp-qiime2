@@ -51,11 +51,11 @@ class qiime2Tests(PluginTestCase):
         self._clean_up_files.append(out_dir)
 
         success, ainfo, msg = rarefy(self.qclient, jid, params, out_dir)
-        self.assertEqual(True, success)
-        self.assertEqual('', msg)
-        self.assertEqual([(join(out_dir, 'rarefy', 'rarefied.biom'), 'biom')],
-                         ainfo[0].files)
-        self.assertEqual('o-table', ainfo[0].output_name)
+        self.assertTrue(success)
+        self.assertEqual(msg, '')
+        self.assertEqual(ainfo[0].files,
+                         [(join(out_dir, 'rarefy', 'rarefied.biom'), 'biom')])
+        self.assertEqual(ainfo[0].output_name, 'o-table')
 
         # testing that the table is actually rarefied, [0] cause there is only
         # one element, and [0][0] from that element we want the first element
@@ -63,7 +63,7 @@ class qiime2Tests(PluginTestCase):
         rb = load_table(ainfo[0].files[0][0])
         # 2 * 7 cause we rarefied at 2 sequences per sample and we have 7
         # samples
-        self.assertEqual(2 * 7, rb.sum())
+        self.assertEqual(rb.sum(), 2 * 7)
 
     def test_rarefy_error(self):
         params = {'p-sampling-depth': 200000, 'i-table': 5}
@@ -78,9 +78,9 @@ class qiime2Tests(PluginTestCase):
         self._clean_up_files.append(out_dir)
 
         success, ainfo, msg = rarefy(self.qclient, jid, params, out_dir)
-        self.assertEqual(False, success)
+        self.assertFalse(success)
         self.assertIsNone(ainfo)
-        self.assertEqual('Rarefaction level too high 200000', msg)
+        self.assertEqual(msg, 'Rarefaction level too high 200000')
 
     def test_beta(self):
         out_dir = mkdtemp()
@@ -100,7 +100,7 @@ class qiime2Tests(PluginTestCase):
         reply = self.qclient.post('/apitest/artifact/', data=data)
         aid = reply['artifact']
 
-        # # actually test non phylogenetic beta diversity
+        # actually test non phylogenetic beta diversity
         params = {
             'i-table': aid, 'p-metric': 'euclidean',
             'i-tree': None}
@@ -111,14 +111,14 @@ class qiime2Tests(PluginTestCase):
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
         success, ainfo, msg = beta_diversity(
             self.qclient, jid, params, out_dir)
-        self.assertEqual('', msg)
-        self.assertEqual(True, success)
+        self.assertEqual(msg, '')
+        self.assertTrue(success)
         # only 1 element
         self.assertEqual(len(ainfo), 1)
         # and that element [0] should have this file
         exp = [(join(out_dir, 'beta_diversity/dtx/distance-matrix.tsv'),
                 'distance_matrix')]
-        self.assertEqual(exp, ainfo[0].files)
+        self.assertEqual(ainfo[0].files, exp)
 
         params['p-metric'] = 'unweighted'
         params['i-tree'] = join(
@@ -126,14 +126,24 @@ class qiime2Tests(PluginTestCase):
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
         success, ainfo, msg = beta_diversity(
             self.qclient, jid, params, out_dir)
-        self.assertEqual('', msg)
-        self.assertEqual(True, success)
+        self.assertEqual(msg, '')
+        self.assertTrue(success)
         # only 1 element
         self.assertEqual(len(ainfo), 1)
         # and that element [0] should have this file
         exp = [(join(out_dir, 'beta_diversity/dtx/distance-matrix.tsv'),
                 'distance_matrix')]
-        self.assertEqual(exp, ainfo[0].files)
+        self.assertEqual(ainfo[0].files, exp)
+
+        # To avoid having to set up all these files, we are gonna test
+        # that if phylogentic and no tree it fails
+        params['i-tree'] = None
+        jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
+        success, ainfo, msg = beta_diversity(
+            self.qclient, jid, params, out_dir)
+        self.assertFalse(success)
+        self.assertEqual(msg, 'Phylogentic metric unweighted selected but '
+                              'no tree exists')
 
     def test_beta_errors(self):
         out_dir = mkdtemp()
@@ -153,7 +163,7 @@ class qiime2Tests(PluginTestCase):
 
         self.assertIn("Argument to input 'table' is not a subtype of "
                       "FeatureTable[Frequency]", msg)
-        self.assertEqual(False, success)
+        self.assertFalse(success)
 
 
 if __name__ == '__main__':
