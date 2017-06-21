@@ -44,8 +44,9 @@ opt_params = {
          '"euclidean", "correlation", "yule", "russellrao", "hamming", '
          '"jaccard", "braycurtis", "dice", "rogerstanimoto", "sqeuclidean", '
          '"cityblock", "sokalmichener", "cosine", "wminkowski", "seuclidean", '
-         '"chebyshev", "canberra", "unweighted", "weighted-normalized", '
-         '"weighted-unnormalized"]'), 'jaccard'],
+         '"chebyshev", "canberra", "unweighted UniFrac", '
+         '"weighted normalized UniFrac", "weighted unnormalized UniFrac"]'),
+        'jaccard'],
     'i-tree': ['choice:["default", "None"]', 'None']}
 outputs = {'distance-matrix': 'distance_matrix'}
 dflt_param_set = {

@@ -117,10 +117,10 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(len(ainfo), 1)
         # and that element [0] should have this file
         exp = [(join(out_dir, 'beta_diversity/dtx/distance-matrix.tsv'),
-                'distance_matrix')]
+                'plain_text')]
         self.assertEqual(ainfo[0].files, exp)
 
-        params['p-metric'] = 'unweighted'
+        params['p-metric'] = 'unweighted UniFrac'
         params['i-tree'] = join(
             dirname(realpath(__file__)), 'prune_97_gg_13_8.tre')
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -132,7 +132,7 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(len(ainfo), 1)
         # and that element [0] should have this file
         exp = [(join(out_dir, 'beta_diversity/dtx/distance-matrix.tsv'),
-                'distance_matrix')]
+                'plain_text')]
         self.assertEqual(ainfo[0].files, exp)
 
         # To avoid having to set up all these files, we are gonna test
@@ -142,8 +142,8 @@ class qiime2Tests(PluginTestCase):
         success, ainfo, msg = beta_diversity(
             self.qclient, jid, params, out_dir)
         self.assertFalse(success)
-        self.assertEqual(msg, 'Phylogentic metric unweighted selected but '
-                              'no tree exists')
+        self.assertEqual(msg, 'Phylogentic metric unweighted UniFrac selected '
+                              'but no tree exists')
 
     def test_beta_errors(self):
         out_dir = mkdtemp()

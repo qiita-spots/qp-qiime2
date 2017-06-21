@@ -15,8 +15,10 @@ from qiita_client import ArtifactInfo
 from qiita_client.util import system_call
 
 
-STATE_UNIFRAC_METRICS = [
-    "unweighted", "weighted-normalized", "weighted-unnormalized"]
+STATE_UNIFRAC_METRICS = {
+    "unweighted UniFrac": "unweighted",
+    "weighted normalized UniFrac": "weighted-normalized",
+    "weighted unnormalized UniFrac": "weighted-unnormalized"}
 
 
 def rarefy(qclient, job_id, parameters, out_dir):
@@ -127,11 +129,13 @@ def beta_diversity(qclient, job_id, parameters, out_dir):
 
     qclient.update_job_step(
         job_id, "Step 3 of 4: Calculating beta diversity: %s" % (metric))
-    dtx_fp = join(out_dir, '%s.qza' % metric)
     if tree is not None and metric in STATE_UNIFRAC_METRICS:
+        su_metric = STATE_UNIFRAC_METRICS[metric]
+        dtx_fp = join(out_dir, '%s.qza' % su_metric)
         cmd = ('qiime state-unifrac %s --i-table %s --i-phylogeny %s '
-               '--o-distance-matrix %s' % (metric, biom_qza, tree, dtx_fp))
-    elif metric not in STATE_UNIFRAC_METRICS:
+               '--o-distance-matrix %s' % (su_metric, biom_qza, tree, dtx_fp))
+    elif metric not in STATE_UNIFRAC_METRICS and tree is None:
+        dtx_fp = join(out_dir, '%s.qza' % metric)
         cmd = ('qiime diversity beta --i-table %s --p-metric %s '
                '--o-distance-matrix %s' % (biom_qza, metric, dtx_fp))
     else:
@@ -156,5 +160,5 @@ def beta_diversity(qclient, job_id, parameters, out_dir):
         return False, None, error_msg
 
     ainfo = [ArtifactInfo('distance-matrix', 'distance_matrix',
-                          [(ffp, 'distance_matrix')])]
+                          [(ffp, 'plain_text')])]
     return True, ainfo, ""
