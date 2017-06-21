@@ -12,8 +12,6 @@ from qiita_client import QiitaPlugin, QiitaCommand
 from .qiime2 import rarefy, beta_diversity
 from qiime2 import __version__ as qiime2_version
 
-__all__ = ['qiime2']
-
 
 # Initialize the plugin
 plugin = QiitaPlugin(
@@ -56,5 +54,6 @@ dflt_param_set = {
 }
 qiime_cmd = QiitaCommand(
     "beta_diversity", "Beta Diversity",
-    beta_diversity, req_params, opt_params, outputs, dflt_param_set)
+    beta_diversity, req_params, opt_params, outputs, dflt_param_set,
+    analysis_only=True)
 plugin.register_command(qiime_cmd)
