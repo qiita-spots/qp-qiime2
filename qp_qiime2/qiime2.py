@@ -95,6 +95,8 @@ def beta_diversity(qclient, job_id, parameters, out_dir):
     artifact_id = parameters['i-table']
     metric = parameters['p-metric']
     tree = parameters['i-tree']
+    if tree == 'None':
+        tree = None
     artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
     biom_fpi = artifact_info['files']['biom'][0]
     biom_qza = join(out_dir, 'q2-biom.qza')

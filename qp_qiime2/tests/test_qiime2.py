@@ -103,7 +103,7 @@ class qiime2Tests(PluginTestCase):
         # actually test non phylogenetic beta diversity
         params = {
             'i-table': aid, 'p-metric': 'euclidean',
-            'i-tree': None}
+            'i-tree': 'None'}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version, 'beta_diversity']),
                 'status': 'running',
