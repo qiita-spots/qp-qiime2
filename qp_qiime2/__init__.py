@@ -9,7 +9,7 @@
 
 from qiita_client import QiitaPlugin, QiitaCommand
 
-from .qiime2 import rarefy, beta_diversity
+from .qiime2 import rarefy, beta_diversity, pcoa
 from qiime2 import __version__ as qiime2_version
 
 
@@ -46,7 +46,7 @@ opt_params = {
          '"weighted normalized UniFrac", "weighted unnormalized UniFrac"]'),
         'jaccard'],
     'i-tree': ['choice:["default", "None"]', 'None']}
-outputs = {'distance-matrix': 'distance_matrix'}
+outputs = {'distance_matrix': 'distance_matrix'}
 dflt_param_set = {
     'Defaults': {
         'p-metric': 'jaccard',
@@ -55,5 +55,18 @@ dflt_param_set = {
 qiime_cmd = QiitaCommand(
     "beta_diversity", "Beta Diversity",
     beta_diversity, req_params, opt_params, outputs, dflt_param_set,
+    analysis_only=True)
+plugin.register_command(qiime_cmd)
+
+# Define the pcoa command
+req_params = {'i-distance-matrix': ('artifact', ['distance_matrix'])}
+opt_params = {}
+outputs = {'o-pcoa': 'ordination_results'}
+dflt_param_set = {
+    'Defaults': {}
+}
+qiime_cmd = QiitaCommand(
+    "pcoa", "Principal Coordinate Analysis",
+    pcoa, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)
