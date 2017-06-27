@@ -199,7 +199,7 @@ def pcoa(qclient, job_id, parameters, out_dir):
     qclient.update_job_step(
         job_id, "Step 2 of 4: Converting Qiita artifacts to Q2 artifact")
     cmd = ('qiime tools import --input-path %s --output-path %s '
-           '--type "DistanceMatrix"' % (biom_fpi, biom_qza))
+           '--type "DistanceMatrix"' % (dm_fp, dm_qza))
     std_out, std_err, return_value = system_call(cmd)
     if return_value != 0:
         error_msg = ("Error converting distance matrix:\nStd out: %s\n"
@@ -207,7 +207,7 @@ def pcoa(qclient, job_id, parameters, out_dir):
         return False, None, error_msg
 
     qclient.update_job_step(
-        job_id, "Step 3 of 4: Calculating pcoa: %s" % (metric))
+        job_id, "Step 3 of 4: Calculating pcoa")
     cmd = ('qiime diversity pcoa --i-distance-matrix %s --o-pcoa %s' % (
         dm_qza, pcoa_qza))
 
@@ -220,6 +220,7 @@ def pcoa(qclient, job_id, parameters, out_dir):
     qclient.update_job_step(
         job_id, "Step 4 of 4: Converting Q2 to Qiita artifacts")
     fdir = join(out_dir, 'pcoa')
+    ffp = join(fdir, 'ordination.txt')
     cmd = "qiime tools export --output-dir %s %s" % (fdir, pcoa_qza)
     std_out, std_err, return_value = system_call(cmd)
     if return_value != 0:
@@ -227,9 +228,6 @@ def pcoa(qclient, job_id, parameters, out_dir):
                      "%s\nStd err: %s" % (std_out, std_err))
         return False, None, error_msg
 
-    import os
-    print (os.walk(fdir))
-
-    ainfo = [ArtifactInfo('distance-matrix', 'distance_matrix',
+    ainfo = [ArtifactInfo('ordination_results', 'ordination_results',
                           [(ffp, 'plain_text')])]
     return True, ainfo, ""
