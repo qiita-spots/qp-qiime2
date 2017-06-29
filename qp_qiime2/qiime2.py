@@ -161,7 +161,7 @@ def beta_diversity(qclient, job_id, parameters, out_dir):
                      "%s\nStd err: %s" % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('distance-matrix', 'distance_matrix',
+    ainfo = [ArtifactInfo('distance_matrix', 'distance_matrix',
                           [(ffp, 'plain_text')])]
     return True, ainfo, ""
 
@@ -228,6 +228,6 @@ def pcoa(qclient, job_id, parameters, out_dir):
                      "%s\nStd err: %s" % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('ordination_results', 'ordination_results',
+    ainfo = [ArtifactInfo('o-pcoa', 'ordination_results',
                           [(ffp, 'plain_text')])]
     return True, ainfo, ""
