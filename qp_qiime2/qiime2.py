@@ -161,6 +161,73 @@ def beta_diversity(qclient, job_id, parameters, out_dir):
                      "%s\nStd err: %s" % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('distance-matrix', 'distance_matrix',
+    ainfo = [ArtifactInfo('distance_matrix', 'distance_matrix',
+                          [(ffp, 'plain_text')])]
+    return True, ainfo, ""
+
+
+def pcoa(qclient, job_id, parameters, out_dir):
+    """generate pcoa calculations
+
+    Parameters
+    ----------
+    qclient : qiita_client.QiitaClient
+        The Qiita server client
+    job_id : str
+        The job id
+    parameters : dict
+        The parameter values to rarefy
+    out_dir : str
+        The path to the job's output directory
+
+    Returns
+    -------
+    boolean, list, str
+        The results of the job
+    """
+    out_dir = join(out_dir, 'pcoa')
+    if not exists(out_dir):
+        mkdir(out_dir)
+
+    qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
+    artifact_id = parameters['i-distance-matrix']
+    artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
+    dm_fp = artifact_info['files']['plain_text'][0]
+    dm_qza = join(out_dir, 'q2-distance.qza')
+    pcoa_qza = join(out_dir, 'q2-pcoa.qza')
+
+    qclient.update_job_step(
+        job_id, "Step 2 of 4: Converting Qiita artifacts to Q2 artifact")
+    cmd = ('qiime tools import --input-path %s --output-path %s '
+           '--type "DistanceMatrix"' % (dm_fp, dm_qza))
+    std_out, std_err, return_value = system_call(cmd)
+    if return_value != 0:
+        error_msg = ("Error converting distance matrix:\nStd out: %s\n"
+                     "Std err: %s" % (std_out, std_err))
+        return False, None, error_msg
+
+    qclient.update_job_step(
+        job_id, "Step 3 of 4: Calculating pcoa")
+    cmd = ('qiime diversity pcoa --i-distance-matrix %s --o-pcoa %s' % (
+        dm_qza, pcoa_qza))
+
+    std_out, std_err, return_value = system_call(cmd)
+    if return_value != 0:
+        error_msg = ("Error in PCoA\nStd out: %s\nStd err: %s"
+                     % (std_out, std_err))
+        return False, None, error_msg
+
+    qclient.update_job_step(
+        job_id, "Step 4 of 4: Converting Q2 to Qiita artifacts")
+    fdir = join(out_dir, 'pcoa')
+    ffp = join(fdir, 'ordination.txt')
+    cmd = "qiime tools export --output-dir %s %s" % (fdir, pcoa_qza)
+    std_out, std_err, return_value = system_call(cmd)
+    if return_value != 0:
+        error_msg = ("Error in Q2 -> Qiita conversion:\nStd out: "
+                     "%s\nStd err: %s" % (std_out, std_err))
+        return False, None, error_msg
+
+    ainfo = [ArtifactInfo('o-pcoa', 'ordination_results',
                           [(ffp, 'plain_text')])]
     return True, ainfo, ""
