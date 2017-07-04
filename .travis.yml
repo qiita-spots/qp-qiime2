@@ -36,7 +36,7 @@ install:
   - sed -i 's/^CXXLINKERBASE=.*/CXXLINKERBASE=clang++/' `which h5c++`
   - pip install https://github.com/wasade/q2-state-unifrac/archive/master.zip
   # we are gonna use the same qiime2 environmen to install qtp-diversity
-  - pip install https://github.com/josenavas/qtp-diversity/archive/types-summary.zip
+  - pip install https://github.com/qiita-spots/qtp-diversity/archive/master.zip
   - configure_diversity_types --env-script "source activate qiime2" --server-cert $QIITA_SERVER_CERT
   - travis_retry pip install .
 before_script:
