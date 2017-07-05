@@ -265,7 +265,7 @@ def beta_correlation(qclient, job_id, parameters, out_dir):
                      % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('o-visualization', 'q2_visualization',
+    ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
                           [(o_visualization, 'qiime2-visualization')])]
     return True, ainfo, ""
 
@@ -434,7 +434,7 @@ def alpha_correlation(qclient, job_id, parameters, out_dir):
                      % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('o-visualization', 'q2_visualization',
+    ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
                           [(o_visualization, 'qiime2-visualization')])]
     return True, ainfo, ""
 
@@ -526,6 +526,6 @@ def taxa_barplot(qclient, job_id, parameters, out_dir):
                      "Std err: %s" % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('o-visualization', 'q2_visualization',
+    ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
                           [(taxa_plot_qzv, 'qiime2-visualization')])]
     return True, ainfo, ""
