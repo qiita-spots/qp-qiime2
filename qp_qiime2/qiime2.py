@@ -422,7 +422,7 @@ def alpha_correlation(qclient, job_id, parameters, out_dir):
         return False, None, error_msg
 
     qclient.update_job_step(
-        job_id, "Step 3 of 3: Calculating beta correlation")
+        job_id, "Step 3 of 3: Calculating alpha correlation")
     cmd = ('qiime diversity alpha-correlation --i-alpha-diversity %s '
            '--m-metadata-file %s --p-method %s --o-visualization %s' % (
                dm_qza, metadata_fp, p_method, o_visualization))
