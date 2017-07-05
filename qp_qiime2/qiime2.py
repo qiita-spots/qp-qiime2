@@ -326,7 +326,7 @@ def alpha_diversity(qclient, job_id, parameters, out_dir):
                      "%s\nStd err: %s" % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('distance_matrix', 'distance_matrix',
+    ainfo = [ArtifactInfo('alpha_vector', 'alpha_vector',
                           [(ffp, 'plain_text')])]
     return True, ainfo, ""
 

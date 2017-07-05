@@ -105,7 +105,7 @@ opt_params = {
 #
 # change!
 #
-outputs = {'o-alpha-diversity': 'ordination_results'}
+outputs = {'o-alpha-diversity': 'alpha_vector'}
 dflt_param_set = {
     'Defaults': {
         'p-metric': 'observed_otus',
