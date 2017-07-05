@@ -10,7 +10,7 @@
 from qiita_client import QiitaPlugin, QiitaCommand
 
 from .qiime2 import (rarefy, beta_diversity, pcoa, beta_correlation,
-                     alpha_diversity, alpha_correlation)
+                     alpha_diversity, alpha_correlation, taxa_barplot)
 from qiime2 import __version__ as qiime2_version
 
 
@@ -102,9 +102,6 @@ opt_params = {
          '"mcintosh_e", "lladser_pe", "gini_index", "faith_pd"]'),
         'observed_otus'],
     'i-tree': ['choice:["default", "None"]', 'None']}
-#
-# change!
-#
 outputs = {'o-alpha-diversity': 'alpha_vector'}
 dflt_param_set = {
     'Defaults': {
@@ -128,5 +125,18 @@ dflt_param_set = {
 qiime_cmd = QiitaCommand(
     "alpha_correlation", "Alpha Corrrelation",
     alpha_correlation, req_params, opt_params, outputs, dflt_param_set,
+    analysis_only=True)
+plugin.register_command(qiime_cmd)
+
+# Define the taxa barplot command
+req_params = {'i-table': ('artifact', ['BIOM'])}
+opt_params = {}
+outputs = {'q2_visualization': 'q2_visualization'}
+dflt_param_set = {
+    'Defaults': {}
+}
+qiime_cmd = QiitaCommand(
+    "taxa_barplot", "Taxa Barplot",
+    taxa_barplot, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)
