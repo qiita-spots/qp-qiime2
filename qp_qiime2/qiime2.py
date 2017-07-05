@@ -374,6 +374,7 @@ def _diversity_init_steps(qclient, job_id, parameters, out_dir):
 
     return biom_qza, metric, tree
 
+
 def alpha_correlation(qclient, job_id, parameters, out_dir):
     """generate alpha correlation calculations
 

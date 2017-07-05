@@ -315,7 +315,8 @@ class qiime2Tests(PluginTestCase):
             'i-table': aid, 'p-metric': 'observed_otus',
             'i-tree': 'None'}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'alpha_diversity']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'alpha_diversity']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
