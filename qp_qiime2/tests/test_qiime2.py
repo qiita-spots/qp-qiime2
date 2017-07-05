@@ -20,7 +20,7 @@ from qiime2 import __version__ as qiime2_version
 
 from qp_qiime2 import plugin
 from qp_qiime2.qiime2 import (rarefy, beta_diversity, pcoa, beta_correlation,
-                              alpha_diversity)
+                              alpha_diversity, alpha_correlation)
 
 
 class qiime2Tests(PluginTestCase):
@@ -310,12 +310,12 @@ class qiime2Tests(PluginTestCase):
         reply = self.qclient.post('/apitest/artifact/', data=data)
         aid = reply['artifact']
 
-        # actually test non phylogenetic beta diversity
+        # actually test non phylogenetic alpha diversity
         params = {
             'i-table': aid, 'p-metric': 'observed_otus',
             'i-tree': 'None'}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'beta_diversity']),
+                'command': dumps(['qiime2', qiime2_version, 'alpha_diversity']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -374,6 +374,63 @@ class qiime2Tests(PluginTestCase):
         self.assertIn("Argument to input 'table' is not a subtype of "
                       "FeatureTable[Frequency]", msg)
         self.assertFalse(success)
+
+    def test_alpha_correlation(self):
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        # qiime2 currently only works with rarefied tables so we need to
+        # rarefy it
+        params = {'p-sampling-depth': 10, 'i-table': 8}
+        data = {'user': 'demo@microbio.me',
+                'command': dumps(['qiime2', qiime2_version, 'Rarefy']),
+                'status': 'running',
+                'parameters': dumps(params)}
+        jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
+        success, ainfo, msg = rarefy(self.qclient, jid, params, out_dir)
+        data = {'filepaths': dumps(ainfo[0].files), 'type': "BIOM",
+                'name': "Rarefied biom", 'analysis': 1, 'data_type': '16S'}
+        reply = self.qclient.post('/apitest/artifact/', data=data)
+        aid = reply['artifact']
+
+        # non phylogenetic alpha diversity
+        params = {
+            'i-table': aid, 'p-metric': 'observed_otus',
+            'i-tree': 'None'}
+        data = {'user': 'demo@microbio.me',
+                'command': dumps(['qiime2', qiime2_version,
+                                  'alpha_diversity']),
+                'status': 'running',
+                'parameters': dumps(params)}
+        jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
+        success, ainfo, msg = alpha_diversity(
+            self.qclient, jid, params, out_dir)
+        data = {'filepaths': dumps(ainfo[0].files), 'type': "alpha_vector",
+                'name': "Non phylogenetic alpha vector", 'analysis': 1,
+                'data_type': '16S'}
+        reply = self.qclient.post('/apitest/artifact/', data=data)
+        aid = reply['artifact']
+
+        # alpha_correlation
+        # 1 using that analysis
+        params = {'i-alpha-diversity': aid, 'p-method': 'spearman'}
+        data = {'user': 'demo@microbio.me',
+                'command': dumps([
+                    'qiime2', qiime2_version, 'alpha_correlation']),
+                'status': 'running',
+                'parameters': dumps(params)}
+        jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
+        success, ainfo, msg = alpha_correlation(
+            self.qclient, jid, params, out_dir)
+
+        self.assertEqual(msg, '')
+        self.assertTrue(success)
+        # only 1 element
+        self.assertEqual(len(ainfo), 1)
+        # and that element [0] should have this file
+        exp = [(join(out_dir, 'alpha_correlation/alpha_correlation.qzv'),
+               'qiime2-visualization')]
+        self.assertEqual(ainfo[0].files, exp)
 
 
 if __name__ == '__main__':

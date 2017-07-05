@@ -203,7 +203,7 @@ def pcoa(qclient, job_id, parameters, out_dir):
 
 
 def beta_correlation(qclient, job_id, parameters, out_dir):
-    """generate pcoa calculations
+    """generate beta correlation calculations
 
     Parameters
     ----------
@@ -271,7 +271,7 @@ def beta_correlation(qclient, job_id, parameters, out_dir):
 
 
 def alpha_diversity(qclient, job_id, parameters, out_dir):
-    """generate beta diversity calculations
+    """generate alpha diversity calculations
 
     Parameters
     ----------
@@ -373,3 +373,66 @@ def _diversity_init_steps(qclient, job_id, parameters, out_dir):
             return False, None, error_msg
 
     return biom_qza, metric, tree
+
+def alpha_correlation(qclient, job_id, parameters, out_dir):
+    """generate alpha correlation calculations
+
+    Parameters
+    ----------
+    qclient : qiita_client.QiitaClient
+        The Qiita server client
+    job_id : str
+        The job id
+    parameters : dict
+        The parameter values to rarefy
+    out_dir : str
+        The path to the job's output directory
+
+    Returns
+    -------
+    boolean, list, str
+        The results of the job
+    """
+    out_dir = join(out_dir, 'alpha_correlation')
+    if not exists(out_dir):
+        mkdir(out_dir)
+
+    qclient.update_job_step(job_id, "Step 1 of 3: Collecting information")
+    artifact_id = parameters['i-alpha-diversity']
+    artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
+    dm_fp = artifact_info['files']['plain_text'][0]
+    dm_qza = join(out_dir, 'q2-alpha-diversity.qza')
+    analysis_id = artifact_info['analysis']
+    metadata = qclient.get(
+        "/qiita_db/analysis/%s/metadata/" % str(analysis_id))
+    metadata = pd.DataFrame.from_dict(metadata, orient='index')
+    metadata_fp = join(out_dir, 'metadata.txt')
+    metadata.to_csv(metadata_fp, sep='\t')
+    p_method = parameters['p-method']
+    o_visualization = join(out_dir, 'alpha_correlation.qzv')
+
+    qclient.update_job_step(
+        job_id, "Step 2 of 3: Converting Qiita artifacts to Q2 artifact")
+    cmd = ('qiime tools import --input-path %s --output-path %s '
+           '--type "SampleData[AlphaDiversity]"' % (dm_fp, dm_qza))
+    std_out, std_err, return_value = system_call(cmd)
+    if return_value != 0:
+        error_msg = ("Error converting distance matrix:\nStd out: %s\n"
+                     "Std err: %s" % (std_out, std_err))
+        return False, None, error_msg
+
+    qclient.update_job_step(
+        job_id, "Step 3 of 3: Calculating beta correlation")
+    cmd = ('qiime diversity alpha-correlation --i-alpha-diversity %s '
+           '--m-metadata-file %s --p-method %s --o-visualization %s' % (
+               dm_qza, metadata_fp, p_method, o_visualization))
+
+    std_out, std_err, return_value = system_call(cmd)
+    if return_value != 0:
+        error_msg = ("Error in Alpha Correlation\nStd out: %s\nStd err: %s"
+                     % (std_out, std_err))
+        return False, None, error_msg
+
+    ainfo = [ArtifactInfo('o-visualization', 'q2_visualization',
+                          [(o_visualization, 'qiime2-visualization')])]
+    return True, ainfo, ""
