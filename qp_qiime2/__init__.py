@@ -9,7 +9,8 @@
 
 from qiita_client import QiitaPlugin, QiitaCommand
 
-from .qiime2 import rarefy, beta_diversity, pcoa, alpha_diversity
+from .qiime2 import (rarefy, beta_diversity, pcoa, beta_correlation,
+                     alpha_diversity)
 from qiime2 import __version__ as qiime2_version
 
 
@@ -68,6 +69,23 @@ dflt_param_set = {
 qiime_cmd = QiitaCommand(
     "pcoa", "Principal Coordinate Analysis",
     pcoa, req_params, opt_params, outputs, dflt_param_set,
+    analysis_only=True)
+plugin.register_command(qiime_cmd)
+
+# Define the beta_correlation command
+req_params = {'i-distance-matrix': ('artifact', ['distance_matrix']),
+              'm-metadata-category': ('string', '')}
+opt_params = {'p-method': ['choice:["spearman", "pearson"]', 'spearman'],
+              'p-permutations': ('integer', 999)}
+outputs = {'q2_visualization': 'q2_visualization'}
+dflt_param_set = {
+    'Defaults': {
+        'p-method': 'spearman',
+        'p-permutations': 999}
+}
+qiime_cmd = QiitaCommand(
+    "beta_correlation", "Beta Corrrelation",
+    beta_correlation, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)
 
