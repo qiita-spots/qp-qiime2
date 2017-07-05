@@ -254,7 +254,7 @@ class qiime2Tests(PluginTestCase):
 
         # beta_correlation
         # 1 using that analysis
-        params = {'i-distance-matrix': aid, 'm-metadata-file': 1,
+        params = {'i-distance-matrix': aid,
                   'm-metadata-category': 'samp_salinity',
                   'p-method': 'spearman', 'p-permutations': 5}
         data = {'user': 'demo@microbio.me',
@@ -276,7 +276,7 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(ainfo[0].files, exp)
 
         # testing faillure here, just to avoid reduplicating all the code above
-        params = {'i-distance-matrix': aid, 'm-metadata-file': 1,
+        params = {'i-distance-matrix': aid,
                   'm-metadata-category': 'common_name', 'p-method': 'spearman',
                   'p-permutations': 5}
         data = {'user': 'demo@microbio.me',

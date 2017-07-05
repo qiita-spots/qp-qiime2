@@ -74,15 +74,12 @@ plugin.register_command(qiime_cmd)
 
 # Define the beta_correlation command
 req_params = {'i-distance-matrix': ('artifact', ['distance_matrix']),
-              'm-metadata-file': ('artifact', ['BIOM'])}
-opt_params = {'m-metadata-category': ('string', ''),
-              'p-method': ['choice:["spearman", "pearson"]', 'spearman'],
+              'm-metadata-category': ('string', '')}
+opt_params = {'p-method': ['choice:["spearman", "pearson"]', 'spearman'],
               'p-permutations': ('integer', 999)}
-# outputs = {'qiime2-visualization': 'qiime2-visualization'}
 outputs = {'q2_visualization': 'q2_visualization'}
 dflt_param_set = {
     'Defaults': {
-        'm-metadata-category': '#SampleID',
         'p-method': 'spearman',
         'p-permutations': 999}
 }

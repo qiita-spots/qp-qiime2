@@ -263,7 +263,7 @@ def beta_correlation(qclient, job_id, parameters, out_dir):
     artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
     dm_fp = artifact_info['files']['plain_text'][0]
     dm_qza = join(out_dir, 'q2-distance.qza')
-    analysis_id = parameters['m-metadata-file']
+    analysis_id = artifact_info['analysis']
     metadata = qclient.get(
         "/qiita_db/analysis/%s/metadata/" % str(analysis_id))
     metadata = pd.DataFrame.from_dict(metadata, orient='index')
