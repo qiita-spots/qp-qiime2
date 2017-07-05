@@ -52,6 +52,7 @@ script:
   - configure_qiime2 --env-script "source activate qiime2" --server-cert $QIITA_SERVER_CERT
   # Let's try registering the qtp-diversity types plugin manually:
   - start_diversity_types https://localhost:21174 register ignored
+  - start_visualization_types https://localhost:21174 register ignored
   - nosetests --with-doctest --with-coverage --cover-package=qp_qiime2
   - flake8 qp_qiime2 setup.py scripts
 addons:
