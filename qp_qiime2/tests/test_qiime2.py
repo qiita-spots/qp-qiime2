@@ -217,6 +217,18 @@ class qiime2Tests(PluginTestCase):
         exp = [(join(out_dir, 'pcoa/pcoa/ordination.txt'), 'plain_text')]
         self.assertEqual(ainfo[0].files, exp)
 
+
+
+
+
+
+
+
+
+
+
+
+
     def test_alpha(self):
         out_dir = mkdtemp()
         self._clean_up_files.append(out_dir)

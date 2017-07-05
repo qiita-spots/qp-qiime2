@@ -200,6 +200,21 @@ def pcoa(qclient, job_id, parameters, out_dir):
     return True, ainfo, ""
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def alpha_diversity(qclient, job_id, parameters, out_dir):
     """generate beta diversity calculations
 
