@@ -483,8 +483,11 @@ def taxa_barplot(qclient, job_id, parameters, out_dir):
     with open(taxonomy_txt, 'w') as fp:
         fp.write('Feature ID\tTaxon\n')
         for otu_id in bt.ids('observation'):
-            taxonomy = '; '.join(
-                bt.metadata(id=otu_id, axis='observation')['taxonomy'])
+            tax = bt.metadata(id=otu_id, axis='observation')
+            if tax is None:
+                error_msg = ("biom table doesn't have taxonomy")
+                return False, None, error_msg
+            taxonomy = '; '.join(tax['taxonomy'])
             fp.write("%s\t%s\n" % (otu_id, taxonomy))
 
     qclient.update_job_step(
