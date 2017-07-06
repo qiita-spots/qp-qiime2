@@ -440,7 +440,7 @@ def alpha_correlation(qclient, job_id, parameters, out_dir):
 
 
 def taxa_barplot(qclient, job_id, parameters, out_dir):
-    """generate taxa barplot calculations
+    """Generate taxa barplot calculations
 
     Parameters
     ----------
