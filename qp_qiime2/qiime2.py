@@ -265,7 +265,7 @@ def beta_correlation(qclient, job_id, parameters, out_dir):
                      % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('o-visualization', 'q2_visualization',
+    ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
                           [(o_visualization, 'qiime2-visualization')])]
     return True, ainfo, ""
 
@@ -434,6 +434,98 @@ def alpha_correlation(qclient, job_id, parameters, out_dir):
                      % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('o-visualization', 'q2_visualization',
+    ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
                           [(o_visualization, 'qiime2-visualization')])]
+    return True, ainfo, ""
+
+
+def taxa_barplot(qclient, job_id, parameters, out_dir):
+    """Generate taxa barplot calculations
+
+    Parameters
+    ----------
+    qclient : qiita_client.QiitaClient
+        The Qiita server client
+    job_id : str
+        The job id
+    parameters : dict
+        The parameter values to rarefy
+    out_dir : str
+        The path to the job's output directory
+
+    Returns
+    -------
+    boolean, list, str
+        The results of the job
+    """
+    out_dir = join(out_dir, 'taxa_barplot')
+    if not exists(out_dir):
+        mkdir(out_dir)
+
+    qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
+    artifact_id = int(parameters['i-table'])
+    artifact_info = qclient.get("/qiita_db/artifacts/%d/" % artifact_id)
+    analysis_id = artifact_info['analysis']
+    metadata = qclient.get(
+        "/qiita_db/analysis/%s/metadata/" % str(analysis_id))
+    metadata = pd.DataFrame.from_dict(metadata, orient='index')
+    metadata_fp = join(out_dir, 'metadata.txt')
+    metadata.to_csv(metadata_fp, sep='\t')
+
+    biom_qza = join(out_dir, 'q2-biom.qza')
+    taxonomy_txt = join(out_dir, 'q2-taxonomy.txt')
+    taxonomy_qza = join(out_dir, 'q2-taxonomy.qza')
+    taxa_plot_qzv = join(out_dir, 'taxa-barplot.qzv')
+
+    # getting the biom table so we can check for taxonomies
+    biom_fp = artifact_info['files']['biom'][0]
+    bt = load_table(biom_fp)
+    with open(taxonomy_txt, 'w') as fp:
+        fp.write('Feature ID\tTaxon\n')
+        for otu_id in bt.ids('observation'):
+            tax = bt.metadata(id=otu_id, axis='observation')
+            if tax is None:
+                error_msg = ("biom table doesn't have taxonomy")
+                return False, None, error_msg
+            taxonomy = '; '.join(tax['taxonomy'])
+            fp.write("%s\t%s\n" % (otu_id, taxonomy))
+
+    qclient.update_job_step(
+        job_id, "Step 2 of 4: Converting Qiita artifacts to Q2 artifact: BIOM")
+    cmd = ('qiime tools import --input-path %s --output-path %s '
+           '--type "FeatureTable[Frequency]' % (biom_fp, biom_qza))
+
+    counts = list(map(sum, bt.iter_data()))
+    if min(counts) == max(counts):
+        cmd += " % Properties(['uniform-sampling'])\""
+    else:
+        cmd += '"'
+    std_out, std_err, return_value = system_call(cmd)
+    if return_value != 0:
+        error_msg = ("Error converting biom:\nStd out: %s\nStd err: %s"
+                     % (std_out, std_err))
+        return False, None, error_msg
+
+    qclient.update_job_step(job_id, "Step 3 of 4: Converting Qiita artifacts "
+                                    "to Q2 artifact: Taxonomy")
+    cmd = ('qiime tools import --input-path %s --output-path %s '
+           '--type "FeatureData[Taxonomy]"' % (taxonomy_txt, taxonomy_qza))
+    std_out, std_err, return_value = system_call(cmd)
+    if return_value != 0:
+        error_msg = ("Error converting taxonomy:\nStd out: %s\n"
+                     "Std err: %s" % (std_out, std_err))
+        return False, None, error_msg
+
+    qclient.update_job_step(job_id, "Step 4 of 4: Generating summary")
+    cmd = ('qiime taxa barplot --i-table %s --i-taxonomy %s '
+           '--m-metadata-file %s --o-visualization %s' % (
+               biom_qza, taxonomy_qza, metadata_fp, taxa_plot_qzv))
+    std_out, std_err, return_value = system_call(cmd)
+    if return_value != 0:
+        error_msg = ("Error generating taxonomy summary:\nStd out: %s\n"
+                     "Std err: %s" % (std_out, std_err))
+        return False, None, error_msg
+
+    ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
+                          [(taxa_plot_qzv, 'qiime2-visualization')])]
     return True, ainfo, ""

@@ -20,7 +20,7 @@ from qiime2 import __version__ as qiime2_version
 
 from qp_qiime2 import plugin
 from qp_qiime2.qiime2 import (rarefy, beta_diversity, pcoa, beta_correlation,
-                              alpha_diversity, alpha_correlation)
+                              alpha_diversity, alpha_correlation, taxa_barplot)
 
 
 class qiime2Tests(PluginTestCase):
@@ -430,6 +430,28 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(len(ainfo), 1)
         # and that element [0] should have this file
         exp = [(join(out_dir, 'alpha_correlation/alpha_correlation.qzv'),
+               'qiime2-visualization')]
+        self.assertEqual(ainfo[0].files, exp)
+
+    def test_taxa_barplot(self):
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        params = {'i-table': 8}
+        data = {'user': 'demo@microbio.me',
+                'command': dumps([
+                    'qiime2', qiime2_version, 'taxa_barplot']),
+                'status': 'running',
+                'parameters': dumps(params)}
+        jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
+        success, ainfo, msg = taxa_barplot(self.qclient, jid, params, out_dir)
+
+        self.assertEqual(msg, '')
+        self.assertTrue(success)
+        # only 1 element
+        self.assertEqual(len(ainfo), 1)
+        # and that element [0] should have this file
+        exp = [(join(out_dir, 'taxa_barplot/taxa-barplot.qzv'),
                'qiime2-visualization')]
         self.assertEqual(ainfo[0].files, exp)
 
