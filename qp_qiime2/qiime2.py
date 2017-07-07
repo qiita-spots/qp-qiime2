@@ -82,7 +82,7 @@ def beta_diversity(qclient, job_id, parameters, out_dir):
     job_id : str
         The job id
     parameters : dict
-        The parameter values to rarefy
+        The parameter values for beta diversity
     out_dir : str
         The path to the job's output directory
 
@@ -145,7 +145,7 @@ def pcoa(qclient, job_id, parameters, out_dir):
     job_id : str
         The job id
     parameters : dict
-        The parameter values to rarefy
+        The parameter values for pcoa
     out_dir : str
         The path to the job's output directory
 
@@ -212,7 +212,7 @@ def beta_correlation(qclient, job_id, parameters, out_dir):
     job_id : str
         The job id
     parameters : dict
-        The parameter values to rarefy
+        The parameter values for beta correlation
     out_dir : str
         The path to the job's output directory
 
@@ -280,7 +280,7 @@ def alpha_diversity(qclient, job_id, parameters, out_dir):
     job_id : str
         The job id
     parameters : dict
-        The parameter values to rarefy
+        The parameter values for alpha diversity
     out_dir : str
         The path to the job's output directory
 
@@ -385,7 +385,7 @@ def alpha_correlation(qclient, job_id, parameters, out_dir):
     job_id : str
         The job id
     parameters : dict
-        The parameter values to rarefy
+        The parameter values for alpha correlation
     out_dir : str
         The path to the job's output directory
 
@@ -449,7 +449,7 @@ def taxa_barplot(qclient, job_id, parameters, out_dir):
     job_id : str
         The job id
     parameters : dict
-        The parameter values to rarefy
+        The parameter values for taxa barplot
     out_dir : str
         The path to the job's output directory
 
@@ -528,4 +528,94 @@ def taxa_barplot(qclient, job_id, parameters, out_dir):
 
     ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
                           [(taxa_plot_qzv, 'qiime2-visualization')])]
+    return True, ainfo, ""
+
+
+def filter_samples(qclient, job_id, parameters, out_dir):
+    """Filter samples from a table
+
+    Parameters
+    ----------
+    qclient : qiita_client.QiitaClient
+        The Qiita server client
+    job_id : str
+        The job id
+    parameters : dict
+        The parameter values for filter samples
+    out_dir : str
+        The path to the job's output directory
+
+    Returns
+    -------
+    boolean, list, str
+        The results of the job
+    """
+    out_dir = join(out_dir, 'filter_samples')
+    if not exists(out_dir):
+        mkdir(out_dir)
+
+    qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
+    artifact_id = int(parameters['i-table'])
+    p_max_frequency = int(parameters['p-max-frequency'])
+    p_max_features = int(parameters['p-max-features'])
+    p_min_frequency = int(parameters['p-min-frequency'])
+    p_min_features = int(parameters['p-min-features'])
+    p_where = parameters['p-where']
+
+    artifact_info = qclient.get("/qiita_db/artifacts/%d/" % artifact_id)
+    analysis_id = artifact_info['analysis']
+    metadata = qclient.get(
+        "/qiita_db/analysis/%s/metadata/" % str(analysis_id))
+    metadata = pd.DataFrame.from_dict(metadata, orient='index')
+    metadata_fp = join(out_dir, 'metadata.txt')
+    metadata.to_csv(metadata_fp, sep='\t')
+
+    # getting just the biom file, [0] it should be only one
+    biom_ifp = artifact_info['files']['biom'][0]
+    biom_ofp = join(out_dir, 'biom.qza')
+
+    qclient.update_job_step(
+        job_id, "Step 2 of 4: Converting Qiita artifacts to Q2 artifact")
+    # converting biom
+    cmd = ('qiime tools import --input-path %s --output-path %s '
+           '--type "FeatureTable[Frequency]' % (biom_ifp, biom_ofp))
+    b = load_table(biom_ifp)
+    counts = list(map(sum, b.iter_data()))
+    if min(counts) == max(counts):
+        cmd += " % Properties(['uniform-sampling'])\""
+    else:
+        cmd += '"'
+    std_out, std_err, return_value = system_call(cmd)
+    if return_value != 0:
+        error_msg = ("Error converting biom:\nStd out: %s\nStd err: %s"
+                     % (std_out, std_err))
+        return False, None, error_msg
+
+    qclient.update_job_step(job_id, "Step 3 of 4: Filtering")
+    filter_ofp = join(out_dir, 'biom_filtered.qza')
+    cmd = ('qiime feature-table filter-samples --m-metadata-file %s '
+           '--o-filtered-table %s --p-max-frequency %d --p-max-features %d '
+           '--p-min-frequency %d --p-min-features %d --i-table %s' % (
+               metadata_fp, filter_ofp, p_max_frequency, p_max_features,
+               p_min_frequency, p_min_features, biom_ofp))
+    if p_where != '':
+        cmd += ' --p-where "%s"' % p_where
+    std_out, std_err, return_value = system_call(cmd)
+    if return_value != 0:
+        error_msg = ("Error in filtering samples in biom\nStd out: %s\n"
+                     "Std err: %s" % (std_out, std_err))
+        return False, None, error_msg
+
+    qclient.update_job_step(
+        job_id, "Step 4 of 4: Converting Q2 to Qiita artifacts")
+    fdir = join(out_dir, 'filter_samples')
+    ffp = join(fdir, 'feature-table.biom')
+    cmd = "qiime tools export --output-dir %s %s" % (fdir, filter_ofp)
+    std_out, std_err, return_value = system_call(cmd)
+    if return_value != 0:
+        error_msg = ("Error in Q2 -> Qiita conversion:\nStd out: "
+                     "%s\nStd err: %s" % (std_out, std_err))
+        return False, None, error_msg
+
+    ainfo = [ArtifactInfo('o-table', 'BIOM', [(ffp, 'biom')])]
     return True, ainfo, ""
