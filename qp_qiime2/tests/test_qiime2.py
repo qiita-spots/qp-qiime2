@@ -20,7 +20,8 @@ from qiime2 import __version__ as qiime2_version
 
 from qp_qiime2 import plugin
 from qp_qiime2.qiime2 import (rarefy, beta_diversity, pcoa, beta_correlation,
-                              alpha_diversity, alpha_correlation, taxa_barplot)
+                              alpha_diversity, alpha_correlation, taxa_barplot,
+                              filter_samples)
 
 
 class qiime2Tests(PluginTestCase):
@@ -453,6 +454,37 @@ class qiime2Tests(PluginTestCase):
         # and that element [0] should have this file
         exp = [(join(out_dir, 'taxa_barplot/taxa-barplot.qzv'),
                'qiime2-visualization')]
+        self.assertEqual(ainfo[0].files, exp)
+
+    def test_filter_samples(self):
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        params = {
+            'i-table': '8',
+            'p-min-frequency': '5',
+            'p-max-frequency': '10',
+            'p-min-features': '5',
+            'p-max-features': '9223372036854775807',
+            'p-where': ''
+        }
+        data = {'user': 'demo@microbio.me',
+                'command': dumps([
+                    'qiime2', qiime2_version, 'filter_samples']),
+                'status': 'running',
+                'parameters': dumps(params)}
+        jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
+        success, ainfo, msg = filter_samples(
+            self.qclient, jid, params, out_dir)
+
+        self.assertEqual(msg, '')
+        self.assertTrue(success)
+        # only 1 element
+        self.assertEqual(len(ainfo), 1)
+        # and that element [0] should have this file
+        exp = [(join(out_dir,
+                     'filter_samples/filter_samples/feature-table.biom'),
+                'biom')]
         self.assertEqual(ainfo[0].files, exp)
 
 

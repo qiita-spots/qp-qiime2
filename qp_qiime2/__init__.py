@@ -10,7 +10,8 @@
 from qiita_client import QiitaPlugin, QiitaCommand
 
 from .qiime2 import (rarefy, beta_diversity, pcoa, beta_correlation,
-                     alpha_diversity, alpha_correlation, taxa_barplot)
+                     alpha_diversity, alpha_correlation, taxa_barplot,
+                     filter_samples)
 from qiime2 import __version__ as qiime2_version
 
 
@@ -138,5 +139,27 @@ dflt_param_set = {
 qiime_cmd = QiitaCommand(
     "taxa_barplot", "Taxa Barplot",
     taxa_barplot, req_params, opt_params, outputs, dflt_param_set,
+    analysis_only=True)
+plugin.register_command(qiime_cmd)
+
+# Define the filtering samples from biom command
+req_params = {'i-table': ('artifact', ['BIOM'])}
+opt_params = {
+    'p-min-frequency': ('integer', 0),
+    'p-max-frequency': ('integer', 9223372036854775807),
+    'p-min-features': ('integer', 0),
+    'p-max-features': ('integer', 9223372036854775807),
+    'p-where': ('string', '')}
+outputs = {'o-table': 'BIOM'}
+dflt_param_set = {
+    'Defaults': {
+        'p-min-frequency': 0,
+        'p-max-frequency': 9223372036854775807,
+        'p-min-features': 0,
+        'p-max-features': 9223372036854775807,
+        'p-where': ''}}
+qiime_cmd = QiitaCommand(
+    "filter_samples", "Filter Samples",
+    filter_samples, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)
