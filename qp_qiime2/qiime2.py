@@ -82,7 +82,7 @@ def beta_diversity(qclient, job_id, parameters, out_dir):
     job_id : str
         The job id
     parameters : dict
-        The parameter values to rarefy
+        The parameter values for beta diversity
     out_dir : str
         The path to the job's output directory
 
@@ -145,7 +145,7 @@ def pcoa(qclient, job_id, parameters, out_dir):
     job_id : str
         The job id
     parameters : dict
-        The parameter values to rarefy
+        The parameter values for pcoa
     out_dir : str
         The path to the job's output directory
 
@@ -212,7 +212,7 @@ def beta_correlation(qclient, job_id, parameters, out_dir):
     job_id : str
         The job id
     parameters : dict
-        The parameter values to rarefy
+        The parameter values for beta correlation
     out_dir : str
         The path to the job's output directory
 
@@ -280,7 +280,7 @@ def alpha_diversity(qclient, job_id, parameters, out_dir):
     job_id : str
         The job id
     parameters : dict
-        The parameter values to rarefy
+        The parameter values for alpha diversity
     out_dir : str
         The path to the job's output directory
 
@@ -385,7 +385,7 @@ def alpha_correlation(qclient, job_id, parameters, out_dir):
     job_id : str
         The job id
     parameters : dict
-        The parameter values to rarefy
+        The parameter values for alpha correlation
     out_dir : str
         The path to the job's output directory
 
@@ -449,7 +449,7 @@ def taxa_barplot(qclient, job_id, parameters, out_dir):
     job_id : str
         The job id
     parameters : dict
-        The parameter values to rarefy
+        The parameter values for taxa barplot
     out_dir : str
         The path to the job's output directory
 
@@ -541,7 +541,7 @@ def filter_samples(qclient, job_id, parameters, out_dir):
     job_id : str
         The job id
     parameters : dict
-        The parameter values to rarefy
+        The parameter values for filter samples
     out_dir : str
         The path to the job's output directory
 
