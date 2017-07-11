@@ -619,3 +619,71 @@ def filter_samples(qclient, job_id, parameters, out_dir):
 
     ainfo = [ArtifactInfo('o-table', 'BIOM', [(ffp, 'biom')])]
     return True, ainfo, ""
+
+
+def emperor(qclient, job_id, parameters, out_dir):
+    """generate emperor plot calculations
+
+    Parameters
+    ----------
+    qclient : qiita_client.QiitaClient
+        The Qiita server client
+    job_id : str
+        The job id
+    parameters : dict
+        The parameter values for pcoa
+    out_dir : str
+        The path to the job's output directory
+
+    Returns
+    -------
+    boolean, list, str
+        The results of the job
+    """
+    out_dir = join(out_dir, 'emperor')
+    if not exists(out_dir):
+        mkdir(out_dir)
+
+    qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
+    artifact_id = parameters['i-pcoa']
+    p_custom_axis = parameters['p-custom-axis']
+    artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
+    pcoa_fp = artifact_info['files']['plain_text'][0]
+
+    analysis_id = artifact_info['analysis']
+    metadata = qclient.get(
+        "/qiita_db/analysis/%s/metadata/" % str(analysis_id))
+    metadata = pd.DataFrame.from_dict(metadata, orient='index')
+    metadata_fp = join(out_dir, 'metadata.txt')
+    metadata.to_csv(metadata_fp, sep='\t')
+
+    pcoa_qza = join(out_dir, 'q2-pcoa.qza')
+    emperor_qzv = join(out_dir, 'q2-emperor.qzv')
+
+    qclient.update_job_step(
+        job_id, "Step 2 of 4: Converting Qiita artifacts to Q2 artifact")
+    cmd = ('qiime tools import --input-path %s --output-path %s '
+           '--type "PCoAResults"' % (pcoa_fp, pcoa_qza))
+    std_out, std_err, return_value = system_call(cmd)
+    if return_value != 0:
+        error_msg = ("Error converting distance matrix:\nStd out: %s\n"
+                     "Std err: %s" % (std_out, std_err))
+        return False, None, error_msg
+
+    qclient.update_job_step(
+        job_id, "Step 3 of 4: Generating Emperor plot")
+
+    cmd = ('qiime emperor plot --i-pcoa %s --o-visualization %s '
+           '--m-metadata-file %s' % (pcoa_qza, emperor_qzv, metadata_fp))
+    if p_custom_axis is not None and p_custom_axis not in ['None', '']:
+        cmd += ' --p-custom-axis "%s"' % p_custom_axis
+
+    std_out, std_err, return_value = system_call(cmd)
+    if return_value != 0:
+        error_msg = ("Error in PCoA\nStd out: %s\nStd err: %s"
+                     % (std_out, std_err))
+        return False, None, error_msg
+
+    ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
+                          [(emperor_qzv, 'qiime2-visualization')])]
+    return True, ainfo, ""

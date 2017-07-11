@@ -11,7 +11,7 @@ from qiita_client import QiitaPlugin, QiitaCommand
 
 from .qiime2 import (rarefy, beta_diversity, pcoa, beta_correlation,
                      alpha_diversity, alpha_correlation, taxa_barplot,
-                     filter_samples)
+                     filter_samples, emperor)
 from qiime2 import __version__ as qiime2_version
 
 
@@ -161,5 +161,16 @@ dflt_param_set = {
 qiime_cmd = QiitaCommand(
     "filter_samples", "Filter Samples",
     filter_samples, req_params, opt_params, outputs, dflt_param_set,
+    analysis_only=True)
+plugin.register_command(qiime_cmd)
+
+# Define the emperor command
+req_params = {'i-pcoa': ('artifact', ['ordination_results'])}
+opt_params = {'p-custom-axis': ('string', '')}
+outputs = {'q2_visualization': 'q2_visualization'}
+dflt_param_set = {'Defaults': {'p-custom-axis': ''}}
+qiime_cmd = QiitaCommand(
+    "emperor", "Emperor plot",
+    emperor, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)
