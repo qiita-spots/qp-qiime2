@@ -138,14 +138,14 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(ainfo[0].files, exp)
 
         # To avoid having to set up all these files, we are gonna test
-        # that if phylogentic and no tree it fails
+        # that if phylogenetic and no tree it fails
         params['i-tree'] = None
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
         success, ainfo, msg = beta_diversity(
             self.qclient, jid, params, out_dir)
         self.assertFalse(success)
-        self.assertEqual(msg, 'Phylogentic metric unweighted UniFrac selected '
-                              'but no tree exists')
+        self.assertEqual(msg, 'Phylogenetic metric unweighted UniFrac '
+                              'selected but no tree exists')
 
     def test_beta_errors(self):
         out_dir = mkdtemp()
@@ -347,13 +347,13 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(ainfo[0].files, exp)
 
         # To avoid having to set up all these files, we are gonna test
-        # that if phylogentic and no tree it fails
+        # that if phylogenetic and no tree it fails
         params['i-tree'] = None
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
         success, ainfo, msg = alpha_diversity(
             self.qclient, jid, params, out_dir)
         self.assertFalse(success)
-        self.assertEqual(msg, 'Phylogentic metric faith_pd selected '
+        self.assertEqual(msg, 'Phylogenetic metric faith_pd selected '
                               'but no tree exists')
 
     def test_alpha_errors(self):
