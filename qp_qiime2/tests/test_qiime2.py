@@ -147,26 +147,6 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(msg, 'Phylogenetic metric unweighted UniFrac '
                               'selected but no tree exists')
 
-    def test_beta_errors(self):
-        out_dir = mkdtemp()
-        self._clean_up_files.append(out_dir)
-
-        # no rarefied - this testes that the non rarefied table conversion
-        # works and that if qiime fails it raises the correct error_msg
-        params = {
-            'i-table': 5, 'p-metric': 'braycurtis', 'i-tree': None}
-        data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'beta_diversity']),
-                'status': 'running',
-                'parameters': dumps(params)}
-        jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
-        success, ainfo, msg = beta_diversity(
-            self.qclient, jid, params, out_dir)
-
-        self.assertIn("Argument to input 'table' is not a subtype of "
-                      "FeatureTable[Frequency]", msg)
-        self.assertFalse(success)
-
     def test_pcoa(self):
         out_dir = mkdtemp()
         self._clean_up_files.append(out_dir)
@@ -355,26 +335,6 @@ class qiime2Tests(PluginTestCase):
         self.assertFalse(success)
         self.assertEqual(msg, 'Phylogenetic metric faith_pd selected '
                               'but no tree exists')
-
-    def test_alpha_errors(self):
-        out_dir = mkdtemp()
-        self._clean_up_files.append(out_dir)
-
-        # no rarefied - this testes that the non rarefied table conversion
-        # works and that if qiime fails it raises the correct error_msg
-        params = {
-            'i-table': 5, 'p-metric': 'observed_otus', 'i-tree': None}
-        data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'beta_diversity']),
-                'status': 'running',
-                'parameters': dumps(params)}
-        jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
-        success, ainfo, msg = alpha_diversity(
-            self.qclient, jid, params, out_dir)
-
-        self.assertIn("Argument to input 'table' is not a subtype of "
-                      "FeatureTable[Frequency]", msg)
-        self.assertFalse(success)
 
     def test_alpha_correlation(self):
         out_dir = mkdtemp()
