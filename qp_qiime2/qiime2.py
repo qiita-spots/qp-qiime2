@@ -95,8 +95,43 @@ def beta_diversity(qclient, job_id, parameters, out_dir):
     if not exists(out_dir):
         mkdir(out_dir)
 
-    biom_qza, metric, tree = _diversity_init_steps(
-        qclient, job_id, parameters, out_dir)
+    qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
+    artifact_id = parameters['i-table']
+    metric = parameters['p-metric']
+    tree = parameters['i-tree']
+    if tree == 'None':
+        tree = None
+    artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
+    biom_fpi = artifact_info['files']['biom'][0]
+    biom_qza = join(out_dir, 'q2-biom.qza')
+
+    qclient.update_job_step(
+        job_id, "Step 2 of 4: Converting Qiita artifacts to Q2 artifact")
+    # converting biom
+    cmd = ('qiime tools import --input-path %s --output-path %s '
+           '--type "FeatureTable[Frequency]' % (biom_fpi, biom_qza))
+    b = load_table(biom_fpi)
+    counts = list(map(sum, b.iter_data()))
+    if min(counts) == max(counts):
+        cmd += " % Properties(['uniform-sampling'])\""
+    else:
+        cmd += '"'
+    std_out, std_err, return_value = system_call(cmd)
+    if return_value != 0:
+        error_msg = ("Error converting biom:\nStd out: %s\nStd err: %s"
+                     % (std_out, std_err))
+        return False, None, error_msg
+    # converting tree
+    if tree is not None:
+        qza_tree = join(out_dir, 'tree.qza')
+        cmd = ('qiime tools import --input-path %s --type Phylogeny[Rooted] '
+               '--output-path %s' % (tree, qza_tree))
+        tree = qza_tree
+        std_out, std_err, return_value = system_call(cmd)
+        if return_value != 0:
+            error_msg = ("Error converting tree:\nStd out: %s\nStd err: %s"
+                         % (std_out, std_err))
+            return False, None, error_msg
 
     qclient.update_job_step(
         job_id, "Step 3 of 4: Calculating beta diversity: %s" % (metric))
@@ -110,7 +145,7 @@ def beta_diversity(qclient, job_id, parameters, out_dir):
         cmd = ('qiime diversity beta --i-table %s --p-metric %s '
                '--o-distance-matrix %s' % (biom_qza, metric, dtx_fp))
     else:
-        return False, None, ('Phylogentic metric %s selected but no tree '
+        return False, None, ('Phylogenetic metric %s selected but no tree '
                              'exists' % metric)
 
     std_out, std_err, return_value = system_call(cmd)
@@ -266,7 +301,7 @@ def beta_correlation(qclient, job_id, parameters, out_dir):
         return False, None, error_msg
 
     ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
-                          [(o_visualization, 'qiime2-visualization')])]
+                          [(o_visualization, 'qzv')])]
     return True, ainfo, ""
 
 
@@ -292,47 +327,6 @@ def alpha_diversity(qclient, job_id, parameters, out_dir):
     out_dir = join(out_dir, 'alpha_diversity')
     if not exists(out_dir):
         mkdir(out_dir)
-
-    biom_qza, metric, tree = _diversity_init_steps(
-        qclient, job_id, parameters, out_dir)
-
-    qclient.update_job_step(
-        job_id, "Step 3 of 4: Calculating alpha diversity: %s" % (metric))
-    alpha_fp = join(out_dir, '%s.qza' % metric)
-    if tree is not None and metric in ALPHA_PHYLOGENETIC_METRICS:
-        cmd = 'qiime diversity alpha-phylogenetic --i-phylogeny %s ' % tree
-    elif metric not in ALPHA_PHYLOGENETIC_METRICS and tree is None:
-        cmd = 'qiime diversity alpha '
-    else:
-        return False, None, ('Phylogentic metric %s selected but no tree '
-                             'exists' % metric)
-    cmd += '--i-table %s --p-metric %s --o-alpha-diversity %s' % (
-        biom_qza, metric, alpha_fp)
-
-    std_out, std_err, return_value = system_call(cmd)
-    if return_value != 0:
-        error_msg = ("Error in alpha div %s:\nStd out: %s\nStd err: %s"
-                     % (metric, std_out, std_err))
-        return False, None, error_msg
-
-    qclient.update_job_step(
-        job_id, "Step 4 of 4: Converting Q2 to Qiita artifacts")
-    fdir = join(out_dir, 'alpha')
-    ffp = join(fdir, 'alpha-diversity.tsv')
-    cmd = "qiime tools export --output-dir %s %s" % (fdir, alpha_fp)
-    std_out, std_err, return_value = system_call(cmd)
-    if return_value != 0:
-        error_msg = ("Error in Q2 -> Qiita conversion:\nStd out: "
-                     "%s\nStd err: %s" % (std_out, std_err))
-        return False, None, error_msg
-
-    ainfo = [ArtifactInfo('o-alpha-diversity', 'alpha_vector',
-                          [(ffp, 'plain_text')])]
-    return True, ainfo, ""
-
-
-def _diversity_init_steps(qclient, job_id, parameters, out_dir):
-    """helper function to avoid duplication of code"""
 
     qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
     artifact_id = parameters['i-table']
@@ -368,11 +362,43 @@ def _diversity_init_steps(qclient, job_id, parameters, out_dir):
         tree = qza_tree
         std_out, std_err, return_value = system_call(cmd)
         if return_value != 0:
-            error_msg = ("Error converting biom:\nStd out: %s\nStd err: %s"
+            error_msg = ("Error converting tree:\nStd out: %s\nStd err: %s"
                          % (std_out, std_err))
             return False, None, error_msg
 
-    return biom_qza, metric, tree
+    qclient.update_job_step(
+        job_id, "Step 3 of 4: Calculating alpha diversity: %s" % (metric))
+    alpha_fp = join(out_dir, '%s.qza' % metric)
+    if tree is not None and metric in ALPHA_PHYLOGENETIC_METRICS:
+        cmd = 'qiime diversity alpha-phylogenetic --i-phylogeny %s ' % tree
+    elif metric not in ALPHA_PHYLOGENETIC_METRICS and tree is None:
+        cmd = 'qiime diversity alpha '
+    else:
+        return False, None, ('Phylogenetic metric %s selected but no tree '
+                             'exists' % metric)
+    cmd += '--i-table %s --p-metric %s --o-alpha-diversity %s' % (
+        biom_qza, metric, alpha_fp)
+
+    std_out, std_err, return_value = system_call(cmd)
+    if return_value != 0:
+        error_msg = ("Error in alpha div %s:\nStd out: %s\nStd err: %s"
+                     % (metric, std_out, std_err))
+        return False, None, error_msg
+
+    qclient.update_job_step(
+        job_id, "Step 4 of 4: Converting Q2 to Qiita artifacts")
+    fdir = join(out_dir, 'alpha')
+    ffp = join(fdir, 'alpha-diversity.tsv')
+    cmd = "qiime tools export --output-dir %s %s" % (fdir, alpha_fp)
+    std_out, std_err, return_value = system_call(cmd)
+    if return_value != 0:
+        error_msg = ("Error in Q2 -> Qiita conversion:\nStd out: "
+                     "%s\nStd err: %s" % (std_out, std_err))
+        return False, None, error_msg
+
+    ainfo = [ArtifactInfo('o-alpha-diversity', 'alpha_vector',
+                          [(ffp, 'plain_text')])]
+    return True, ainfo, ""
 
 
 def alpha_correlation(qclient, job_id, parameters, out_dir):
@@ -435,7 +461,7 @@ def alpha_correlation(qclient, job_id, parameters, out_dir):
         return False, None, error_msg
 
     ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
-                          [(o_visualization, 'qiime2-visualization')])]
+                          [(o_visualization, 'qzv')])]
     return True, ainfo, ""
 
 
@@ -527,7 +553,7 @@ def taxa_barplot(qclient, job_id, parameters, out_dir):
         return False, None, error_msg
 
     ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
-                          [(taxa_plot_qzv, 'qiime2-visualization')])]
+                          [(taxa_plot_qzv, 'qzv')])]
     return True, ainfo, ""
 
 
@@ -685,5 +711,5 @@ def emperor(qclient, job_id, parameters, out_dir):
         return False, None, error_msg
 
     ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
-                          [(emperor_qzv, 'qiime2-visualization')])]
+                          [(emperor_qzv, 'qzv')])]
     return True, ainfo, ""
