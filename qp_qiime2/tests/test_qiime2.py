@@ -273,8 +273,7 @@ class qiime2Tests(PluginTestCase):
         # only 1 element
         self.assertEqual(len(ainfo), 1)
         # and that element [0] should have this file
-        exp = [(join(out_dir, 'beta_correlation/beta_correlation.qzv'),
-               'qiime2-visualization')]
+        exp = [(join(out_dir, 'beta_correlation/beta_correlation.qzv'), 'qzv')]
         self.assertEqual(ainfo[0].files, exp)
 
         # testing faillure here, just to avoid reduplicating all the code above
@@ -431,7 +430,7 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(len(ainfo), 1)
         # and that element [0] should have this file
         exp = [(join(out_dir, 'alpha_correlation/alpha_correlation.qzv'),
-               'qiime2-visualization')]
+               'qzv')]
         self.assertEqual(ainfo[0].files, exp)
 
     def test_taxa_barplot(self):
@@ -452,8 +451,7 @@ class qiime2Tests(PluginTestCase):
         # only 1 element
         self.assertEqual(len(ainfo), 1)
         # and that element [0] should have this file
-        exp = [(join(out_dir, 'taxa_barplot/taxa-barplot.qzv'),
-               'qiime2-visualization')]
+        exp = [(join(out_dir, 'taxa_barplot/taxa-barplot.qzv'), 'qzv')]
         self.assertEqual(ainfo[0].files, exp)
 
     def test_filter_samples(self):
@@ -550,8 +548,7 @@ class qiime2Tests(PluginTestCase):
         # only 1 element
         self.assertEqual(len(ainfo), 1)
         # and that element [0] should have this file
-        exp = [(join(out_dir, 'emperor/q2-emperor.qzv'),
-               'qiime2-visualization')]
+        exp = [(join(out_dir, 'emperor/q2-emperor.qzv'), 'qzv')]
         self.assertEqual(ainfo[0].files, exp)
 
 
