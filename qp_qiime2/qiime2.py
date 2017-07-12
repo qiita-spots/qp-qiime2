@@ -713,3 +713,71 @@ def emperor(qclient, job_id, parameters, out_dir):
     ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
                           [(emperor_qzv, 'qzv')])]
     return True, ainfo, ""
+
+
+def beta_group_significance(qclient, job_id, parameters, out_dir):
+    """generate beta correlation calculations
+
+    Parameters
+    ----------
+    qclient : qiita_client.QiitaClient
+        The Qiita server client
+    job_id : str
+        The job id
+    parameters : dict
+        The parameter values for beta correlation
+    out_dir : str
+        The path to the job's output directory
+
+    Returns
+    -------
+    boolean, list, str
+        The results of the job
+    """
+    out_dir = join(out_dir, 'beta_group_significance')
+    if not exists(out_dir):
+        mkdir(out_dir)
+
+    qclient.update_job_step(job_id, "Step 1 of 3: Collecting information")
+    artifact_id = parameters['i-distance-matrix']
+    artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
+    dm_fp = artifact_info['files']['plain_text'][0]
+    dm_qza = join(out_dir, 'q2-distance.qza')
+    analysis_id = artifact_info['analysis']
+    metadata = qclient.get(
+        "/qiita_db/analysis/%s/metadata/" % str(analysis_id))
+    metadata = pd.DataFrame.from_dict(metadata, orient='index')
+    metadata_fp = join(out_dir, 'metadata.txt')
+    metadata.to_csv(metadata_fp, sep='\t')
+    m_metadata_category = parameters['m-metadata-category']
+    p_method = parameters['p-method']
+    p_permutations = parameters['p-permutations']
+    p_pairwise = parameters['p-pairwise']
+    o_visualization = join(out_dir, 'beta_group_significance.qzv')
+
+    qclient.update_job_step(
+        job_id, "Step 2 of 3: Converting Qiita artifacts to Q2 artifact")
+    cmd = ('qiime tools import --input-path %s --output-path %s '
+           '--type "DistanceMatrix"' % (dm_fp, dm_qza))
+    std_out, std_err, return_value = system_call(cmd)
+    if return_value != 0:
+        error_msg = ("Error converting distance matrix:\nStd out: %s\n"
+                     "Std err: %s" % (std_out, std_err))
+        return False, None, error_msg
+
+    qclient.update_job_step(
+        job_id, "Step 3 of 3: Calculating beta group significance")
+    cmd = ('qiime diversity beta-group-significance --i-distance-matrix %s '
+           '--m-metadata-file %s --m-metadata-category %s --p-method %s '
+           '--p-permutations %s --o-visualization %s --%s' % (
+               dm_qza, metadata_fp, m_metadata_category, p_method,
+               p_permutations, o_visualization, p_pairwise))
+    std_out, std_err, return_value = system_call(cmd)
+    if return_value != 0:
+        error_msg = ("Error in Beta Correlation\nStd out: %s\nStd err: %s"
+                     % (std_out, std_err))
+        return False, None, error_msg
+
+    ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
+                          [(o_visualization, 'qzv')])]
+    return True, ainfo, ""
