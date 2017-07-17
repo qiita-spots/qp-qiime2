@@ -716,7 +716,7 @@ def emperor(qclient, job_id, parameters, out_dir):
 
 
 def beta_group_significance(qclient, job_id, parameters, out_dir):
-    """generate beta correlation calculations
+    """generate beta group significance calculations
 
     Parameters
     ----------
@@ -774,8 +774,8 @@ def beta_group_significance(qclient, job_id, parameters, out_dir):
                p_permutations, o_visualization, p_pairwise))
     std_out, std_err, return_value = system_call(cmd)
     if return_value != 0:
-        error_msg = ("Error in Beta Correlation\nStd out: %s\nStd err: %s"
-                     % (std_out, std_err))
+        error_msg = ("Error in beta group significance\nStd out: %s\n"
+                     "Std err: %s" % (std_out, std_err))
         return False, None, error_msg
 
     ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
