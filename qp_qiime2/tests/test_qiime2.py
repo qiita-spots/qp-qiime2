@@ -21,7 +21,7 @@ from qiime2 import __version__ as qiime2_version
 from qp_qiime2 import plugin
 from qp_qiime2.qiime2 import (rarefy, beta_diversity, pcoa, beta_correlation,
                               alpha_diversity, alpha_correlation, taxa_barplot,
-                              filter_samples, emperor)
+                              filter_samples, emperor, beta_group_significance)
 
 
 class qiime2Tests(PluginTestCase):
@@ -509,6 +509,66 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(len(ainfo), 1)
         # and that element [0] should have this file
         exp = [(join(out_dir, 'emperor/q2-emperor.qzv'), 'qzv')]
+        self.assertEqual(ainfo[0].files, exp)
+
+    def test_beta_group_significance(self):
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        # qiime2 currently only works with rarefied tables so we need to
+        # rarefy it
+        params = {'p-sampling-depth': 10, 'i-table': 8}
+        data = {'user': 'demo@microbio.me',
+                'command': dumps(['qiime2', qiime2_version, 'Rarefy']),
+                'status': 'running',
+                'parameters': dumps(params)}
+        jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
+        success, ainfo, msg = rarefy(self.qclient, jid, params, out_dir)
+        data = {'filepaths': dumps(ainfo[0].files), 'type': "BIOM",
+                'name': "Rarefied biom", 'analysis': 1, 'data_type': '16S'}
+        reply = self.qclient.post('/apitest/artifact/', data=data)
+        aid = reply['artifact']
+
+        # non phylogenetic beta diversity
+        params = {
+            'i-table': aid, 'p-metric': 'euclidean',
+            'i-tree': 'None'}
+        data = {'user': 'demo@microbio.me',
+                'command': dumps(['qiime2', qiime2_version, 'beta_diversity']),
+                'status': 'running',
+                'parameters': dumps(params)}
+        jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
+        success, ainfo, msg = beta_diversity(
+            self.qclient, jid, params, out_dir)
+        data = {'filepaths': dumps(ainfo[0].files), 'type': "distance_matrix",
+                'name': "Non phylogenetic distance matrix", 'analysis': 1,
+                'data_type': '16S'}
+        reply = self.qclient.post('/apitest/artifact/', data=data)
+        aid = reply['artifact']
+
+        # beta_group_significance
+        # 1 using that analysis
+        params = {'i-distance-matrix': aid,
+                  'm-metadata-category': 'samp_salinity',
+                  'p-pairwise': 'p-pairwise',
+                  'p-method': 'permanova', 'p-permutations': 5}
+        data = {'user': 'demo@microbio.me',
+                'command': dumps([
+                    'qiime2', qiime2_version, 'beta_group_significance']),
+                'status': 'running',
+                'parameters': dumps(params)}
+        jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
+        success, ainfo, msg = beta_group_significance(
+            self.qclient, jid, params, out_dir)
+
+        self.assertEqual(msg, '')
+        self.assertTrue(success)
+        # only 1 element
+        self.assertEqual(len(ainfo), 1)
+        # and that element [0] should have this file
+        exp = [(join(out_dir,
+                     'beta_group_significance/beta_group_significance.qzv'),
+                'qzv')]
         self.assertEqual(ainfo[0].files, exp)
 
 

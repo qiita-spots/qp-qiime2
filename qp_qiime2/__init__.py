@@ -11,7 +11,7 @@ from qiita_client import QiitaPlugin, QiitaCommand
 
 from .qiime2 import (rarefy, beta_diversity, pcoa, beta_correlation,
                      alpha_diversity, alpha_correlation, taxa_barplot,
-                     filter_samples, emperor)
+                     filter_samples, emperor, beta_group_significance)
 from qiime2 import __version__ as qiime2_version
 
 
@@ -172,5 +172,25 @@ dflt_param_set = {'Defaults': {'p-custom-axis': ''}}
 qiime_cmd = QiitaCommand(
     "emperor", "Emperor plot",
     emperor, req_params, opt_params, outputs, dflt_param_set,
+    analysis_only=True)
+plugin.register_command(qiime_cmd)
+
+# Define beta-group-significance command
+req_params = {'i-distance-matrix': ('artifact', ['distance_matrix']),
+              'm-metadata-category': ('string', '')}
+opt_params = {'p-method': ['choice:["permanova", "anosim"]', 'permanova'],
+              'p-pairwise': ['choice:["p-pairwise", "p-no-pairwise"]',
+                             'p-pairwise'],
+              'p-permutations': ('integer', 999)}
+outputs = {'q2_visualization': 'q2_visualization'}
+dflt_param_set = {
+    'Defaults': {
+        'p-method': 'permanova',
+        'p-pairwise': 'p-pairwise',
+        'p-permutations': 999}
+}
+qiime_cmd = QiitaCommand(
+    "beta_group_significance", "Beta Group Significance",
+    beta_group_significance, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)
