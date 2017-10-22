@@ -329,9 +329,9 @@ def alpha_diversity(qclient, job_id, parameters, out_dir):
         mkdir(out_dir)
 
     qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
-    artifact_id = parameters['i-table']
-    metric = parameters['p-metric']
-    tree = parameters['i-tree']
+    artifact_id = parameters['BIOM table']
+    metric = parameters['Diversity metric']
+    tree = parameters['Phylogenetic tree']
     if tree == 'None':
         tree = None
     artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)

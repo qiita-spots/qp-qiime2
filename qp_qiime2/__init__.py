@@ -92,9 +92,9 @@ qiime_cmd = QiitaCommand(
 plugin.register_command(qiime_cmd)
 
 # Define the alpha command
-req_params = {'i-table': ('artifact', ['BIOM'])}
+req_params = {'BIOM table': ('artifact', ['BIOM'])}
 opt_params = {
-    'p-metric': [
+    'Diversity metric': [
         ('choice:["simpson", "enspie", "doubles", "mcintosh_d", "chao1", '
          '"kempton_taylor_q", "observed_otus", "singles", "strong", '
          '"robbins", "menhinick", "osd", "shannon", "brillouin_d", '
@@ -103,12 +103,12 @@ opt_params = {
          '"berger_parker_d", "heip_e", "simpson_e", "dominance", '
          '"mcintosh_e", "lladser_pe", "gini_index", "faith_pd"]'),
         'observed_otus'],
-    'i-tree': ['choice:["default", "None"]', 'None']}
+    'Phylogenetic tree': ['choice:["default", "None"]', 'None']}
 outputs = {'o-alpha-diversity': 'alpha_vector'}
 dflt_param_set = {
     'Defaults': {
-        'p-metric': 'observed_otus',
-        'i-tree': 'None'}
+        'Diversity metric': 'observed_otus',
+        'Phylogenetic tree': 'None'}
 }
 qiime_cmd = QiitaCommand(
     "Calculate alpha diversity", "Alpha Diversity",
