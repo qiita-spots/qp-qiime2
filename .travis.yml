@@ -33,10 +33,17 @@ install:
   - conda install --yes -c conda-forge hdf5 h5py
   - pip install coveralls
   - pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
+  # Installing state unifrac
+  - conda install --yes -c conda-forge cython
   - sed -i 's/^CXXBASE=.*/CXXBASE=clang++/' `which h5c++`
   - sed -i 's/^CXXLINKERBASE=.*/CXXLINKERBASE=clang++/' `which h5c++`
-  - pip install cython
-  - pip install https://github.com/biocore/unifrac/archive/0.8.7.zip
+  - export CC=`which h5c++`
+  - wget https://github.com/biocore/unifrac/archive/0.8.7.zip
+  - unzip 0.8.7.zip
+  - pushd unifrac-0.8.7
+  - pushd sucpp; make test; make main; make api; make capi_test; popd
+  - pip install .
+  - popd
   # we are gonna use the same qiime2 environmen to install qtp-diversity
   - pip install https://github.com/qiita-spots/qtp-diversity/archive/master.zip
   - configure_diversity_types --env-script "source activate qiime2" --server-cert $QIITA_SERVER_CERT
