@@ -31,7 +31,7 @@ dflt_param_set = {
         'p-sampling-depth': 1000}
 }
 qiime_cmd = QiitaCommand(
-    "Rarefy", "Rarefy",
+    "Rarefy features", "Rarefy",
     rarefy, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)
@@ -55,7 +55,7 @@ dflt_param_set = {
         'i-tree': 'None'}
 }
 qiime_cmd = QiitaCommand(
-    "beta_diversity", "Beta Diversity",
+    "Calculate beta diversity", "Beta Diversity",
     beta_diversity, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)
@@ -68,7 +68,8 @@ dflt_param_set = {
     'Defaults': {}
 }
 qiime_cmd = QiitaCommand(
-    "pcoa", "Principal Coordinate Analysis",
+    "Generate principal coordinates analysis (PCoA)",
+    "Principal Coordinate Analysis",
     pcoa, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)
@@ -85,7 +86,7 @@ dflt_param_set = {
         'p-permutations': 999}
 }
 qiime_cmd = QiitaCommand(
-    "beta_correlation", "Beta Corrrelation",
+    "Calculate beta correlation", "Beta Corrrelation",
     beta_correlation, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)
@@ -110,7 +111,7 @@ dflt_param_set = {
         'i-tree': 'None'}
 }
 qiime_cmd = QiitaCommand(
-    "alpha_diversity", "Alpha Diversity",
+    "Calculate alpha diversity", "Alpha Diversity",
     alpha_diversity, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)
@@ -124,7 +125,7 @@ dflt_param_set = {
         'p-method': 'spearman'}
 }
 qiime_cmd = QiitaCommand(
-    "alpha_correlation", "Alpha Corrrelation",
+    "Calculate alpha correlation", "Alpha Corrrelation",
     alpha_correlation, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)
@@ -137,7 +138,7 @@ dflt_param_set = {
     'Defaults': {}
 }
 qiime_cmd = QiitaCommand(
-    "taxa_barplot", "Taxa Barplot",
+    "Summarize taxa", "Taxa Barplot",
     taxa_barplot, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)
@@ -159,7 +160,7 @@ dflt_param_set = {
         'p-max-features': 9223372036854775807,
         'p-where': ''}}
 qiime_cmd = QiitaCommand(
-    "filter_samples", "Filter Samples",
+    "Filter samples by metadata", "Filter Samples",
     filter_samples, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)
@@ -170,7 +171,7 @@ opt_params = {'p-custom-axis': ('string', '')}
 outputs = {'q2_visualization': 'q2_visualization'}
 dflt_param_set = {'Defaults': {'p-custom-axis': ''}}
 qiime_cmd = QiitaCommand(
-    "emperor", "Emperor plot",
+    "Custom-axis Emperor plot", "Emperor plot",
     emperor, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)
@@ -190,7 +191,7 @@ dflt_param_set = {
         'p-permutations': 999}
 }
 qiime_cmd = QiitaCommand(
-    "beta_group_significance", "Beta Group Significance",
+    "Calculate beta group significance", "Beta Group Significance",
     beta_group_significance, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)
