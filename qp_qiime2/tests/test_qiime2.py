@@ -43,7 +43,8 @@ class qiime2Tests(PluginTestCase):
     def test_rarefy(self):
         params = {'p-sampling-depth': 2, 'i-table': 5}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'Rarefy']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Rarefy features']),
                 'status': 'running',
                 'parameters': dumps(params)}
 
@@ -70,7 +71,8 @@ class qiime2Tests(PluginTestCase):
     def test_rarefy_error(self):
         params = {'p-sampling-depth': 200000, 'i-table': 5}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'Rarefy']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Rarefy features']),
                 'status': 'running',
                 'parameters': dumps(params)}
 
@@ -92,7 +94,8 @@ class qiime2Tests(PluginTestCase):
         # rarefy it
         params = {'p-sampling-depth': 10, 'i-table': 5}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'Rarefy']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Rarefy features']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -107,7 +110,8 @@ class qiime2Tests(PluginTestCase):
             'i-table': aid, 'p-metric': 'euclidean',
             'i-tree': 'None'}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'beta_diversity']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Calculate beta diversity']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -155,7 +159,8 @@ class qiime2Tests(PluginTestCase):
         # rarefy it
         params = {'p-sampling-depth': 10, 'i-table': 5}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'Rarefy']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Rarefy features']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -170,7 +175,8 @@ class qiime2Tests(PluginTestCase):
             'i-table': aid, 'p-metric': 'euclidean',
             'i-tree': 'None'}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'beta_diversity']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Calculate beta diversity']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -185,7 +191,9 @@ class qiime2Tests(PluginTestCase):
         # pcoa
         params = {'i-distance-matrix': aid}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'pcoa']),
+                'command': dumps(
+                    ['qiime2', qiime2_version,
+                     'Generate principal coordinates analysis (PCoA)']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -207,7 +215,8 @@ class qiime2Tests(PluginTestCase):
         # rarefy it
         params = {'p-sampling-depth': 10, 'i-table': 8}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'Rarefy']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Rarefy features']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -222,7 +231,8 @@ class qiime2Tests(PluginTestCase):
             'i-table': aid, 'p-metric': 'euclidean',
             'i-tree': 'None'}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'beta_diversity']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Calculate beta diversity']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -241,7 +251,7 @@ class qiime2Tests(PluginTestCase):
                   'p-method': 'spearman', 'p-permutations': 5}
         data = {'user': 'demo@microbio.me',
                 'command': dumps([
-                    'qiime2', qiime2_version, 'beta_correlation']),
+                    'qiime2', qiime2_version, 'Calculate beta correlation']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -262,7 +272,7 @@ class qiime2Tests(PluginTestCase):
                   'p-permutations': 5}
         data = {'user': 'demo@microbio.me',
                 'command': dumps([
-                    'qiime2', qiime2_version, 'beta_correlation']),
+                    'qiime2', qiime2_version, 'Calculate beta correlation']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -280,7 +290,8 @@ class qiime2Tests(PluginTestCase):
         # rarefy it
         params = {'p-sampling-depth': 10, 'i-table': 5}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'Rarefy']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Rarefy features']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -296,7 +307,7 @@ class qiime2Tests(PluginTestCase):
             'i-tree': 'None'}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
-                                  'alpha_diversity']),
+                                  'Calculate alpha diversity']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -344,7 +355,8 @@ class qiime2Tests(PluginTestCase):
         # rarefy it
         params = {'p-sampling-depth': 10, 'i-table': 8}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'Rarefy']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Rarefy features']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -360,7 +372,7 @@ class qiime2Tests(PluginTestCase):
             'i-tree': 'None'}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
-                                  'alpha_diversity']),
+                                  'Calculate alpha diversity']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -377,7 +389,7 @@ class qiime2Tests(PluginTestCase):
         params = {'i-alpha-diversity': aid, 'p-method': 'spearman'}
         data = {'user': 'demo@microbio.me',
                 'command': dumps([
-                    'qiime2', qiime2_version, 'alpha_correlation']),
+                    'qiime2', qiime2_version, 'Calculate alpha correlation']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -400,7 +412,7 @@ class qiime2Tests(PluginTestCase):
         params = {'i-table': 8}
         data = {'user': 'demo@microbio.me',
                 'command': dumps([
-                    'qiime2', qiime2_version, 'taxa_barplot']),
+                    'qiime2', qiime2_version, 'Summarize taxa']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -428,7 +440,7 @@ class qiime2Tests(PluginTestCase):
         }
         data = {'user': 'demo@microbio.me',
                 'command': dumps([
-                    'qiime2', qiime2_version, 'filter_samples']),
+                    'qiime2', qiime2_version, 'Filter samples by metadata']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -453,7 +465,8 @@ class qiime2Tests(PluginTestCase):
         # rarefy it
         params = {'p-sampling-depth': 10, 'i-table': 8}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'Rarefy']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Rarefy features']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -468,7 +481,8 @@ class qiime2Tests(PluginTestCase):
             'i-table': aid, 'p-metric': 'euclidean',
             'i-tree': 'None'}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'beta_diversity']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Calculate beta diversity']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -483,7 +497,9 @@ class qiime2Tests(PluginTestCase):
         # pcoa
         params = {'i-distance-matrix': aid}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'pcoa']),
+                'command': dumps(
+                    ['qiime2', qiime2_version,
+                     'Generate principal coordinates analysis (PCoA)']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -498,7 +514,8 @@ class qiime2Tests(PluginTestCase):
         # 1 using that analysis
         params = {'i-pcoa': aid, 'p-custom-axis': 'latitude'}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'emperor']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Custom-axis Emperor plot']),
                 'status': 'running', 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
         success, ainfo, msg = emperor(self.qclient, jid, params, out_dir)
@@ -519,7 +536,8 @@ class qiime2Tests(PluginTestCase):
         # rarefy it
         params = {'p-sampling-depth': 10, 'i-table': 8}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'Rarefy']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Rarefy features']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -534,7 +552,8 @@ class qiime2Tests(PluginTestCase):
             'i-table': aid, 'p-metric': 'euclidean',
             'i-tree': 'None'}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'beta_diversity']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Calculate beta diversity']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -554,7 +573,8 @@ class qiime2Tests(PluginTestCase):
                   'p-method': 'permanova', 'p-permutations': 5}
         data = {'user': 'demo@microbio.me',
                 'command': dumps([
-                    'qiime2', qiime2_version, 'beta_group_significance']),
+                    'qiime2', qiime2_version,
+                    'Calculate beta group significance']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
