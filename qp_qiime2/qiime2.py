@@ -24,6 +24,41 @@ STATE_UNIFRAC_METRICS = {
 
 ALPHA_PHYLOGENETIC_METRICS = {'faith_pd'}
 
+ALPHA_DIVERSITY_METRICS = {
+    "Abundance-based Coverage Estimator (ACE) metric": "ace",
+    "Berger-Parker dominance index": "berger_parker_d",
+    "Brillouin's index": "brillouin_d",
+    "Chao1 index": "chao1",
+    "Chao1 confidence interval": "chao1_ci",
+    "Dominance measure": "dominance",
+    "Effective number of species (ENS)/"
+    "Probability of intra-or interspecific encounter (PIE) metric": "enspie",
+    "Esty's confidence interval": "esty_ci",
+    "Faith's Phylogenetic Diversity": "faith_pd",
+    "Fisher's index": "fisher_alpha",
+    "Gini index": "gini_index",
+    "Good's coverage of counts": "goods_coverage",
+    "Heip's evenness measure": "heip_e",
+    "Kempton-Taylor Q index": "kempton_taylor_q",
+    "Lladser's confidence interval": "lladser_ci",
+    "Lladser's point estimate": "lladser_pe",
+    "Margalef's richness index": "margalef",
+    "McIntosh dominance index D": "mcintosh_d",
+    "McIntosh evenness index E": "mcintosh_e",
+    "Menhinick's richness index": "menhinick",
+    "Michaelis-Menten fit to rarefaction curve of obeserved OTUs":
+        "michaelis_menten_fit",
+    "Number of distinct features": "observed_otus",
+    "Number of double occurrences": "doubles",
+    "Number of single occurrences": "singles",
+    "Number of observed features, including singles and doubles": "osd",
+    "Pielou's evenness": "pielou_e",
+    "Robbins' estimator": "robbins",
+    "Shannon's index": "shannon",
+    "Simpson's index": "simpson",
+    "Simpson's evenness measure E": "simpson_e",
+    "Strong's dominance index (Dw)": "strong"}
+
 
 def rarefy(qclient, job_id, parameters, out_dir):
     """rarefy a table
@@ -330,7 +365,7 @@ def alpha_diversity(qclient, job_id, parameters, out_dir):
 
     qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
     artifact_id = parameters['BIOM table']
-    metric = parameters['Diversity metric']
+    metric = ALPHA_DIVERSITY_METRICS[parameters['Diversity metric']]
     tree = parameters['Phylogenetic tree']
     if tree == 'None':
         tree = None

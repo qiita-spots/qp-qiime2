@@ -304,7 +304,7 @@ class qiime2Tests(PluginTestCase):
         # actually test non phylogenetic alpha diversity
         params = {
             'BIOM table': aid,
-            'Diversity metric': 'observed_otus',
+            'Diversity metric': 'Number of distinct features',
             'Phylogenetic tree': 'None'}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
@@ -323,7 +323,7 @@ class qiime2Tests(PluginTestCase):
                 'plain_text')]
         self.assertEqual(ainfo[0].files, exp)
 
-        params['Diversity metric'] = 'faith_pd'
+        params['Diversity metric'] = "Faith's Phylogenetic Diversity"
         params['Phylogenetic tree'] = join(
             dirname(realpath(__file__)), 'prune_97_gg_13_8.tre')
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -369,7 +369,8 @@ class qiime2Tests(PluginTestCase):
 
         # non phylogenetic alpha diversity
         params = {
-            'BIOM table': aid, 'Diversity metric': 'observed_otus',
+            'BIOM table': aid,
+            'Diversity metric': 'Number of distinct features',
             'Phylogenetic tree': 'None'}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,

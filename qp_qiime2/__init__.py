@@ -6,12 +6,14 @@
 # The full license is in the file LICENSE, distributed with this software.
 # -----------------------------------------------------------------------------
 
+from json import dumps
 
 from qiita_client import QiitaPlugin, QiitaCommand
 
 from .qiime2 import (rarefy, beta_diversity, pcoa, beta_correlation,
                      alpha_diversity, alpha_correlation, taxa_barplot,
-                     filter_samples, emperor, beta_group_significance)
+                     filter_samples, emperor, beta_group_significance,
+                     ALPHA_DIVERSITY_METRICS)
 from qiime2 import __version__ as qiime2_version
 
 
@@ -95,19 +97,13 @@ plugin.register_command(qiime_cmd)
 req_params = {'BIOM table': ('artifact', ['BIOM'])}
 opt_params = {
     'Diversity metric': [
-        ('choice:["simpson", "enspie", "doubles", "mcintosh_d", "chao1", '
-         '"kempton_taylor_q", "observed_otus", "singles", "strong", '
-         '"robbins", "menhinick", "osd", "shannon", "brillouin_d", '
-         '"margalef", "lladser_ci", "pielou_e", "michaelis_menten_fit", '
-         '"ace", "chao1_ci", "goods_coverage", "esty_ci", "fisher_alpha", '
-         '"berger_parker_d", "heip_e", "simpson_e", "dominance", '
-         '"mcintosh_e", "lladser_pe", "gini_index", "faith_pd"]'),
-        'observed_otus'],
+        ('choice:%s' % dumps(list(ALPHA_DIVERSITY_METRICS.keys()))),
+        'Number of distinct features'],
     'Phylogenetic tree': ['choice:["default", "None"]', 'None']}
 outputs = {'o-alpha-diversity': 'alpha_vector'}
 dflt_param_set = {
     'Defaults': {
-        'Diversity metric': 'observed_otus',
+        'Diversity metric': 'Number of distinct features',
         'Phylogenetic tree': 'None'}
 }
 qiime_cmd = QiitaCommand(
