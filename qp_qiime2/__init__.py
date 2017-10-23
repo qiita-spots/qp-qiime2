@@ -7,6 +7,7 @@
 # -----------------------------------------------------------------------------
 
 from json import dumps
+from sys import maxsize
 
 from qiita_client import QiitaPlugin, QiitaCommand
 
@@ -150,17 +151,17 @@ req_params = {'BIOM table': ('artifact', ['BIOM'])}
 opt_params = {
     'Minimum feature frequency across samples': ('integer', 1),
     'Maximum feature frequency across samples':
-        ('integer', 9223372036854775807),
+        ('integer', maxsize),
     'Minimum features per sample': ('integer', 1),
-    'Maximum features per sample': ('integer', 9223372036854775807),
+    'Maximum features per sample': ('integer', maxsize),
     'SQLite WHERE-clause': ('string', '')}
 outputs = {'Filtered table': 'BIOM'}
 dflt_param_set = {
     'Defaults': {
         'Minimum feature frequency across samples': 1,
-        'Maximum feature frequency across samples': 9223372036854775807,
+        'Maximum feature frequency across samples': maxsize,
         'Minimum features per sample': 1,
-        'Maximum features per sample': 9223372036854775807,
+        'Maximum features per sample': maxsize,
         'SQLite WHERE-clause': ''}}
 qiime_cmd = QiitaCommand(
     "Filter samples by metadata", "Filter Samples",

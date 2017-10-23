@@ -7,6 +7,7 @@
 # -----------------------------------------------------------------------------
 
 from unittest import main
+from sys import maxsize
 from os import remove
 from shutil import rmtree
 from tempfile import mkdtemp
@@ -445,7 +446,7 @@ class qiime2Tests(PluginTestCase):
             'Minimum feature frequency across samples': 5,
             'Maximum feature frequency across samples': 10,
             'Minimum features per sample': 5,
-            'Maximum features per sample': 9223372036854775807,
+            'Maximum features per sample': maxsize,
             'SQLite WHERE-clause': ''
         }
         data = {'user': 'demo@microbio.me',
