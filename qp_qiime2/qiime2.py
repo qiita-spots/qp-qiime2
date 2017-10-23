@@ -60,6 +60,34 @@ ALPHA_DIVERSITY_METRICS = {
     "Strong's dominance index (Dw)": "strong"}
 
 
+BETA_DIVERSITY_METRICS = {
+    "Bray-Curtis dissimilarity": "braycurtis",
+    "Canberra distance": "canberra",
+    "Chebysev distance": "chebyshev",
+    "City-block distance": "cityblock",
+    "Correlation coefficient": "correlation",
+    "Cosine similarity": "cosine",
+    "Dice measure": "dice",
+    "Euclidean distance": "euclidean",
+    "Hamming distance": "hamming",
+    "Jaccard similarity index": "jaccard",
+    "Kulczynski dissimilarity index": "kulsinski",
+    "Mahalanobis distance": "mahalanobis",
+    "Matching components": "matching",
+    "Rogers-Tanimoto distance": "rogerstanimoto",
+    "Russell-Rao coefficients": "russellrao",
+    "Sokal-Michener coefficient": "sokalmichener",
+    "Sokal-Sneath index": "sokalsneath",
+    "Species-by-species Euclidean": "seuclidean",
+    "Squared Euclidean": "sqeuclidean",
+    "Weighted Minkowski metric": "wminkowski",
+    "Yule index": "yule",
+    "Unweighted UniFrac": "unweighted UniFrac",
+    "Weighted normalized UniFrac": "weighted normalized UniFrac",
+    "Weighted unnormalized UniFrac": "weighted unnormalized UniFrac"
+}
+
+
 def rarefy(qclient, job_id, parameters, out_dir):
     """rarefy a table
 
@@ -131,9 +159,9 @@ def beta_diversity(qclient, job_id, parameters, out_dir):
         mkdir(out_dir)
 
     qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
-    artifact_id = parameters['i-table']
-    metric = parameters['p-metric']
-    tree = parameters['i-tree']
+    artifact_id = parameters['BIOM table']
+    metric = BETA_DIVERSITY_METRICS[parameters['Diversity metric']]
+    tree = parameters['Phylogenetic tree']
     if tree == 'None':
         tree = None
     artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)

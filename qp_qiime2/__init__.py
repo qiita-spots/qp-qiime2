@@ -13,7 +13,7 @@ from qiita_client import QiitaPlugin, QiitaCommand
 from .qiime2 import (rarefy, beta_diversity, pcoa, beta_correlation,
                      alpha_diversity, alpha_correlation, taxa_barplot,
                      filter_samples, emperor, beta_group_significance,
-                     ALPHA_DIVERSITY_METRICS)
+                     ALPHA_DIVERSITY_METRICS, BETA_DIVERSITY_METRICS)
 from qiime2 import __version__ as qiime2_version
 
 
@@ -39,22 +39,17 @@ qiime_cmd = QiitaCommand(
 plugin.register_command(qiime_cmd)
 
 # Define the beta_diversity command
-req_params = {'i-table': ('artifact', ['BIOM'])}
+req_params = {'BIOM table': ('artifact', ['BIOM'])}
 opt_params = {
-    'p-metric': [
-        ('choice:["sokalsneath", "kulsinski", "mahalanobis", "matching", '
-         '"euclidean", "correlation", "yule", "russellrao", "hamming", '
-         '"jaccard", "braycurtis", "dice", "rogerstanimoto", "sqeuclidean", '
-         '"cityblock", "sokalmichener", "cosine", "wminkowski", "seuclidean", '
-         '"chebyshev", "canberra", "unweighted UniFrac", '
-         '"weighted normalized UniFrac", "weighted unnormalized UniFrac"]'),
-        'jaccard'],
-    'i-tree': ['choice:["default", "None"]', 'None']}
+    'Diversity metric': [
+        'choice:%s' % dumps(list(BETA_DIVERSITY_METRICS.keys())),
+        'Jaccard similarity index'],
+    'Phylogenetic tree': ['choice:["default", "None"]', 'None']}
 outputs = {'distance_matrix': 'distance_matrix'}
 dflt_param_set = {
     'Defaults': {
-        'p-metric': 'jaccard',
-        'i-tree': 'None'}
+        'Diversity metric': 'Jaccard similarity index',
+        'Phylogenetic tree': 'None'}
 }
 qiime_cmd = QiitaCommand(
     "Calculate beta diversity", "Beta Diversity",
@@ -97,7 +92,7 @@ plugin.register_command(qiime_cmd)
 req_params = {'BIOM table': ('artifact', ['BIOM'])}
 opt_params = {
     'Diversity metric': [
-        ('choice:%s' % dumps(list(ALPHA_DIVERSITY_METRICS.keys()))),
+        'choice:%s' % dumps(list(ALPHA_DIVERSITY_METRICS.keys())),
         'Number of distinct features'],
     'Phylogenetic tree': ['choice:["default", "None"]', 'None']}
 outputs = {'o-alpha-diversity': 'alpha_vector'}
