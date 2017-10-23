@@ -35,7 +35,7 @@ install:
   - pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
   # Installing state unifrac
   - conda install --yes -c conda-forge cython
-  - conda install -c biocore unifrac
+  - conda install --yes -c biocore unifrac
   # - sed -i 's/^CXXBASE=.*/CXXBASE=clang++/' `which h5c++`
   # - sed -i 's/^CXXLINKERBASE=.*/CXXLINKERBASE=clang++/' `which h5c++`
   # - export CC=`which h5c++`
