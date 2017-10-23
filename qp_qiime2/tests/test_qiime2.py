@@ -17,11 +17,15 @@ from biom import load_table
 from qiita_client.testing import PluginTestCase
 
 from qiime2 import __version__ as qiime2_version
+from q2_diversity.plugin_setup import plugin as q2div_plugin
 
 from qp_qiime2 import plugin
-from qp_qiime2.qiime2 import (rarefy, beta_diversity, pcoa, beta_correlation,
-                              alpha_diversity, alpha_correlation, taxa_barplot,
-                              filter_samples, emperor, beta_group_significance)
+from qp_qiime2.qiime2 import (
+    rarefy, beta_diversity, pcoa, beta_correlation, alpha_diversity,
+    alpha_correlation, taxa_barplot, filter_samples, emperor,
+    beta_group_significance, BETA_DIVERSITY_METRICS, STATE_UNIFRAC_METRICS,
+    ALPHA_DIVERSITY_METRICS, ALPHA_CORRELATION_METHODS,
+    BETA_CORRELATION_METHODS, BETA_GROUP_SIG_METHODS)
 
 
 class qiime2Tests(PluginTestCase):
@@ -597,6 +601,49 @@ class qiime2Tests(PluginTestCase):
                      'beta_group_significance/beta_group_significance.qzv'),
                 'qzv')]
         self.assertEqual(ainfo[0].files, exp)
+
+    def test_metrics(self):
+        # Test beta diversity metrics
+        beta_methods = q2div_plugin.methods['beta'].signature.parameters[
+            'metric'].qiime_type.predicate.choices
+        beta_alt_methods = q2div_plugin.methods[
+            'beta_phylogenetic_alt'].signature.parameters[
+                'metric'].qiime_type.predicate.choices
+        q2_metrics = beta_methods.union(beta_alt_methods)
+        qp_metrics = set(BETA_DIVERSITY_METRICS.values()).union(
+            STATE_UNIFRAC_METRICS.values()).difference(STATE_UNIFRAC_METRICS)
+        self.assertEqual(q2_metrics, qp_metrics)
+
+        # Test alpha diversity metrics
+        alpha_methods = q2div_plugin.methods['alpha'].signature.parameters[
+            'metric'].qiime_type.predicate.choices
+        alpha_phyl_methods = q2div_plugin.methods[
+            'alpha_phylogenetic'].signature.parameters[
+                'metric'].qiime_type.predicate.choices
+        q2_metrics = alpha_methods.union(alpha_phyl_methods)
+        qp_metrics = set(ALPHA_DIVERSITY_METRICS.values())
+        self.assertEqual(q2_metrics, qp_metrics)
+
+        # Alpha correlation methods
+        q2_methods = q2div_plugin.visualizers[
+            'alpha_correlation'].signature.parameters[
+                'method'].qiime_type.predicate.choices
+        qp_methods = set(ALPHA_CORRELATION_METHODS.values())
+        self.assertEqual(q2_methods, qp_methods)
+
+        # Beta correlation methods
+        q2_methods = q2div_plugin.visualizers[
+            'beta_correlation'].signature.parameters[
+                'method'].qiime_type.predicate.choices
+        qp_methods = set(BETA_CORRELATION_METHODS.values())
+        self.assertEqual(q2_methods, qp_methods)
+
+        # Beta group significance methods
+        q2_methods = q2div_plugin.visualizers[
+            'beta_group_significance'].signature.parameters[
+                'method'].qiime_type.predicate.choices
+        qp_methods = set(BETA_GROUP_SIG_METHODS.values())
+        self.assertEqual(q2_methods, qp_methods)
 
 
 if __name__ == '__main__':
