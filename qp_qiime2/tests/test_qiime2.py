@@ -7,6 +7,7 @@
 # -----------------------------------------------------------------------------
 
 from unittest import main
+from sys import maxsize
 from os import remove
 from shutil import rmtree
 from tempfile import mkdtemp
@@ -17,11 +18,15 @@ from biom import load_table
 from qiita_client.testing import PluginTestCase
 
 from qiime2 import __version__ as qiime2_version
+from q2_diversity.plugin_setup import plugin as q2div_plugin
 
 from qp_qiime2 import plugin
-from qp_qiime2.qiime2 import (rarefy, beta_diversity, pcoa, beta_correlation,
-                              alpha_diversity, alpha_correlation, taxa_barplot,
-                              filter_samples, emperor, beta_group_significance)
+from qp_qiime2.qiime2 import (
+    rarefy, beta_diversity, pcoa, beta_correlation, alpha_diversity,
+    alpha_correlation, taxa_barplot, filter_samples, emperor,
+    beta_group_significance, BETA_DIVERSITY_METRICS, STATE_UNIFRAC_METRICS,
+    ALPHA_DIVERSITY_METRICS, ALPHA_CORRELATION_METHODS,
+    BETA_CORRELATION_METHODS, BETA_GROUP_SIG_METHODS)
 
 
 class qiime2Tests(PluginTestCase):
@@ -41,9 +46,10 @@ class qiime2Tests(PluginTestCase):
                     remove(fp)
 
     def test_rarefy(self):
-        params = {'p-sampling-depth': 2, 'i-table': 5}
+        params = {'Sampling depth': 2, 'BIOM table': 5}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'Rarefy']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Rarefy features']),
                 'status': 'running',
                 'parameters': dumps(params)}
 
@@ -57,7 +63,7 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(msg, '')
         self.assertEqual(ainfo[0].files,
                          [(join(out_dir, 'rarefy', 'rarefied.biom'), 'biom')])
-        self.assertEqual(ainfo[0].output_name, 'o-table')
+        self.assertEqual(ainfo[0].output_name, 'Rarefied table')
 
         # testing that the table is actually rarefied, [0] cause there is only
         # one element, and [0][0] from that element we want the first element
@@ -68,9 +74,10 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(rb.sum(), 2 * 7)
 
     def test_rarefy_error(self):
-        params = {'p-sampling-depth': 200000, 'i-table': 5}
+        params = {'Sampling depth': 200000, 'BIOM table': 5}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'Rarefy']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Rarefy features']),
                 'status': 'running',
                 'parameters': dumps(params)}
 
@@ -90,9 +97,10 @@ class qiime2Tests(PluginTestCase):
 
         # qiime2 currently only works with rarefied tables so we need to
         # rarefy it
-        params = {'p-sampling-depth': 10, 'i-table': 5}
+        params = {'Sampling depth': 10, 'BIOM table': 5}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'Rarefy']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Rarefy features']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -104,10 +112,11 @@ class qiime2Tests(PluginTestCase):
 
         # actually test non phylogenetic beta diversity
         params = {
-            'i-table': aid, 'p-metric': 'euclidean',
-            'i-tree': 'None'}
+            'BIOM table': aid, 'Diversity metric': 'Euclidean distance',
+            'Phylogenetic tree': 'None', 'Number of jobs': 1}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'beta_diversity']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Calculate beta diversity']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -122,9 +131,11 @@ class qiime2Tests(PluginTestCase):
                 'plain_text')]
         self.assertEqual(ainfo[0].files, exp)
 
-        params['p-metric'] = 'unweighted UniFrac'
-        params['i-tree'] = join(
+        params['Diversity metric'] = 'Unweighted UniFrac'
+        params['Phylogenetic tree'] = join(
             dirname(realpath(__file__)), 'prune_97_gg_13_8.tre')
+        params['Adjust variance (phylogenetic only)'] = False
+        params['Bypass tips (phylogenetic only)'] = False
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
         success, ainfo, msg = beta_diversity(
             self.qclient, jid, params, out_dir)
@@ -139,7 +150,7 @@ class qiime2Tests(PluginTestCase):
 
         # To avoid having to set up all these files, we are gonna test
         # that if phylogenetic and no tree it fails
-        params['i-tree'] = None
+        params['Phylogenetic tree'] = "None"
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
         success, ainfo, msg = beta_diversity(
             self.qclient, jid, params, out_dir)
@@ -153,9 +164,10 @@ class qiime2Tests(PluginTestCase):
 
         # qiime2 currently only works with rarefied tables so we need to
         # rarefy it
-        params = {'p-sampling-depth': 10, 'i-table': 5}
+        params = {'Sampling depth': 10, 'BIOM table': 5}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'Rarefy']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Rarefy features']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -167,10 +179,11 @@ class qiime2Tests(PluginTestCase):
 
         # non phylogenetic beta diversity
         params = {
-            'i-table': aid, 'p-metric': 'euclidean',
-            'i-tree': 'None'}
+            'BIOM table': aid, 'Diversity metric': 'Euclidean distance',
+            'Phylogenetic tree': 'None', 'Number of jobs': 1}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'beta_diversity']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Calculate beta diversity']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -183,9 +196,11 @@ class qiime2Tests(PluginTestCase):
         aid = reply['artifact']
 
         # pcoa
-        params = {'i-distance-matrix': aid}
+        params = {'Distance matrix': aid}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'pcoa']),
+                'command': dumps(
+                    ['qiime2', qiime2_version,
+                     'Perform Principal Coordinates Analysis (PCoA)']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -205,9 +220,10 @@ class qiime2Tests(PluginTestCase):
 
         # qiime2 currently only works with rarefied tables so we need to
         # rarefy it
-        params = {'p-sampling-depth': 10, 'i-table': 8}
+        params = {'Sampling depth': 10, 'BIOM table': 8}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'Rarefy']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Rarefy features']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -219,10 +235,11 @@ class qiime2Tests(PluginTestCase):
 
         # non phylogenetic beta diversity
         params = {
-            'i-table': aid, 'p-metric': 'euclidean',
-            'i-tree': 'None'}
+            'BIOM table': aid, 'Diversity metric': 'Euclidean distance',
+            'Phylogenetic tree': 'None', 'Number of jobs': 1}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'beta_diversity']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Calculate beta diversity']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -236,12 +253,13 @@ class qiime2Tests(PluginTestCase):
 
         # beta_correlation
         # 1 using that analysis
-        params = {'i-distance-matrix': aid,
-                  'm-metadata-category': 'samp_salinity',
-                  'p-method': 'spearman', 'p-permutations': 5}
+        params = {'Distance matrix': aid,
+                  'Metadata category': 'samp_salinity',
+                  'Correlation method': 'Spearman',
+                  'Number of permutations': 5}
         data = {'user': 'demo@microbio.me',
                 'command': dumps([
-                    'qiime2', qiime2_version, 'beta_correlation']),
+                    'qiime2', qiime2_version, 'Calculate beta correlation']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -257,12 +275,13 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(ainfo[0].files, exp)
 
         # testing faillure here, just to avoid reduplicating all the code above
-        params = {'i-distance-matrix': aid,
-                  'm-metadata-category': 'common_name', 'p-method': 'spearman',
-                  'p-permutations': 5}
+        params = {'Distance matrix': aid,
+                  'Metadata category': 'common_name',
+                  'Correlation method': 'Spearman',
+                  'Number of permutations': 5}
         data = {'user': 'demo@microbio.me',
                 'command': dumps([
-                    'qiime2', qiime2_version, 'beta_correlation']),
+                    'qiime2', qiime2_version, 'Calculate beta correlation']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -278,9 +297,10 @@ class qiime2Tests(PluginTestCase):
 
         # qiime2 currently only works with rarefied tables so we need to
         # rarefy it
-        params = {'p-sampling-depth': 10, 'i-table': 5}
+        params = {'Sampling depth': 10, 'BIOM table': 5}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'Rarefy']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Rarefy features']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -292,11 +312,12 @@ class qiime2Tests(PluginTestCase):
 
         # actually test non phylogenetic alpha diversity
         params = {
-            'i-table': aid, 'p-metric': 'observed_otus',
-            'i-tree': 'None'}
+            'BIOM table': aid,
+            'Diversity metric': 'Number of distinct features',
+            'Phylogenetic tree': 'None'}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
-                                  'alpha_diversity']),
+                                  'Calculate alpha diversity']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -311,8 +332,8 @@ class qiime2Tests(PluginTestCase):
                 'plain_text')]
         self.assertEqual(ainfo[0].files, exp)
 
-        params['p-metric'] = 'faith_pd'
-        params['i-tree'] = join(
+        params['Diversity metric'] = "Faith's Phylogenetic Diversity"
+        params['Phylogenetic tree'] = join(
             dirname(realpath(__file__)), 'prune_97_gg_13_8.tre')
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
         success, ainfo, msg = alpha_diversity(
@@ -328,7 +349,7 @@ class qiime2Tests(PluginTestCase):
 
         # To avoid having to set up all these files, we are gonna test
         # that if phylogenetic and no tree it fails
-        params['i-tree'] = None
+        params['Phylogenetic tree'] = "None"
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
         success, ainfo, msg = alpha_diversity(
             self.qclient, jid, params, out_dir)
@@ -342,9 +363,10 @@ class qiime2Tests(PluginTestCase):
 
         # qiime2 currently only works with rarefied tables so we need to
         # rarefy it
-        params = {'p-sampling-depth': 10, 'i-table': 8}
+        params = {'Sampling depth': 10, 'BIOM table': 8}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'Rarefy']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Rarefy features']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -356,11 +378,12 @@ class qiime2Tests(PluginTestCase):
 
         # non phylogenetic alpha diversity
         params = {
-            'i-table': aid, 'p-metric': 'observed_otus',
-            'i-tree': 'None'}
+            'BIOM table': aid,
+            'Diversity metric': 'Number of distinct features',
+            'Phylogenetic tree': 'None'}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
-                                  'alpha_diversity']),
+                                  'Calculate alpha diversity']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -374,10 +397,10 @@ class qiime2Tests(PluginTestCase):
 
         # alpha_correlation
         # 1 using that analysis
-        params = {'i-alpha-diversity': aid, 'p-method': 'spearman'}
+        params = {'Alpha vectors': aid, 'Correlation method': 'Spearman'}
         data = {'user': 'demo@microbio.me',
                 'command': dumps([
-                    'qiime2', qiime2_version, 'alpha_correlation']),
+                    'qiime2', qiime2_version, 'Calculate alpha correlation']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -397,10 +420,10 @@ class qiime2Tests(PluginTestCase):
         out_dir = mkdtemp()
         self._clean_up_files.append(out_dir)
 
-        params = {'i-table': 8}
+        params = {'BIOM table': 8}
         data = {'user': 'demo@microbio.me',
                 'command': dumps([
-                    'qiime2', qiime2_version, 'taxa_barplot']),
+                    'qiime2', qiime2_version, 'Summarize taxa']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -419,16 +442,16 @@ class qiime2Tests(PluginTestCase):
         self._clean_up_files.append(out_dir)
 
         params = {
-            'i-table': '8',
-            'p-min-frequency': '5',
-            'p-max-frequency': '10',
-            'p-min-features': '5',
-            'p-max-features': '9223372036854775807',
-            'p-where': ''
+            'BIOM table': 8,
+            'Minimum feature frequency across samples': 5,
+            'Maximum feature frequency across samples': 10,
+            'Minimum features per sample': 5,
+            'Maximum features per sample': maxsize,
+            'SQLite WHERE-clause': ''
         }
         data = {'user': 'demo@microbio.me',
                 'command': dumps([
-                    'qiime2', qiime2_version, 'filter_samples']),
+                    'qiime2', qiime2_version, 'Filter samples by metadata']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -451,9 +474,10 @@ class qiime2Tests(PluginTestCase):
 
         # qiime2 currently only works with rarefied tables so we need to
         # rarefy it
-        params = {'p-sampling-depth': 10, 'i-table': 8}
+        params = {'Sampling depth': 10, 'BIOM table': 8}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'Rarefy']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Rarefy features']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -465,10 +489,11 @@ class qiime2Tests(PluginTestCase):
 
         # non phylogenetic beta diversity
         params = {
-            'i-table': aid, 'p-metric': 'euclidean',
-            'i-tree': 'None'}
+            'BIOM table': aid, 'Diversity metric': 'Euclidean distance',
+            'Phylogenetic tree': 'None', 'Number of jobs': 1}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'beta_diversity']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Calculate beta diversity']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -481,9 +506,11 @@ class qiime2Tests(PluginTestCase):
         aid = reply['artifact']
 
         # pcoa
-        params = {'i-distance-matrix': aid}
+        params = {'Distance matrix': aid}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'pcoa']),
+                'command': dumps(
+                    ['qiime2', qiime2_version,
+                     'Perform Principal Coordinates Analysis (PCoA)']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -496,9 +523,10 @@ class qiime2Tests(PluginTestCase):
 
         # emperor
         # 1 using that analysis
-        params = {'i-pcoa': aid, 'p-custom-axis': 'latitude'}
+        params = {'Ordination results': aid, 'Custom axis': 'latitude'}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'emperor']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Custom-axis Emperor plot']),
                 'status': 'running', 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
         success, ainfo, msg = emperor(self.qclient, jid, params, out_dir)
@@ -517,9 +545,10 @@ class qiime2Tests(PluginTestCase):
 
         # qiime2 currently only works with rarefied tables so we need to
         # rarefy it
-        params = {'p-sampling-depth': 10, 'i-table': 8}
+        params = {'Sampling depth': 10, 'BIOM table': 8}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'Rarefy']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Rarefy features']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -531,10 +560,11 @@ class qiime2Tests(PluginTestCase):
 
         # non phylogenetic beta diversity
         params = {
-            'i-table': aid, 'p-metric': 'euclidean',
-            'i-tree': 'None'}
+            'BIOM table': aid, 'Diversity metric': 'Euclidean distance',
+            'Phylogenetic tree': 'None', 'Number of jobs': 1}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['qiime2', qiime2_version, 'beta_diversity']),
+                'command': dumps(['qiime2', qiime2_version,
+                                  'Calculate beta diversity']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -548,13 +578,15 @@ class qiime2Tests(PluginTestCase):
 
         # beta_group_significance
         # 1 using that analysis
-        params = {'i-distance-matrix': aid,
-                  'm-metadata-category': 'samp_salinity',
-                  'p-pairwise': 'p-pairwise',
-                  'p-method': 'permanova', 'p-permutations': 5}
+        params = {'Distance matrix': aid,
+                  'Metadata category': 'samp_salinity',
+                  'Comparison type': 'Pairwise',
+                  'Method': 'PERMANOVA',
+                  'Number of permutations': 5}
         data = {'user': 'demo@microbio.me',
                 'command': dumps([
-                    'qiime2', qiime2_version, 'beta_group_significance']),
+                    'qiime2', qiime2_version,
+                    'Calculate beta group significance']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -570,6 +602,49 @@ class qiime2Tests(PluginTestCase):
                      'beta_group_significance/beta_group_significance.qzv'),
                 'qzv')]
         self.assertEqual(ainfo[0].files, exp)
+
+    def test_metrics(self):
+        # Test beta diversity metrics
+        beta_methods = q2div_plugin.methods['beta'].signature.parameters[
+            'metric'].qiime_type.predicate.choices
+        beta_alt_methods = q2div_plugin.methods[
+            'beta_phylogenetic_alt'].signature.parameters[
+                'metric'].qiime_type.predicate.choices
+        q2_metrics = beta_methods.union(beta_alt_methods)
+        qp_metrics = set(BETA_DIVERSITY_METRICS.values()).union(
+            STATE_UNIFRAC_METRICS.values()).difference(STATE_UNIFRAC_METRICS)
+        self.assertEqual(q2_metrics, qp_metrics)
+
+        # Test alpha diversity metrics
+        alpha_methods = q2div_plugin.methods['alpha'].signature.parameters[
+            'metric'].qiime_type.predicate.choices
+        alpha_phyl_methods = q2div_plugin.methods[
+            'alpha_phylogenetic'].signature.parameters[
+                'metric'].qiime_type.predicate.choices
+        q2_metrics = alpha_methods.union(alpha_phyl_methods)
+        qp_metrics = set(ALPHA_DIVERSITY_METRICS.values())
+        self.assertEqual(q2_metrics, qp_metrics)
+
+        # Alpha correlation methods
+        q2_methods = q2div_plugin.visualizers[
+            'alpha_correlation'].signature.parameters[
+                'method'].qiime_type.predicate.choices
+        qp_methods = set(ALPHA_CORRELATION_METHODS.values())
+        self.assertEqual(q2_methods, qp_methods)
+
+        # Beta correlation methods
+        q2_methods = q2div_plugin.visualizers[
+            'beta_correlation'].signature.parameters[
+                'method'].qiime_type.predicate.choices
+        qp_methods = set(BETA_CORRELATION_METHODS.values())
+        self.assertEqual(q2_methods, qp_methods)
+
+        # Beta group significance methods
+        q2_methods = q2div_plugin.visualizers[
+            'beta_group_significance'].signature.parameters[
+                'method'].qiime_type.predicate.choices
+        qp_methods = set(BETA_GROUP_SIG_METHODS.values())
+        self.assertEqual(q2_methods, qp_methods)
 
 
 if __name__ == '__main__':

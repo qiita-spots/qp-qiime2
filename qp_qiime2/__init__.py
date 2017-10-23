@@ -6,12 +6,17 @@
 # The full license is in the file LICENSE, distributed with this software.
 # -----------------------------------------------------------------------------
 
+from json import dumps
+from sys import maxsize
 
 from qiita_client import QiitaPlugin, QiitaCommand
 
 from .qiime2 import (rarefy, beta_diversity, pcoa, beta_correlation,
                      alpha_diversity, alpha_correlation, taxa_barplot,
-                     filter_samples, emperor, beta_group_significance)
+                     filter_samples, emperor, beta_group_significance,
+                     ALPHA_DIVERSITY_METRICS, BETA_DIVERSITY_METRICS,
+                     ALPHA_CORRELATION_METHODS, BETA_CORRELATION_METHODS,
+                     BETA_GROUP_SIG_METHODS, BETA_GROUP_SIG_TYPE)
 from qiime2 import __version__ as qiime2_version
 
 
@@ -21,176 +26,179 @@ plugin = QiitaPlugin(
 
 # Define the rarefy command
 req_params = {
-    'i-table': ('artifact', ['BIOM']),
-    'p-sampling-depth': ['integer', 1000]
+    'BIOM table': ('artifact', ['BIOM']),
+    'Sampling depth': ['integer', 1000]
 }
 opt_params = {}
-outputs = {'o-table': 'BIOM'}
+outputs = {'Rarefied table': 'BIOM'}
 dflt_param_set = {
     'Defaults': {
-        'p-sampling-depth': 1000}
+        'Sampling depth': 1000}
 }
 qiime_cmd = QiitaCommand(
-    "Rarefy", "Rarefy",
+    "Rarefy features", "Rarefy",
     rarefy, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)
 
 # Define the beta_diversity command
-req_params = {'i-table': ('artifact', ['BIOM'])}
+req_params = {'BIOM table': ('artifact', ['BIOM'])}
 opt_params = {
-    'p-metric': [
-        ('choice:["sokalsneath", "kulsinski", "mahalanobis", "matching", '
-         '"euclidean", "correlation", "yule", "russellrao", "hamming", '
-         '"jaccard", "braycurtis", "dice", "rogerstanimoto", "sqeuclidean", '
-         '"cityblock", "sokalmichener", "cosine", "wminkowski", "seuclidean", '
-         '"chebyshev", "canberra", "unweighted UniFrac", '
-         '"weighted normalized UniFrac", "weighted unnormalized UniFrac"]'),
-        'jaccard'],
-    'i-tree': ['choice:["default", "None"]', 'None']}
-outputs = {'distance_matrix': 'distance_matrix'}
+    'Diversity metric': [
+        'choice:%s' % dumps(list(BETA_DIVERSITY_METRICS)),
+        'Jaccard similarity index'],
+    'Phylogenetic tree': ['choice:["default", "None"]', 'None'],
+    'Number of jobs': ['integer', 1],
+    'Adjust variance (phylogenetic only)': ['boolean', False],
+    'Alpha value (Generalized Unifrac only)': ['float', 0],
+    'Bypass tips (phylogenetic only)': ['boolean', False]}
+outputs = {'Distance matrix': 'distance_matrix'}
 dflt_param_set = {
     'Defaults': {
-        'p-metric': 'jaccard',
-        'i-tree': 'None'}
+        'Diversity metric': 'Jaccard similarity index',
+        'Phylogenetic tree': 'None',
+        'Number of jobs': 1,
+        'Adjust variance (phylogenetic only)': False,
+        'Alpha value (Generalized Unifrac only)': 0,
+        'Bypass tips (phylogenetic only)': False}
 }
 qiime_cmd = QiitaCommand(
-    "beta_diversity", "Beta Diversity",
+    "Calculate beta diversity", "Beta Diversity",
     beta_diversity, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)
 
 # Define the pcoa command
-req_params = {'i-distance-matrix': ('artifact', ['distance_matrix'])}
+req_params = {'Distance matrix': ('artifact', ['distance_matrix'])}
 opt_params = {}
-outputs = {'o-pcoa': 'ordination_results'}
+outputs = {'Ordination results': 'ordination_results'}
 dflt_param_set = {
     'Defaults': {}
 }
 qiime_cmd = QiitaCommand(
-    "pcoa", "Principal Coordinate Analysis",
+    "Perform Principal Coordinates Analysis (PCoA)",
+    "Principal Coordinate Analysis",
     pcoa, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)
 
 # Define the beta_correlation command
-req_params = {'i-distance-matrix': ('artifact', ['distance_matrix']),
-              'm-metadata-category': ('string', '')}
-opt_params = {'p-method': ['choice:["spearman", "pearson"]', 'spearman'],
-              'p-permutations': ('integer', 999)}
-outputs = {'q2_visualization': 'q2_visualization'}
+req_params = {'Distance matrix': ('artifact', ['distance_matrix']),
+              'Metadata category': ('string', '')}
+opt_params = {'Correlation method':
+              ['choice:%s' % dumps(list(BETA_CORRELATION_METHODS)),
+               'Pearson'],
+              'Number of permutations': ('integer', 999)}
+outputs = {'Beta correlation visualization': 'q2_visualization'}
 dflt_param_set = {
     'Defaults': {
-        'p-method': 'spearman',
-        'p-permutations': 999}
+        'Correlation method': 'Pearson',
+        'Number of permutations': 999}
 }
 qiime_cmd = QiitaCommand(
-    "beta_correlation", "Beta Corrrelation",
+    "Calculate beta correlation", "Beta Corrrelation",
     beta_correlation, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)
 
 # Define the alpha command
-req_params = {'i-table': ('artifact', ['BIOM'])}
+req_params = {'BIOM table': ('artifact', ['BIOM'])}
 opt_params = {
-    'p-metric': [
-        ('choice:["simpson", "enspie", "doubles", "mcintosh_d", "chao1", '
-         '"kempton_taylor_q", "observed_otus", "singles", "strong", '
-         '"robbins", "menhinick", "osd", "shannon", "brillouin_d", '
-         '"margalef", "lladser_ci", "pielou_e", "michaelis_menten_fit", '
-         '"ace", "chao1_ci", "goods_coverage", "esty_ci", "fisher_alpha", '
-         '"berger_parker_d", "heip_e", "simpson_e", "dominance", '
-         '"mcintosh_e", "lladser_pe", "gini_index", "faith_pd"]'),
-        'observed_otus'],
-    'i-tree': ['choice:["default", "None"]', 'None']}
-outputs = {'o-alpha-diversity': 'alpha_vector'}
+    'Diversity metric': [
+        'choice:%s' % dumps(list(ALPHA_DIVERSITY_METRICS)),
+        'Number of distinct features'],
+    'Phylogenetic tree': ['choice:["default", "None"]', 'None']}
+outputs = {'Alpha vectors': 'alpha_vector'}
 dflt_param_set = {
     'Defaults': {
-        'p-metric': 'observed_otus',
-        'i-tree': 'None'}
+        'Diversity metric': 'Number of distinct features',
+        'Phylogenetic tree': 'None'}
 }
 qiime_cmd = QiitaCommand(
-    "alpha_diversity", "Alpha Diversity",
+    "Calculate alpha diversity", "Alpha Diversity",
     alpha_diversity, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)
 
 # Define the alpha_correlation command
-req_params = {'i-alpha-diversity': ('artifact', ['alpha_vector'])}
-opt_params = {'p-method': ['choice:["spearman", "pearson"]', 'spearman']}
-outputs = {'q2_visualization': 'q2_visualization'}
-dflt_param_set = {
-    'Defaults': {
-        'p-method': 'spearman'}
-}
+req_params = {'Alpha vectors': ('artifact', ['alpha_vector'])}
+opt_params = {'Correlation method':
+              ['choice:%s' % dumps(list(ALPHA_CORRELATION_METHODS)),
+               'Spearman']}
+outputs = {'Alpha correlation visualization': 'q2_visualization'}
+dflt_param_set = {'Defaults': {'Correlation method': 'Spearman'}}
 qiime_cmd = QiitaCommand(
-    "alpha_correlation", "Alpha Corrrelation",
+    "Calculate alpha correlation", "Alpha Corrrelation",
     alpha_correlation, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)
 
 # Define the taxa barplot command
-req_params = {'i-table': ('artifact', ['BIOM'])}
+req_params = {'BIOM table': ('artifact', ['BIOM'])}
 opt_params = {}
-outputs = {'q2_visualization': 'q2_visualization'}
+outputs = {'Taxa summaries visualization': 'q2_visualization'}
 dflt_param_set = {
     'Defaults': {}
 }
 qiime_cmd = QiitaCommand(
-    "taxa_barplot", "Taxa Barplot",
+    "Summarize taxa", "Taxa Barplot",
     taxa_barplot, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)
 
 # Define the filtering samples from biom command
-req_params = {'i-table': ('artifact', ['BIOM'])}
+req_params = {'BIOM table': ('artifact', ['BIOM'])}
 opt_params = {
-    'p-min-frequency': ('integer', 0),
-    'p-max-frequency': ('integer', 9223372036854775807),
-    'p-min-features': ('integer', 0),
-    'p-max-features': ('integer', 9223372036854775807),
-    'p-where': ('string', '')}
-outputs = {'o-table': 'BIOM'}
+    'Minimum feature frequency across samples': ('integer', 1),
+    'Maximum feature frequency across samples':
+        ('integer', maxsize),
+    'Minimum features per sample': ('integer', 1),
+    'Maximum features per sample': ('integer', maxsize),
+    'SQLite WHERE-clause': ('string', '')}
+outputs = {'Filtered table': 'BIOM'}
 dflt_param_set = {
     'Defaults': {
-        'p-min-frequency': 0,
-        'p-max-frequency': 9223372036854775807,
-        'p-min-features': 0,
-        'p-max-features': 9223372036854775807,
-        'p-where': ''}}
+        'Minimum feature frequency across samples': 1,
+        'Maximum feature frequency across samples': maxsize,
+        'Minimum features per sample': 1,
+        'Maximum features per sample': maxsize,
+        'SQLite WHERE-clause': ''}}
 qiime_cmd = QiitaCommand(
-    "filter_samples", "Filter Samples",
+    "Filter samples by metadata", "Filter Samples",
     filter_samples, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)
 
 # Define the emperor command
-req_params = {'i-pcoa': ('artifact', ['ordination_results'])}
-opt_params = {'p-custom-axis': ('string', '')}
-outputs = {'q2_visualization': 'q2_visualization'}
-dflt_param_set = {'Defaults': {'p-custom-axis': ''}}
+req_params = {'Ordination results': ('artifact', ['ordination_results'])}
+opt_params = {'Custom axis': ('string', '')}
+outputs = {'Emperor visualization': 'q2_visualization'}
+dflt_param_set = {'Defaults': {'Custom axis': ''}}
 qiime_cmd = QiitaCommand(
-    "emperor", "Emperor plot",
+    "Custom-axis Emperor plot", "Emperor plot",
     emperor, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)
 
 # Define beta-group-significance command
-req_params = {'i-distance-matrix': ('artifact', ['distance_matrix']),
-              'm-metadata-category': ('string', '')}
-opt_params = {'p-method': ['choice:["permanova", "anosim"]', 'permanova'],
-              'p-pairwise': ['choice:["p-pairwise", "p-no-pairwise"]',
-                             'p-pairwise'],
-              'p-permutations': ('integer', 999)}
-outputs = {'q2_visualization': 'q2_visualization'}
+req_params = {'Distance matrix': ('artifact', ['distance_matrix']),
+              'Metadata category': ('string', '')}
+opt_params = {'Method':
+              ['choice:%s' % dumps(list(BETA_GROUP_SIG_METHODS)),
+               'PERMANOVA'],
+              'Comparison type':
+              ['choice:%s' % dumps(list(BETA_GROUP_SIG_TYPE)),
+               'Pairwise'],
+              'Number of permutations': ('integer', 999)}
+outputs = {'Beta group significance visualization': 'q2_visualization'}
 dflt_param_set = {
     'Defaults': {
-        'p-method': 'permanova',
-        'p-pairwise': 'p-pairwise',
-        'p-permutations': 999}
+        'Method': 'PERMANOVA',
+        'Comparison type': 'p-pairwise',
+        'Number of permutations': 999}
 }
 qiime_cmd = QiitaCommand(
-    "beta_group_significance", "Beta Group Significance",
+    "Calculate beta group significance", "Beta Group Significance",
     beta_group_significance, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
 plugin.register_command(qiime_cmd)

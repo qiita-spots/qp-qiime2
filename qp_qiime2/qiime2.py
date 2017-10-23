@@ -18,11 +18,91 @@ from qiita_client.util import system_call
 
 
 STATE_UNIFRAC_METRICS = {
-    "unweighted UniFrac": "unweighted",
-    "weighted normalized UniFrac": "weighted-normalized",
-    "weighted unnormalized UniFrac": "weighted-unnormalized"}
+    "unweighted UniFrac": "unweighted_unifrac",
+    "weighted normalized UniFrac": "weighted_normalized_unifrac",
+    "weighted unnormalized UniFrac": "weighted_unifrac",
+    "generalized UniFrac": "generalized_unifrac"}
 
 ALPHA_PHYLOGENETIC_METRICS = {'faith_pd'}
+
+ALPHA_DIVERSITY_METRICS = {
+    "Abundance-based Coverage Estimator (ACE) metric": "ace",
+    "Berger-Parker dominance index": "berger_parker_d",
+    "Brillouin's index": "brillouin_d",
+    "Chao1 index": "chao1",
+    "Chao1 confidence interval": "chao1_ci",
+    "Dominance measure": "dominance",
+    "Effective number of species (ENS)/"
+    "Probability of intra-or interspecific encounter (PIE) metric": "enspie",
+    "Esty's confidence interval": "esty_ci",
+    "Faith's Phylogenetic Diversity": "faith_pd",
+    "Fisher's index": "fisher_alpha",
+    "Gini index": "gini_index",
+    "Good's coverage of counts": "goods_coverage",
+    "Heip's evenness measure": "heip_e",
+    "Kempton-Taylor Q index": "kempton_taylor_q",
+    "Lladser's confidence interval": "lladser_ci",
+    "Lladser's point estimate": "lladser_pe",
+    "Margalef's richness index": "margalef",
+    "McIntosh dominance index D": "mcintosh_d",
+    "McIntosh evenness index E": "mcintosh_e",
+    "Menhinick's richness index": "menhinick",
+    "Michaelis-Menten fit to rarefaction curve of obeserved OTUs":
+        "michaelis_menten_fit",
+    "Number of distinct features": "observed_otus",
+    "Number of double occurrences": "doubles",
+    "Number of single occurrences": "singles",
+    "Number of observed features, including singles and doubles": "osd",
+    "Pielou's evenness": "pielou_e",
+    "Robbins' estimator": "robbins",
+    "Shannon's index": "shannon",
+    "Simpson's index": "simpson",
+    "Simpson's evenness measure E": "simpson_e",
+    "Strong's dominance index (Dw)": "strong"}
+
+ALPHA_CORRELATION_METHODS = {
+    "Spearman": "spearman",
+    "Pearson": "pearson"}
+
+
+BETA_DIVERSITY_METRICS = {
+    "Bray-Curtis dissimilarity": "braycurtis",
+    "Canberra distance": "canberra",
+    "Chebysev distance": "chebyshev",
+    "City-block distance": "cityblock",
+    "Correlation coefficient": "correlation",
+    "Cosine similarity": "cosine",
+    "Dice measure": "dice",
+    "Euclidean distance": "euclidean",
+    "Hamming distance": "hamming",
+    "Jaccard similarity index": "jaccard",
+    "Kulczynski dissimilarity index": "kulsinski",
+    "Mahalanobis distance": "mahalanobis",
+    "Matching components": "matching",
+    "Rogers-Tanimoto distance": "rogerstanimoto",
+    "Russell-Rao coefficients": "russellrao",
+    "Sokal-Michener coefficient": "sokalmichener",
+    "Sokal-Sneath index": "sokalsneath",
+    "Species-by-species Euclidean": "seuclidean",
+    "Squared Euclidean": "sqeuclidean",
+    "Weighted Minkowski metric": "wminkowski",
+    "Yule index": "yule",
+    "Unweighted UniFrac": "unweighted UniFrac",
+    "Weighted normalized UniFrac": "weighted normalized UniFrac",
+    "Weighted unnormalized UniFrac": "weighted unnormalized UniFrac",
+    "Generalized UniFrac": "generalized UniFrac"}
+
+BETA_CORRELATION_METHODS = {
+    "Spearman": "spearman",
+    "Pearson": "pearson"}
+
+BETA_GROUP_SIG_METHODS = {
+    "PERMANOVA": "permanova",
+    "ANOSIM": "anosim"}
+
+BETA_GROUP_SIG_TYPE = {
+    "Pairwise": "p-pairwise",
+    "Non-pairwise": "p-no-pairwise"}
 
 
 def rarefy(qclient, job_id, parameters, out_dir):
@@ -47,8 +127,8 @@ def rarefy(qclient, job_id, parameters, out_dir):
     out_dir = join(out_dir, 'rarefy')
 
     qclient.update_job_step(job_id, "Step 1 of 2: Collecting information")
-    artifact_id = int(parameters['i-table'])
-    rarefy_level = int(parameters['p-sampling-depth'])
+    artifact_id = int(parameters['BIOM table'])
+    rarefy_level = int(parameters['Sampling depth'])
     artifact_info = qclient.get("/qiita_db/artifacts/%d/" % artifact_id)
 
     # getting just the biom file, [0] it should be only one
@@ -67,7 +147,7 @@ def rarefy(qclient, job_id, parameters, out_dir):
     with biom_open(rarefied_fp, 'w') as bf:
         rarefied.to_hdf5(bf, "Qiita's Qiime2 plugin")
 
-    ainfo = [ArtifactInfo('o-table', 'BIOM', [(rarefied_fp, 'biom')])]
+    ainfo = [ArtifactInfo('Rarefied table', 'BIOM', [(rarefied_fp, 'biom')])]
 
     return True, ainfo, ""
 
@@ -96,14 +176,15 @@ def beta_diversity(qclient, job_id, parameters, out_dir):
         mkdir(out_dir)
 
     qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
-    artifact_id = parameters['i-table']
-    metric = parameters['p-metric']
-    tree = parameters['i-tree']
+    artifact_id = parameters['BIOM table']
+    metric = BETA_DIVERSITY_METRICS[parameters['Diversity metric']]
+    tree = parameters['Phylogenetic tree']
     if tree == 'None':
         tree = None
     artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
     biom_fpi = artifact_info['files']['biom'][0]
     biom_qza = join(out_dir, 'q2-biom.qza')
+    num_jobs = parameters['Number of jobs']
 
     qclient.update_job_step(
         job_id, "Step 2 of 4: Converting Qiita artifacts to Q2 artifact")
@@ -138,12 +219,22 @@ def beta_diversity(qclient, job_id, parameters, out_dir):
     if tree is not None and metric in STATE_UNIFRAC_METRICS:
         su_metric = STATE_UNIFRAC_METRICS[metric]
         dtx_fp = join(out_dir, '%s.qza' % su_metric)
-        cmd = ('qiime state-unifrac %s --i-table %s --i-phylogeny %s '
-               '--o-distance-matrix %s' % (su_metric, biom_qza, tree, dtx_fp))
+        cmd = ('qiime diversity beta-phylogenetic-alt --p-metric %s '
+               '--i-table %s --i-phylogeny %s --o-distance-matrix %s '
+               '--p-n-jobs %s'
+               % (su_metric, biom_qza, tree, dtx_fp, num_jobs))
+        if parameters['Adjust variance (phylogenetic only)']:
+            cmd += ' --p-variance-adjusted'
+        if parameters['Bypass tips (phylogenetic only)']:
+            cmd += ' --p-bypass-tips'
+        if su_metric == 'generalized_unifrac':
+            cmd += '--p-alpha %s' % parameters[
+                'Alpha value (Generalized Unifrac only)']
     elif metric not in STATE_UNIFRAC_METRICS and tree is None:
         dtx_fp = join(out_dir, '%s.qza' % metric)
         cmd = ('qiime diversity beta --i-table %s --p-metric %s '
-               '--o-distance-matrix %s' % (biom_qza, metric, dtx_fp))
+               '--o-distance-matrix %s --p-n-jobs %s'
+               % (biom_qza, metric, dtx_fp, num_jobs))
     else:
         return False, None, ('Phylogenetic metric %s selected but no tree '
                              'exists' % metric)
@@ -165,7 +256,7 @@ def beta_diversity(qclient, job_id, parameters, out_dir):
                      "%s\nStd err: %s" % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('distance_matrix', 'distance_matrix',
+    ainfo = [ArtifactInfo('Distance matrix', 'distance_matrix',
                           [(ffp, 'plain_text')])]
     return True, ainfo, ""
 
@@ -194,7 +285,7 @@ def pcoa(qclient, job_id, parameters, out_dir):
         mkdir(out_dir)
 
     qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
-    artifact_id = parameters['i-distance-matrix']
+    artifact_id = parameters['Distance matrix']
     artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
     dm_fp = artifact_info['files']['plain_text'][0]
     dm_qza = join(out_dir, 'q2-distance.qza')
@@ -232,7 +323,7 @@ def pcoa(qclient, job_id, parameters, out_dir):
                      "%s\nStd err: %s" % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('o-pcoa', 'ordination_results',
+    ainfo = [ArtifactInfo('Ordination results', 'ordination_results',
                           [(ffp, 'plain_text')])]
     return True, ainfo, ""
 
@@ -261,7 +352,7 @@ def beta_correlation(qclient, job_id, parameters, out_dir):
         mkdir(out_dir)
 
     qclient.update_job_step(job_id, "Step 1 of 3: Collecting information")
-    artifact_id = parameters['i-distance-matrix']
+    artifact_id = parameters['Distance matrix']
     artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
     dm_fp = artifact_info['files']['plain_text'][0]
     dm_qza = join(out_dir, 'q2-distance.qza')
@@ -271,9 +362,9 @@ def beta_correlation(qclient, job_id, parameters, out_dir):
     metadata = pd.DataFrame.from_dict(metadata, orient='index')
     metadata_fp = join(out_dir, 'metadata.txt')
     metadata.to_csv(metadata_fp, sep='\t')
-    m_metadata_category = parameters['m-metadata-category']
-    p_method = parameters['p-method']
-    p_permutations = parameters['p-permutations']
+    m_metadata_category = parameters['Metadata category']
+    p_method = BETA_CORRELATION_METHODS[parameters['Correlation method']]
+    p_permutations = parameters['Number of permutations']
     o_visualization = join(out_dir, 'beta_correlation.qzv')
 
     qclient.update_job_step(
@@ -300,7 +391,7 @@ def beta_correlation(qclient, job_id, parameters, out_dir):
                      % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
+    ainfo = [ArtifactInfo('Beta correlation visualization', 'q2_visualization',
                           [(o_visualization, 'qzv')])]
     return True, ainfo, ""
 
@@ -329,9 +420,9 @@ def alpha_diversity(qclient, job_id, parameters, out_dir):
         mkdir(out_dir)
 
     qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
-    artifact_id = parameters['i-table']
-    metric = parameters['p-metric']
-    tree = parameters['i-tree']
+    artifact_id = parameters['BIOM table']
+    metric = ALPHA_DIVERSITY_METRICS[parameters['Diversity metric']]
+    tree = parameters['Phylogenetic tree']
     if tree == 'None':
         tree = None
     artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
@@ -396,7 +487,7 @@ def alpha_diversity(qclient, job_id, parameters, out_dir):
                      "%s\nStd err: %s" % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('o-alpha-diversity', 'alpha_vector',
+    ainfo = [ArtifactInfo('Alpha vectors', 'alpha_vector',
                           [(ffp, 'plain_text')])]
     return True, ainfo, ""
 
@@ -425,7 +516,7 @@ def alpha_correlation(qclient, job_id, parameters, out_dir):
         mkdir(out_dir)
 
     qclient.update_job_step(job_id, "Step 1 of 3: Collecting information")
-    artifact_id = parameters['i-alpha-diversity']
+    artifact_id = parameters['Alpha vectors']
     artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
     dm_fp = artifact_info['files']['plain_text'][0]
     dm_qza = join(out_dir, 'q2-alpha-diversity.qza')
@@ -435,7 +526,7 @@ def alpha_correlation(qclient, job_id, parameters, out_dir):
     metadata = pd.DataFrame.from_dict(metadata, orient='index')
     metadata_fp = join(out_dir, 'metadata.txt')
     metadata.to_csv(metadata_fp, sep='\t')
-    p_method = parameters['p-method']
+    p_method = ALPHA_CORRELATION_METHODS[parameters['Correlation method']]
     o_visualization = join(out_dir, 'alpha_correlation.qzv')
 
     qclient.update_job_step(
@@ -460,8 +551,8 @@ def alpha_correlation(qclient, job_id, parameters, out_dir):
                      % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
-                          [(o_visualization, 'qzv')])]
+    ainfo = [ArtifactInfo('Alpha correlation visualization',
+                          'q2_visualization', [(o_visualization, 'qzv')])]
     return True, ainfo, ""
 
 
@@ -489,7 +580,7 @@ def taxa_barplot(qclient, job_id, parameters, out_dir):
         mkdir(out_dir)
 
     qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
-    artifact_id = int(parameters['i-table'])
+    artifact_id = int(parameters['BIOM table'])
     artifact_info = qclient.get("/qiita_db/artifacts/%d/" % artifact_id)
     analysis_id = artifact_info['analysis']
     metadata = qclient.get(
@@ -552,7 +643,7 @@ def taxa_barplot(qclient, job_id, parameters, out_dir):
                      "Std err: %s" % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
+    ainfo = [ArtifactInfo('Taxa summaries visualization', 'q2_visualization',
                           [(taxa_plot_qzv, 'qzv')])]
     return True, ainfo, ""
 
@@ -581,12 +672,14 @@ def filter_samples(qclient, job_id, parameters, out_dir):
         mkdir(out_dir)
 
     qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
-    artifact_id = int(parameters['i-table'])
-    p_max_frequency = int(parameters['p-max-frequency'])
-    p_max_features = int(parameters['p-max-features'])
-    p_min_frequency = int(parameters['p-min-frequency'])
-    p_min_features = int(parameters['p-min-features'])
-    p_where = parameters['p-where']
+    artifact_id = int(parameters['BIOM table'])
+    p_max_frequency = int(
+        parameters['Maximum feature frequency across samples'])
+    p_max_features = int(parameters['Maximum features per sample'])
+    p_min_frequency = int(
+        parameters['Minimum feature frequency across samples'])
+    p_min_features = int(parameters['Minimum features per sample'])
+    p_where = parameters['SQLite WHERE-clause']
 
     artifact_info = qclient.get("/qiita_db/artifacts/%d/" % artifact_id)
     analysis_id = artifact_info['analysis']
@@ -643,7 +736,7 @@ def filter_samples(qclient, job_id, parameters, out_dir):
                      "%s\nStd err: %s" % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('o-table', 'BIOM', [(ffp, 'biom')])]
+    ainfo = [ArtifactInfo('Filtered table', 'BIOM', [(ffp, 'biom')])]
     return True, ainfo, ""
 
 
@@ -671,8 +764,8 @@ def emperor(qclient, job_id, parameters, out_dir):
         mkdir(out_dir)
 
     qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
-    artifact_id = parameters['i-pcoa']
-    p_custom_axis = parameters['p-custom-axis']
+    artifact_id = parameters['Ordination results']
+    p_custom_axis = parameters['Custom axis']
     artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
     pcoa_fp = artifact_info['files']['plain_text'][0]
 
@@ -710,7 +803,7 @@ def emperor(qclient, job_id, parameters, out_dir):
                      % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
+    ainfo = [ArtifactInfo('Emperor visualization', 'q2_visualization',
                           [(emperor_qzv, 'qzv')])]
     return True, ainfo, ""
 
@@ -739,7 +832,7 @@ def beta_group_significance(qclient, job_id, parameters, out_dir):
         mkdir(out_dir)
 
     qclient.update_job_step(job_id, "Step 1 of 3: Collecting information")
-    artifact_id = parameters['i-distance-matrix']
+    artifact_id = parameters['Distance matrix']
     artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
     dm_fp = artifact_info['files']['plain_text'][0]
     dm_qza = join(out_dir, 'q2-distance.qza')
@@ -749,10 +842,10 @@ def beta_group_significance(qclient, job_id, parameters, out_dir):
     metadata = pd.DataFrame.from_dict(metadata, orient='index')
     metadata_fp = join(out_dir, 'metadata.txt')
     metadata.to_csv(metadata_fp, sep='\t')
-    m_metadata_category = parameters['m-metadata-category']
-    p_method = parameters['p-method']
-    p_permutations = parameters['p-permutations']
-    p_pairwise = parameters['p-pairwise']
+    m_metadata_category = parameters['Metadata category']
+    p_method = BETA_GROUP_SIG_METHODS[parameters['Method']]
+    p_permutations = parameters['Number of permutations']
+    p_pairwise = BETA_GROUP_SIG_TYPE[parameters['Comparison type']]
     o_visualization = join(out_dir, 'beta_group_significance.qzv')
 
     qclient.update_job_step(
@@ -778,6 +871,7 @@ def beta_group_significance(qclient, job_id, parameters, out_dir):
                      "Std err: %s" % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
+    ainfo = [ArtifactInfo('Beta group significance visualization',
+                          'q2_visualization',
                           [(o_visualization, 'qzv')])]
     return True, ainfo, ""
