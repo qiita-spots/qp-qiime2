@@ -552,7 +552,7 @@ def taxa_barplot(qclient, job_id, parameters, out_dir):
         mkdir(out_dir)
 
     qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
-    artifact_id = int(parameters['i-table'])
+    artifact_id = int(parameters['BIOM table'])
     artifact_info = qclient.get("/qiita_db/artifacts/%d/" % artifact_id)
     analysis_id = artifact_info['analysis']
     metadata = qclient.get(

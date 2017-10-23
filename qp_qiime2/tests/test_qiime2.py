@@ -411,7 +411,7 @@ class qiime2Tests(PluginTestCase):
         out_dir = mkdtemp()
         self._clean_up_files.append(out_dir)
 
-        params = {'i-table': 8}
+        params = {'BIOM table': 8}
         data = {'user': 'demo@microbio.me',
                 'command': dumps([
                     'qiime2', qiime2_version, 'Summarize taxa']),

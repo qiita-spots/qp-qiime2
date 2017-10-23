@@ -122,7 +122,7 @@ qiime_cmd = QiitaCommand(
 plugin.register_command(qiime_cmd)
 
 # Define the taxa barplot command
-req_params = {'i-table': ('artifact', ['BIOM'])}
+req_params = {'BIOM table': ('artifact', ['BIOM'])}
 opt_params = {}
 outputs = {'q2_visualization': 'q2_visualization'}
 dflt_param_set = {
