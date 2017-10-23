@@ -94,6 +94,14 @@ BETA_CORRELATION_METHODS = {
     "Spearman": "spearman",
     "Pearson": "pearson"}
 
+BETA_GROUP_SIG_METHODS = {
+    "PERMANOVA": "permanova",
+    "ANOSIM": "anosim"}
+
+BETA_GROUP_SIG_TYPE = {
+    "Pairwise": "p-pairwise",
+    "Non-pairwise": "p-no-pairwise"}
+
 
 def rarefy(qclient, job_id, parameters, out_dir):
     """rarefy a table
@@ -811,7 +819,7 @@ def beta_group_significance(qclient, job_id, parameters, out_dir):
         mkdir(out_dir)
 
     qclient.update_job_step(job_id, "Step 1 of 3: Collecting information")
-    artifact_id = parameters['i-distance-matrix']
+    artifact_id = parameters['Distance matrix']
     artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
     dm_fp = artifact_info['files']['plain_text'][0]
     dm_qza = join(out_dir, 'q2-distance.qza')
@@ -821,10 +829,10 @@ def beta_group_significance(qclient, job_id, parameters, out_dir):
     metadata = pd.DataFrame.from_dict(metadata, orient='index')
     metadata_fp = join(out_dir, 'metadata.txt')
     metadata.to_csv(metadata_fp, sep='\t')
-    m_metadata_category = parameters['m-metadata-category']
-    p_method = parameters['p-method']
-    p_permutations = parameters['p-permutations']
-    p_pairwise = parameters['p-pairwise']
+    m_metadata_category = parameters['Metadata category']
+    p_method = BETA_GROUP_SIG_METHODS[parameters['Method']]
+    p_permutations = parameters['Number of permutations']
+    p_pairwise = BETA_GROUP_SIG_TYPE[parameters['Comparison type']]
     o_visualization = join(out_dir, 'beta_group_significance.qzv')
 
     qclient.update_job_step(

@@ -553,8 +553,8 @@ class qiime2Tests(PluginTestCase):
 
         # non phylogenetic beta diversity
         params = {
-            'i-table': aid, 'p-metric': 'euclidean',
-            'i-tree': 'None'}
+            'BIOM table': aid, 'Diversity metric': 'Euclidean distance',
+            'Phylogenetic tree': 'None'}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
                                   'Calculate beta diversity']),
@@ -571,10 +571,11 @@ class qiime2Tests(PluginTestCase):
 
         # beta_group_significance
         # 1 using that analysis
-        params = {'i-distance-matrix': aid,
-                  'm-metadata-category': 'samp_salinity',
-                  'p-pairwise': 'p-pairwise',
-                  'p-method': 'permanova', 'p-permutations': 5}
+        params = {'Distance matrix': aid,
+                  'Metadata category': 'samp_salinity',
+                  'Comparison type': 'Pairwise',
+                  'Method': 'PERMANOVA',
+                  'Number of permutations': 5}
         data = {'user': 'demo@microbio.me',
                 'command': dumps([
                     'qiime2', qiime2_version,

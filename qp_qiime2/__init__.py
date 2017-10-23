@@ -14,7 +14,8 @@ from .qiime2 import (rarefy, beta_diversity, pcoa, beta_correlation,
                      alpha_diversity, alpha_correlation, taxa_barplot,
                      filter_samples, emperor, beta_group_significance,
                      ALPHA_DIVERSITY_METRICS, BETA_DIVERSITY_METRICS,
-                     ALPHA_CORRELATION_METHODS, BETA_CORRELATION_METHODS)
+                     ALPHA_CORRELATION_METHODS, BETA_CORRELATION_METHODS,
+                     BETA_GROUP_SIG_METHODS, BETA_GROUP_SIG_TYPE)
 from qiime2 import __version__ as qiime2_version
 
 
@@ -171,18 +172,21 @@ qiime_cmd = QiitaCommand(
 plugin.register_command(qiime_cmd)
 
 # Define beta-group-significance command
-req_params = {'i-distance-matrix': ('artifact', ['distance_matrix']),
-              'm-metadata-category': ('string', '')}
-opt_params = {'p-method': ['choice:["permanova", "anosim"]', 'permanova'],
-              'p-pairwise': ['choice:["p-pairwise", "p-no-pairwise"]',
-                             'p-pairwise'],
-              'p-permutations': ('integer', 999)}
+req_params = {'Distance matrix': ('artifact', ['distance_matrix']),
+              'Metadata category': ('string', '')}
+opt_params = {'Method':
+              ['choice:%s' % dumps(list(BETA_GROUP_SIG_METHODS.keys())),
+               'PERMANOVA'],
+              'Comparison type':
+              ['choice:%s' % dumps(list(BETA_GROUP_SIG_TYPE.keys())),
+               'Pairwise'],
+              'Number of permutations': ('integer', 999)}
 outputs = {'q2_visualization': 'q2_visualization'}
 dflt_param_set = {
     'Defaults': {
-        'p-method': 'permanova',
-        'p-pairwise': 'p-pairwise',
-        'p-permutations': 999}
+        'Method': 'permanova',
+        'Comparison type': 'p-pairwise',
+        'Number of permutations': 999}
 }
 qiime_cmd = QiitaCommand(
     "Calculate beta group significance", "Beta Group Significance",
