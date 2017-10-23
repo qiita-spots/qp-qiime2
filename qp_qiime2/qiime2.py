@@ -147,7 +147,7 @@ def rarefy(qclient, job_id, parameters, out_dir):
     with biom_open(rarefied_fp, 'w') as bf:
         rarefied.to_hdf5(bf, "Qiita's Qiime2 plugin")
 
-    ainfo = [ArtifactInfo('o-table', 'BIOM', [(rarefied_fp, 'biom')])]
+    ainfo = [ArtifactInfo('Rarefied table', 'BIOM', [(rarefied_fp, 'biom')])]
 
     return True, ainfo, ""
 
@@ -256,7 +256,7 @@ def beta_diversity(qclient, job_id, parameters, out_dir):
                      "%s\nStd err: %s" % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('distance_matrix', 'distance_matrix',
+    ainfo = [ArtifactInfo('Distance matrix', 'distance_matrix',
                           [(ffp, 'plain_text')])]
     return True, ainfo, ""
 
@@ -323,7 +323,7 @@ def pcoa(qclient, job_id, parameters, out_dir):
                      "%s\nStd err: %s" % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('o-pcoa', 'ordination_results',
+    ainfo = [ArtifactInfo('Ordination results', 'ordination_results',
                           [(ffp, 'plain_text')])]
     return True, ainfo, ""
 
@@ -391,7 +391,7 @@ def beta_correlation(qclient, job_id, parameters, out_dir):
                      % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
+    ainfo = [ArtifactInfo('Beta correlation visualization', 'q2_visualization',
                           [(o_visualization, 'qzv')])]
     return True, ainfo, ""
 
@@ -487,7 +487,7 @@ def alpha_diversity(qclient, job_id, parameters, out_dir):
                      "%s\nStd err: %s" % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('o-alpha-diversity', 'alpha_vector',
+    ainfo = [ArtifactInfo('Alpha vectors', 'alpha_vector',
                           [(ffp, 'plain_text')])]
     return True, ainfo, ""
 
@@ -551,8 +551,8 @@ def alpha_correlation(qclient, job_id, parameters, out_dir):
                      % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
-                          [(o_visualization, 'qzv')])]
+    ainfo = [ArtifactInfo('Alpha correlation visualization',
+                          'q2_visualization', [(o_visualization, 'qzv')])]
     return True, ainfo, ""
 
 
@@ -643,7 +643,7 @@ def taxa_barplot(qclient, job_id, parameters, out_dir):
                      "Std err: %s" % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
+    ainfo = [ArtifactInfo('Taxa summaries visualization', 'q2_visualization',
                           [(taxa_plot_qzv, 'qzv')])]
     return True, ainfo, ""
 
@@ -736,7 +736,7 @@ def filter_samples(qclient, job_id, parameters, out_dir):
                      "%s\nStd err: %s" % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('o-table', 'BIOM', [(ffp, 'biom')])]
+    ainfo = [ArtifactInfo('Filtered table', 'BIOM', [(ffp, 'biom')])]
     return True, ainfo, ""
 
 
@@ -803,7 +803,7 @@ def emperor(qclient, job_id, parameters, out_dir):
                      % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
+    ainfo = [ArtifactInfo('Emperor visualization', 'q2_visualization',
                           [(emperor_qzv, 'qzv')])]
     return True, ainfo, ""
 
@@ -871,6 +871,7 @@ def beta_group_significance(qclient, job_id, parameters, out_dir):
                      "Std err: %s" % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
+    ainfo = [ArtifactInfo('Beta group significance visualization',
+                          'q2_visualization',
                           [(o_visualization, 'qzv')])]
     return True, ainfo, ""

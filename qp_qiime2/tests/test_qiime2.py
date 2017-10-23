@@ -62,7 +62,7 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(msg, '')
         self.assertEqual(ainfo[0].files,
                          [(join(out_dir, 'rarefy', 'rarefied.biom'), 'biom')])
-        self.assertEqual(ainfo[0].output_name, 'o-table')
+        self.assertEqual(ainfo[0].output_name, 'Rarefied table')
 
         # testing that the table is actually rarefied, [0] cause there is only
         # one element, and [0][0] from that element we want the first element

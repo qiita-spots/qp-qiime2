@@ -29,7 +29,7 @@ req_params = {
     'Sampling depth': ['integer', 1000]
 }
 opt_params = {}
-outputs = {'o-table': 'BIOM'}
+outputs = {'Rarefied table': 'BIOM'}
 dflt_param_set = {
     'Defaults': {
         'Sampling depth': 1000}
@@ -51,7 +51,7 @@ opt_params = {
     'Adjust variance (phylogenetic only)': ['boolean', False],
     'Alpha value (Generalized Unifrac only)': ['float', 0],
     'Bypass tips (phylogenetic only)': ['boolean', False]}
-outputs = {'distance_matrix': 'distance_matrix'}
+outputs = {'Distance matrix': 'distance_matrix'}
 dflt_param_set = {
     'Defaults': {
         'Diversity metric': 'Jaccard similarity index',
@@ -70,7 +70,7 @@ plugin.register_command(qiime_cmd)
 # Define the pcoa command
 req_params = {'Distance matrix': ('artifact', ['distance_matrix'])}
 opt_params = {}
-outputs = {'o-pcoa': 'ordination_results'}
+outputs = {'Ordination results': 'ordination_results'}
 dflt_param_set = {
     'Defaults': {}
 }
@@ -88,7 +88,7 @@ opt_params = {'Correlation method':
               ['choice:%s' % dumps(list(BETA_CORRELATION_METHODS)),
                'Pearson'],
               'Number of permutations': ('integer', 999)}
-outputs = {'q2_visualization': 'q2_visualization'}
+outputs = {'Beta correlation visualization': 'q2_visualization'}
 dflt_param_set = {
     'Defaults': {
         'Correlation method': 'Pearson',
@@ -107,7 +107,7 @@ opt_params = {
         'choice:%s' % dumps(list(ALPHA_DIVERSITY_METRICS)),
         'Number of distinct features'],
     'Phylogenetic tree': ['choice:["default", "None"]', 'None']}
-outputs = {'o-alpha-diversity': 'alpha_vector'}
+outputs = {'Alpha vectors': 'alpha_vector'}
 dflt_param_set = {
     'Defaults': {
         'Diversity metric': 'Number of distinct features',
@@ -124,7 +124,7 @@ req_params = {'Alpha vectors': ('artifact', ['alpha_vector'])}
 opt_params = {'Correlation method':
               ['choice:%s' % dumps(list(ALPHA_CORRELATION_METHODS)),
                'Spearman']}
-outputs = {'q2_visualization': 'q2_visualization'}
+outputs = {'Alpha correlation visualization': 'q2_visualization'}
 dflt_param_set = {'Defaults': {'Correlation method': 'Spearman'}}
 qiime_cmd = QiitaCommand(
     "Calculate alpha correlation", "Alpha Corrrelation",
@@ -135,7 +135,7 @@ plugin.register_command(qiime_cmd)
 # Define the taxa barplot command
 req_params = {'BIOM table': ('artifact', ['BIOM'])}
 opt_params = {}
-outputs = {'q2_visualization': 'q2_visualization'}
+outputs = {'Taxa summaries visualization': 'q2_visualization'}
 dflt_param_set = {
     'Defaults': {}
 }
@@ -154,7 +154,7 @@ opt_params = {
     'Minimum features per sample': ('integer', 1),
     'Maximum features per sample': ('integer', 9223372036854775807),
     'SQLite WHERE-clause': ('string', '')}
-outputs = {'o-table': 'BIOM'}
+outputs = {'Filtered table': 'BIOM'}
 dflt_param_set = {
     'Defaults': {
         'Minimum feature frequency across samples': 1,
@@ -171,7 +171,7 @@ plugin.register_command(qiime_cmd)
 # Define the emperor command
 req_params = {'Ordination results': ('artifact', ['ordination_results'])}
 opt_params = {'Custom axis': ('string', '')}
-outputs = {'q2_visualization': 'q2_visualization'}
+outputs = {'Emperor visualization': 'q2_visualization'}
 dflt_param_set = {'Defaults': {'Custom axis': ''}}
 qiime_cmd = QiitaCommand(
     "Custom-axis Emperor plot", "Emperor plot",
@@ -189,7 +189,7 @@ opt_params = {'Method':
               ['choice:%s' % dumps(list(BETA_GROUP_SIG_TYPE)),
                'Pairwise'],
               'Number of permutations': ('integer', 999)}
-outputs = {'q2_visualization': 'q2_visualization'}
+outputs = {'Beta group significance visualization': 'q2_visualization'}
 dflt_param_set = {
     'Defaults': {
         'Method': 'PERMANOVA',
