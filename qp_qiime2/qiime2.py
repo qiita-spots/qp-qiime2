@@ -90,6 +90,10 @@ BETA_DIVERSITY_METRICS = {
     "Weighted normalized UniFrac": "weighted normalized UniFrac",
     "Weighted unnormalized UniFrac": "weighted unnormalized UniFrac"}
 
+BETA_CORRELATION_METHODS = {
+    "Spearman": "spearman",
+    "Pearson": "pearson"}
+
 
 def rarefy(qclient, job_id, parameters, out_dir):
     """rarefy a table
@@ -327,7 +331,7 @@ def beta_correlation(qclient, job_id, parameters, out_dir):
         mkdir(out_dir)
 
     qclient.update_job_step(job_id, "Step 1 of 3: Collecting information")
-    artifact_id = parameters['i-distance-matrix']
+    artifact_id = parameters['Distance matrix']
     artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
     dm_fp = artifact_info['files']['plain_text'][0]
     dm_qza = join(out_dir, 'q2-distance.qza')
@@ -337,9 +341,9 @@ def beta_correlation(qclient, job_id, parameters, out_dir):
     metadata = pd.DataFrame.from_dict(metadata, orient='index')
     metadata_fp = join(out_dir, 'metadata.txt')
     metadata.to_csv(metadata_fp, sep='\t')
-    m_metadata_category = parameters['m-metadata-category']
-    p_method = parameters['p-method']
-    p_permutations = parameters['p-permutations']
+    m_metadata_category = parameters['Metadata category']
+    p_method = BETA_CORRELATION_METHODS[parameters['Correlation method']]
+    p_permutations = parameters['Number of permutations']
     o_visualization = join(out_dir, 'beta_correlation.qzv')
 
     qclient.update_job_step(

@@ -14,7 +14,7 @@ from .qiime2 import (rarefy, beta_diversity, pcoa, beta_correlation,
                      alpha_diversity, alpha_correlation, taxa_barplot,
                      filter_samples, emperor, beta_group_significance,
                      ALPHA_DIVERSITY_METRICS, BETA_DIVERSITY_METRICS,
-                     ALPHA_CORRELATION_METHODS)
+                     ALPHA_CORRELATION_METHODS, BETA_CORRELATION_METHODS)
 from qiime2 import __version__ as qiime2_version
 
 
@@ -73,15 +73,17 @@ qiime_cmd = QiitaCommand(
 plugin.register_command(qiime_cmd)
 
 # Define the beta_correlation command
-req_params = {'i-distance-matrix': ('artifact', ['distance_matrix']),
-              'm-metadata-category': ('string', '')}
-opt_params = {'p-method': ['choice:["spearman", "pearson"]', 'spearman'],
-              'p-permutations': ('integer', 999)}
+req_params = {'Distance matrix': ('artifact', ['distance_matrix']),
+              'Metadata category': ('string', '')}
+opt_params = {'Correlation method':
+              ['choice:%s' % dumps(list(BETA_CORRELATION_METHODS)),
+               'Spearman'],
+              'Number of permutations': ('integer', 999)}
 outputs = {'q2_visualization': 'q2_visualization'}
 dflt_param_set = {
     'Defaults': {
-        'p-method': 'spearman',
-        'p-permutations': 999}
+        'Correlation method': 'spearman',
+        'Number of permutations': 999}
 }
 qiime_cmd = QiitaCommand(
     "Calculate beta correlation", "Beta Corrrelation",

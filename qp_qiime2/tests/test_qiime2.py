@@ -246,9 +246,10 @@ class qiime2Tests(PluginTestCase):
 
         # beta_correlation
         # 1 using that analysis
-        params = {'i-distance-matrix': aid,
-                  'm-metadata-category': 'samp_salinity',
-                  'p-method': 'spearman', 'p-permutations': 5}
+        params = {'Distance matrix': aid,
+                  'Metadata category': 'samp_salinity',
+                  'Correlation method': 'Spearman',
+                  'Number of permutations': 5}
         data = {'user': 'demo@microbio.me',
                 'command': dumps([
                     'qiime2', qiime2_version, 'Calculate beta correlation']),
@@ -267,9 +268,10 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(ainfo[0].files, exp)
 
         # testing faillure here, just to avoid reduplicating all the code above
-        params = {'i-distance-matrix': aid,
-                  'm-metadata-category': 'common_name', 'p-method': 'spearman',
-                  'p-permutations': 5}
+        params = {'Distance matrix': aid,
+                  'Metadata category': 'common_name',
+                  'Correlation method': 'Spearman',
+                  'Number of permutations': 5}
         data = {'user': 'demo@microbio.me',
                 'command': dumps([
                     'qiime2', qiime2_version, 'Calculate beta correlation']),
