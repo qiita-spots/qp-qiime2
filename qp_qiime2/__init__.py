@@ -135,21 +135,22 @@ qiime_cmd = QiitaCommand(
 plugin.register_command(qiime_cmd)
 
 # Define the filtering samples from biom command
-req_params = {'i-table': ('artifact', ['BIOM'])}
+req_params = {'BIOM table': ('artifact', ['BIOM'])}
 opt_params = {
-    'p-min-frequency': ('integer', 0),
-    'p-max-frequency': ('integer', 9223372036854775807),
-    'p-min-features': ('integer', 0),
-    'p-max-features': ('integer', 9223372036854775807),
-    'p-where': ('string', '')}
+    'Minimum feature frequency across samples': ('integer', 0),
+    'Maximum feature frequency across samples':
+        ('integer', 9223372036854775807),
+    'Minimum features per sample': ('integer', 0),
+    'Maximum features per sample': ('integer', 9223372036854775807),
+    'SQLite WHERE-clause': ('string', '')}
 outputs = {'o-table': 'BIOM'}
 dflt_param_set = {
     'Defaults': {
-        'p-min-frequency': 0,
-        'p-max-frequency': 9223372036854775807,
-        'p-min-features': 0,
-        'p-max-features': 9223372036854775807,
-        'p-where': ''}}
+        'Minimum feature frequency across samples': 0,
+        'Maximum feature frequency across samples': 9223372036854775807,
+        'Minimum features per sample': 0,
+        'Maximum features per sample': 9223372036854775807,
+        'SQLite WHERE-clause': ''}}
 qiime_cmd = QiitaCommand(
     "Filter samples by metadata", "Filter Samples",
     filter_samples, req_params, opt_params, outputs, dflt_param_set,

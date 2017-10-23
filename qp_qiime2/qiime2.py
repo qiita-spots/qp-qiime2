@@ -644,12 +644,14 @@ def filter_samples(qclient, job_id, parameters, out_dir):
         mkdir(out_dir)
 
     qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
-    artifact_id = int(parameters['i-table'])
-    p_max_frequency = int(parameters['p-max-frequency'])
-    p_max_features = int(parameters['p-max-features'])
-    p_min_frequency = int(parameters['p-min-frequency'])
-    p_min_features = int(parameters['p-min-features'])
-    p_where = parameters['p-where']
+    artifact_id = int(parameters['BIOM table'])
+    p_max_frequency = int(
+        parameters['Maximum feature frequency across samples'])
+    p_max_features = int(parameters['Maximum features per sample'])
+    p_min_frequency = int(
+        parameters['Minimum feature frequency across samples'])
+    p_min_features = int(parameters['Minimum features per sample'])
+    p_where = parameters['SQLite WHERE-clause']
 
     artifact_info = qclient.get("/qiita_db/artifacts/%d/" % artifact_id)
     analysis_id = artifact_info['analysis']

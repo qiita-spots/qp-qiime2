@@ -433,12 +433,12 @@ class qiime2Tests(PluginTestCase):
         self._clean_up_files.append(out_dir)
 
         params = {
-            'i-table': '8',
-            'p-min-frequency': '5',
-            'p-max-frequency': '10',
-            'p-min-features': '5',
-            'p-max-features': '9223372036854775807',
-            'p-where': ''
+            'BIOM table': '8',
+            'Minimum feature frequency across samples': '5',
+            'Maximum feature frequency across samples': '10',
+            'Minimum features per sample': '5',
+            'Maximum features per sample': '9223372036854775807',
+            'SQLite WHERE-clause': ''
         }
         data = {'user': 'demo@microbio.me',
                 'command': dumps([
