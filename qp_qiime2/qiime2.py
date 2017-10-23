@@ -751,8 +751,8 @@ def emperor(qclient, job_id, parameters, out_dir):
         mkdir(out_dir)
 
     qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
-    artifact_id = parameters['i-pcoa']
-    p_custom_axis = parameters['p-custom-axis']
+    artifact_id = parameters['Ordination results']
+    p_custom_axis = parameters['Custom axis']
     artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
     pcoa_fp = artifact_info['files']['plain_text'][0]
 

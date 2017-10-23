@@ -482,8 +482,8 @@ class qiime2Tests(PluginTestCase):
 
         # non phylogenetic beta diversity
         params = {
-            'i-table': aid, 'p-metric': 'euclidean',
-            'i-tree': 'None'}
+            'BIOM table': aid, 'Diversity metric': 'Euclidean distance',
+            'Phylogenetic tree': 'None'}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
                                   'Calculate beta diversity']),
@@ -516,7 +516,7 @@ class qiime2Tests(PluginTestCase):
 
         # emperor
         # 1 using that analysis
-        params = {'i-pcoa': aid, 'p-custom-axis': 'latitude'}
+        params = {'Ordination results': aid, 'Custom axis': 'latitude'}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
                                   'Custom-axis Emperor plot']),

@@ -161,10 +161,10 @@ qiime_cmd = QiitaCommand(
 plugin.register_command(qiime_cmd)
 
 # Define the emperor command
-req_params = {'i-pcoa': ('artifact', ['ordination_results'])}
-opt_params = {'p-custom-axis': ('string', '')}
+req_params = {'Ordination results': ('artifact', ['ordination_results'])}
+opt_params = {'Custom axis': ('string', '')}
 outputs = {'q2_visualization': 'q2_visualization'}
-dflt_param_set = {'Defaults': {'p-custom-axis': ''}}
+dflt_param_set = {'Defaults': {'Custom axis': ''}}
 qiime_cmd = QiitaCommand(
     "Custom-axis Emperor plot", "Emperor plot",
     emperor, req_params, opt_params, outputs, dflt_param_set,
