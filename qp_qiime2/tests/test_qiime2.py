@@ -145,7 +145,7 @@ class qiime2Tests(PluginTestCase):
 
         # To avoid having to set up all these files, we are gonna test
         # that if phylogenetic and no tree it fails
-        params['Phylogenetic tree'] = None
+        params['Phylogenetic tree'] = "None"
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
         success, ainfo, msg = beta_diversity(
             self.qclient, jid, params, out_dir)
@@ -195,7 +195,7 @@ class qiime2Tests(PluginTestCase):
         data = {'user': 'demo@microbio.me',
                 'command': dumps(
                     ['qiime2', qiime2_version,
-                     'Generate principal coordinates analysis (PCoA)']),
+                     'Perform Principal Coordinates Analysis (PCoA)']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -344,7 +344,7 @@ class qiime2Tests(PluginTestCase):
 
         # To avoid having to set up all these files, we are gonna test
         # that if phylogenetic and no tree it fails
-        params['Phylogenetic tree'] = None
+        params['Phylogenetic tree'] = "None"
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
         success, ainfo, msg = alpha_diversity(
             self.qclient, jid, params, out_dir)
@@ -437,11 +437,11 @@ class qiime2Tests(PluginTestCase):
         self._clean_up_files.append(out_dir)
 
         params = {
-            'BIOM table': '8',
-            'Minimum feature frequency across samples': '5',
-            'Maximum feature frequency across samples': '10',
-            'Minimum features per sample': '5',
-            'Maximum features per sample': '9223372036854775807',
+            'BIOM table': 8,
+            'Minimum feature frequency across samples': 5,
+            'Maximum feature frequency across samples': 10,
+            'Minimum features per sample': 5,
+            'Maximum features per sample': 9223372036854775807,
             'SQLite WHERE-clause': ''
         }
         data = {'user': 'demo@microbio.me',
@@ -505,7 +505,7 @@ class qiime2Tests(PluginTestCase):
         data = {'user': 'demo@microbio.me',
                 'command': dumps(
                     ['qiime2', qiime2_version,
-                     'Generate principal coordinates analysis (PCoA)']),
+                     'Perform Principal Coordinates Analysis (PCoA)']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']

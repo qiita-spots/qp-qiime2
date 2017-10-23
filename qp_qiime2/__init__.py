@@ -44,7 +44,7 @@ plugin.register_command(qiime_cmd)
 req_params = {'BIOM table': ('artifact', ['BIOM'])}
 opt_params = {
     'Diversity metric': [
-        'choice:%s' % dumps(list(BETA_DIVERSITY_METRICS.keys())),
+        'choice:%s' % dumps(list(BETA_DIVERSITY_METRICS)),
         'Jaccard similarity index'],
     'Phylogenetic tree': ['choice:["default", "None"]', 'None'],
     'Number of jobs': ['integer', 1],
@@ -75,7 +75,7 @@ dflt_param_set = {
     'Defaults': {}
 }
 qiime_cmd = QiitaCommand(
-    "Generate principal coordinates analysis (PCoA)",
+    "Perform Principal Coordinates Analysis (PCoA)",
     "Principal Coordinate Analysis",
     pcoa, req_params, opt_params, outputs, dflt_param_set,
     analysis_only=True)
@@ -86,12 +86,12 @@ req_params = {'Distance matrix': ('artifact', ['distance_matrix']),
               'Metadata category': ('string', '')}
 opt_params = {'Correlation method':
               ['choice:%s' % dumps(list(BETA_CORRELATION_METHODS)),
-               'Spearman'],
+               'Pearson'],
               'Number of permutations': ('integer', 999)}
 outputs = {'q2_visualization': 'q2_visualization'}
 dflt_param_set = {
     'Defaults': {
-        'Correlation method': 'spearman',
+        'Correlation method': 'Pearson',
         'Number of permutations': 999}
 }
 qiime_cmd = QiitaCommand(
@@ -104,7 +104,7 @@ plugin.register_command(qiime_cmd)
 req_params = {'BIOM table': ('artifact', ['BIOM'])}
 opt_params = {
     'Diversity metric': [
-        'choice:%s' % dumps(list(ALPHA_DIVERSITY_METRICS.keys())),
+        'choice:%s' % dumps(list(ALPHA_DIVERSITY_METRICS)),
         'Number of distinct features'],
     'Phylogenetic tree': ['choice:["default", "None"]', 'None']}
 outputs = {'o-alpha-diversity': 'alpha_vector'}
@@ -148,18 +148,18 @@ plugin.register_command(qiime_cmd)
 # Define the filtering samples from biom command
 req_params = {'BIOM table': ('artifact', ['BIOM'])}
 opt_params = {
-    'Minimum feature frequency across samples': ('integer', 0),
+    'Minimum feature frequency across samples': ('integer', 1),
     'Maximum feature frequency across samples':
         ('integer', 9223372036854775807),
-    'Minimum features per sample': ('integer', 0),
+    'Minimum features per sample': ('integer', 1),
     'Maximum features per sample': ('integer', 9223372036854775807),
     'SQLite WHERE-clause': ('string', '')}
 outputs = {'o-table': 'BIOM'}
 dflt_param_set = {
     'Defaults': {
-        'Minimum feature frequency across samples': 0,
+        'Minimum feature frequency across samples': 1,
         'Maximum feature frequency across samples': 9223372036854775807,
-        'Minimum features per sample': 0,
+        'Minimum features per sample': 1,
         'Maximum features per sample': 9223372036854775807,
         'SQLite WHERE-clause': ''}}
 qiime_cmd = QiitaCommand(
@@ -183,16 +183,16 @@ plugin.register_command(qiime_cmd)
 req_params = {'Distance matrix': ('artifact', ['distance_matrix']),
               'Metadata category': ('string', '')}
 opt_params = {'Method':
-              ['choice:%s' % dumps(list(BETA_GROUP_SIG_METHODS.keys())),
+              ['choice:%s' % dumps(list(BETA_GROUP_SIG_METHODS)),
                'PERMANOVA'],
               'Comparison type':
-              ['choice:%s' % dumps(list(BETA_GROUP_SIG_TYPE.keys())),
+              ['choice:%s' % dumps(list(BETA_GROUP_SIG_TYPE)),
                'Pairwise'],
               'Number of permutations': ('integer', 999)}
 outputs = {'q2_visualization': 'q2_visualization'}
 dflt_param_set = {
     'Defaults': {
-        'Method': 'permanova',
+        'Method': 'PERMANOVA',
         'Comparison type': 'p-pairwise',
         'Number of permutations': 999}
 }
