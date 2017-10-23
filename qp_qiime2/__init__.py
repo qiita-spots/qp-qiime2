@@ -46,12 +46,20 @@ opt_params = {
     'Diversity metric': [
         'choice:%s' % dumps(list(BETA_DIVERSITY_METRICS.keys())),
         'Jaccard similarity index'],
-    'Phylogenetic tree': ['choice:["default", "None"]', 'None']}
+    'Phylogenetic tree': ['choice:["default", "None"]', 'None'],
+    'Number of jobs': ['integer', 1],
+    'Adjust variance (phylogenetic only)': ['boolean', False],
+    'Alpha value (Generalized Unifrac only)': ['float', 0],
+    'Bypass tips (phylogenetic only)': ['boolean', False]}
 outputs = {'distance_matrix': 'distance_matrix'}
 dflt_param_set = {
     'Defaults': {
         'Diversity metric': 'Jaccard similarity index',
-        'Phylogenetic tree': 'None'}
+        'Phylogenetic tree': 'None',
+        'Number of jobs': 1,
+        'Adjust variance (phylogenetic only)': False,
+        'Alpha value (Generalized Unifrac only)': 0,
+        'Bypass tips (phylogenetic only)': False}
 }
 qiime_cmd = QiitaCommand(
     "Calculate beta diversity", "Beta Diversity",

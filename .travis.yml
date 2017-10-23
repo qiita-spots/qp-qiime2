@@ -27,7 +27,7 @@ install:
   - export QIITA_SERVER_CERT=$HOME/miniconda3/envs/qiita/lib/python2.7/site-packages/qiita_core/support_files/server.crt
   - source deactivate
   # installing this plugin
-  - conda create --yes -n qiime2 --file https://data.qiime2.org/distro/core/qiime2-2017.8-conda-linux-64.txt
+  - conda create --yes -n qiime2 --file https://data.qiime2.org/distro/core/qiime2-2017.9-conda-linux-64.txt
   - source activate qiime2
   - conda install --yes -n qiime2 -c anaconda flake8
   - conda install --yes -c conda-forge hdf5 h5py
@@ -36,15 +36,6 @@ install:
   # Installing state unifrac
   - conda install --yes -c conda-forge cython
   - conda install --yes -c biocore unifrac
-  # - sed -i 's/^CXXBASE=.*/CXXBASE=clang++/' `which h5c++`
-  # - sed -i 's/^CXXLINKERBASE=.*/CXXLINKERBASE=clang++/' `which h5c++`
-  # - export CC=`which h5c++`
-  # - wget https://github.com/biocore/unifrac/archive/0.8.7.zip
-  # - unzip 0.8.7.zip
-  # - pushd unifrac-0.8.7
-  # - pushd sucpp; make test; make main; make api; make capi_test; popd
-  # - pip install .
-  # - popd
   # we are gonna use the same qiime2 environmen to install qtp-diversity
   - pip install https://github.com/qiita-spots/qtp-diversity/archive/master.zip
   - configure_diversity_types --env-script "source activate qiime2" --server-cert $QIITA_SERVER_CERT

@@ -108,7 +108,7 @@ class qiime2Tests(PluginTestCase):
         # actually test non phylogenetic beta diversity
         params = {
             'BIOM table': aid, 'Diversity metric': 'Euclidean distance',
-            'Phylogenetic tree': 'None'}
+            'Phylogenetic tree': 'None', 'Number of jobs': 1}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
                                   'Calculate beta diversity']),
@@ -129,6 +129,8 @@ class qiime2Tests(PluginTestCase):
         params['Diversity metric'] = 'Unweighted UniFrac'
         params['Phylogenetic tree'] = join(
             dirname(realpath(__file__)), 'prune_97_gg_13_8.tre')
+        params['Adjust variance (phylogenetic only)'] = False
+        params['Bypass tips (phylogenetic only)'] = False
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
         success, ainfo, msg = beta_diversity(
             self.qclient, jid, params, out_dir)
@@ -173,7 +175,7 @@ class qiime2Tests(PluginTestCase):
         # non phylogenetic beta diversity
         params = {
             'BIOM table': aid, 'Diversity metric': 'Euclidean distance',
-            'Phylogenetic tree': 'None'}
+            'Phylogenetic tree': 'None', 'Number of jobs': 1}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
                                   'Calculate beta diversity']),
@@ -229,7 +231,7 @@ class qiime2Tests(PluginTestCase):
         # non phylogenetic beta diversity
         params = {
             'BIOM table': aid, 'Diversity metric': 'Euclidean distance',
-            'Phylogenetic tree': 'None'}
+            'Phylogenetic tree': 'None', 'Number of jobs': 1}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
                                   'Calculate beta diversity']),
@@ -483,7 +485,7 @@ class qiime2Tests(PluginTestCase):
         # non phylogenetic beta diversity
         params = {
             'BIOM table': aid, 'Diversity metric': 'Euclidean distance',
-            'Phylogenetic tree': 'None'}
+            'Phylogenetic tree': 'None', 'Number of jobs': 1}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
                                   'Calculate beta diversity']),
@@ -554,7 +556,7 @@ class qiime2Tests(PluginTestCase):
         # non phylogenetic beta diversity
         params = {
             'BIOM table': aid, 'Diversity metric': 'Euclidean distance',
-            'Phylogenetic tree': 'None'}
+            'Phylogenetic tree': 'None', 'Number of jobs': 1}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
                                   'Calculate beta diversity']),

@@ -18,9 +18,10 @@ from qiita_client.util import system_call
 
 
 STATE_UNIFRAC_METRICS = {
-    "unweighted UniFrac": "unweighted",
-    "weighted normalized UniFrac": "weighted-normalized",
-    "weighted unnormalized UniFrac": "weighted-unnormalized"}
+    "unweighted UniFrac": "unweighted_unifrac",
+    "weighted normalized UniFrac": "weighted_normalized_unifrac",
+    "weighted unnormalized UniFrac": "weighted_unifrac",
+    "generalized UniFrac": "generalized_unifrac"}
 
 ALPHA_PHYLOGENETIC_METRICS = {'faith_pd'}
 
@@ -88,7 +89,8 @@ BETA_DIVERSITY_METRICS = {
     "Yule index": "yule",
     "Unweighted UniFrac": "unweighted UniFrac",
     "Weighted normalized UniFrac": "weighted normalized UniFrac",
-    "Weighted unnormalized UniFrac": "weighted unnormalized UniFrac"}
+    "Weighted unnormalized UniFrac": "weighted unnormalized UniFrac",
+    "Generalized UniFrac": "generalized UniFrac"}
 
 BETA_CORRELATION_METHODS = {
     "Spearman": "spearman",
@@ -182,6 +184,7 @@ def beta_diversity(qclient, job_id, parameters, out_dir):
     artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
     biom_fpi = artifact_info['files']['biom'][0]
     biom_qza = join(out_dir, 'q2-biom.qza')
+    num_jobs = parameters['Number of jobs']
 
     qclient.update_job_step(
         job_id, "Step 2 of 4: Converting Qiita artifacts to Q2 artifact")
@@ -216,12 +219,22 @@ def beta_diversity(qclient, job_id, parameters, out_dir):
     if tree is not None and metric in STATE_UNIFRAC_METRICS:
         su_metric = STATE_UNIFRAC_METRICS[metric]
         dtx_fp = join(out_dir, '%s.qza' % su_metric)
-        cmd = ('qiime state-unifrac %s --i-table %s --i-phylogeny %s '
-               '--o-distance-matrix %s' % (su_metric, biom_qza, tree, dtx_fp))
+        cmd = ('qiime diversity beta-phylogenetic-alt --p-metric %s '
+               '--i-table %s --i-phylogeny %s --o-distance-matrix %s '
+               '--p-n-jobs %s'
+               % (su_metric, biom_qza, tree, dtx_fp, num_jobs))
+        if parameters['Adjust variance (phylogenetic only)']:
+            cmd += ' --p-variance-adjusted'
+        if parameters['Bypass tips (phylogenetic only)']:
+            cmd += ' --p-bypass-tips'
+        if su_metric == 'generalized_unifrac':
+            cmd += '--p-alpha %s' % parameters[
+                'Alpha value (Generalized Unifrac only)']
     elif metric not in STATE_UNIFRAC_METRICS and tree is None:
         dtx_fp = join(out_dir, '%s.qza' % metric)
         cmd = ('qiime diversity beta --i-table %s --p-metric %s '
-               '--o-distance-matrix %s' % (biom_qza, metric, dtx_fp))
+               '--o-distance-matrix %s --p-n-jobs %s'
+               % (biom_qza, metric, dtx_fp, num_jobs))
     else:
         return False, None, ('Phylogenetic metric %s selected but no tree '
                              'exists' % metric)
