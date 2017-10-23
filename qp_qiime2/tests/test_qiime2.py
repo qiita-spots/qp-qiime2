@@ -436,9 +436,9 @@ class qiime2Tests(PluginTestCase):
 
         params = {
             'BIOM table': '8',
-            'Minimum feature frequency across samples': '5',
-            'Maximum feature frequency across samples': '10',
-            'Minimum features per sample': '5',
+            'Minimum feature frequency across samples': '1',
+            'Maximum feature frequency across samples': '9223372036854775807',
+            'Minimum features per sample': '1',
             'Maximum features per sample': '9223372036854775807',
             'SQLite WHERE-clause': ''
         }
@@ -456,10 +456,12 @@ class qiime2Tests(PluginTestCase):
         # only 1 element
         self.assertEqual(len(ainfo), 1)
         # and that element [0] should have this file
-        exp = [(join(out_dir,
-                     'filter_samples/filter_samples/feature-table.biom'),
-                'biom')]
+        exp = [(join(out_dir, 'filter_samples/filtered.biom'), 'biom')]
         self.assertEqual(ainfo[0].files, exp)
+
+        b = load_table(exp[0][0])
+        self.assertIn('taxonomy', b.metadata(b.ids(axis='observation')[0],
+                                             axis='observation'))
 
     def test_emperor(self):
         out_dir = mkdtemp()
