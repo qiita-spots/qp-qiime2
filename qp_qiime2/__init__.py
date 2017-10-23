@@ -13,7 +13,8 @@ from qiita_client import QiitaPlugin, QiitaCommand
 from .qiime2 import (rarefy, beta_diversity, pcoa, beta_correlation,
                      alpha_diversity, alpha_correlation, taxa_barplot,
                      filter_samples, emperor, beta_group_significance,
-                     ALPHA_DIVERSITY_METRICS, BETA_DIVERSITY_METRICS)
+                     ALPHA_DIVERSITY_METRICS, BETA_DIVERSITY_METRICS,
+                     ALPHA_CORRELATION_METHODS)
 from qiime2 import __version__ as qiime2_version
 
 
@@ -108,13 +109,12 @@ qiime_cmd = QiitaCommand(
 plugin.register_command(qiime_cmd)
 
 # Define the alpha_correlation command
-req_params = {'i-alpha-diversity': ('artifact', ['alpha_vector'])}
-opt_params = {'p-method': ['choice:["spearman", "pearson"]', 'spearman']}
+req_params = {'Alpha vectors': ('artifact', ['alpha_vector'])}
+opt_params = {'Correlation method':
+              ['choice:%s' % dumps(list(ALPHA_CORRELATION_METHODS)),
+               'Spearman']}
 outputs = {'q2_visualization': 'q2_visualization'}
-dflt_param_set = {
-    'Defaults': {
-        'p-method': 'spearman'}
-}
+dflt_param_set = {'Defaults': {'Correlation method': 'Spearman'}}
 qiime_cmd = QiitaCommand(
     "Calculate alpha correlation", "Alpha Corrrelation",
     alpha_correlation, req_params, opt_params, outputs, dflt_param_set,

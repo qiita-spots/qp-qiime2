@@ -59,6 +59,10 @@ ALPHA_DIVERSITY_METRICS = {
     "Simpson's evenness measure E": "simpson_e",
     "Strong's dominance index (Dw)": "strong"}
 
+ALPHA_CORRELATION_METHODS = {
+    "Spearman": "spearman",
+    "Pearson": "pearson"}
+
 
 BETA_DIVERSITY_METRICS = {
     "Bray-Curtis dissimilarity": "braycurtis",
@@ -84,8 +88,7 @@ BETA_DIVERSITY_METRICS = {
     "Yule index": "yule",
     "Unweighted UniFrac": "unweighted UniFrac",
     "Weighted normalized UniFrac": "weighted normalized UniFrac",
-    "Weighted unnormalized UniFrac": "weighted unnormalized UniFrac"
-}
+    "Weighted unnormalized UniFrac": "weighted unnormalized UniFrac"}
 
 
 def rarefy(qclient, job_id, parameters, out_dir):
@@ -488,7 +491,7 @@ def alpha_correlation(qclient, job_id, parameters, out_dir):
         mkdir(out_dir)
 
     qclient.update_job_step(job_id, "Step 1 of 3: Collecting information")
-    artifact_id = parameters['i-alpha-diversity']
+    artifact_id = parameters['Alpha vectors']
     artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
     dm_fp = artifact_info['files']['plain_text'][0]
     dm_qza = join(out_dir, 'q2-alpha-diversity.qza')
@@ -498,7 +501,7 @@ def alpha_correlation(qclient, job_id, parameters, out_dir):
     metadata = pd.DataFrame.from_dict(metadata, orient='index')
     metadata_fp = join(out_dir, 'metadata.txt')
     metadata.to_csv(metadata_fp, sep='\t')
-    p_method = parameters['p-method']
+    p_method = ALPHA_CORRELATION_METHODS[parameters['Correlation method']]
     o_visualization = join(out_dir, 'alpha_correlation.qzv')
 
     qclient.update_job_step(

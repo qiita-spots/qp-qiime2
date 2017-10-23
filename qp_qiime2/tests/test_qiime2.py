@@ -388,7 +388,7 @@ class qiime2Tests(PluginTestCase):
 
         # alpha_correlation
         # 1 using that analysis
-        params = {'i-alpha-diversity': aid, 'p-method': 'spearman'}
+        params = {'Alpha vectors': aid, 'Correlation method': 'Spearman'}
         data = {'user': 'demo@microbio.me',
                 'command': dumps([
                     'qiime2', qiime2_version, 'Calculate alpha correlation']),
