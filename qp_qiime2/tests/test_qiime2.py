@@ -41,7 +41,7 @@ class qiime2Tests(PluginTestCase):
                     remove(fp)
 
     def test_rarefy(self):
-        params = {'p-sampling-depth': 2, 'i-table': 5}
+        params = {'Sampling depth': 2, 'BIOM table': 5}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
                                   'Rarefy features']),
@@ -69,7 +69,7 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(rb.sum(), 2 * 7)
 
     def test_rarefy_error(self):
-        params = {'p-sampling-depth': 200000, 'i-table': 5}
+        params = {'Sampling depth': 200000, 'BIOM table': 5}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
                                   'Rarefy features']),
@@ -92,7 +92,7 @@ class qiime2Tests(PluginTestCase):
 
         # qiime2 currently only works with rarefied tables so we need to
         # rarefy it
-        params = {'p-sampling-depth': 10, 'i-table': 5}
+        params = {'Sampling depth': 10, 'BIOM table': 5}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
                                   'Rarefy features']),
@@ -157,7 +157,7 @@ class qiime2Tests(PluginTestCase):
 
         # qiime2 currently only works with rarefied tables so we need to
         # rarefy it
-        params = {'p-sampling-depth': 10, 'i-table': 5}
+        params = {'Sampling depth': 10, 'BIOM table': 5}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
                                   'Rarefy features']),
@@ -189,7 +189,7 @@ class qiime2Tests(PluginTestCase):
         aid = reply['artifact']
 
         # pcoa
-        params = {'i-distance-matrix': aid}
+        params = {'Distance matrix': aid}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(
                     ['qiime2', qiime2_version,
@@ -213,7 +213,7 @@ class qiime2Tests(PluginTestCase):
 
         # qiime2 currently only works with rarefied tables so we need to
         # rarefy it
-        params = {'p-sampling-depth': 10, 'i-table': 8}
+        params = {'Sampling depth': 10, 'BIOM table': 8}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
                                   'Rarefy features']),
@@ -290,7 +290,7 @@ class qiime2Tests(PluginTestCase):
 
         # qiime2 currently only works with rarefied tables so we need to
         # rarefy it
-        params = {'p-sampling-depth': 10, 'i-table': 5}
+        params = {'Sampling depth': 10, 'BIOM table': 5}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
                                   'Rarefy features']),
@@ -356,7 +356,7 @@ class qiime2Tests(PluginTestCase):
 
         # qiime2 currently only works with rarefied tables so we need to
         # rarefy it
-        params = {'p-sampling-depth': 10, 'i-table': 8}
+        params = {'Sampling depth': 10, 'BIOM table': 8}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
                                   'Rarefy features']),
@@ -467,7 +467,7 @@ class qiime2Tests(PluginTestCase):
 
         # qiime2 currently only works with rarefied tables so we need to
         # rarefy it
-        params = {'p-sampling-depth': 10, 'i-table': 8}
+        params = {'Sampling depth': 10, 'BIOM table': 8}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
                                   'Rarefy features']),
@@ -499,7 +499,7 @@ class qiime2Tests(PluginTestCase):
         aid = reply['artifact']
 
         # pcoa
-        params = {'i-distance-matrix': aid}
+        params = {'Distance matrix': aid}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(
                     ['qiime2', qiime2_version,
@@ -538,7 +538,7 @@ class qiime2Tests(PluginTestCase):
 
         # qiime2 currently only works with rarefied tables so we need to
         # rarefy it
-        params = {'p-sampling-depth': 10, 'i-table': 8}
+        params = {'Sampling depth': 10, 'BIOM table': 8}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
                                   'Rarefy features']),

@@ -125,8 +125,8 @@ def rarefy(qclient, job_id, parameters, out_dir):
     out_dir = join(out_dir, 'rarefy')
 
     qclient.update_job_step(job_id, "Step 1 of 2: Collecting information")
-    artifact_id = int(parameters['i-table'])
-    rarefy_level = int(parameters['p-sampling-depth'])
+    artifact_id = int(parameters['BIOM table'])
+    rarefy_level = int(parameters['Sampling depth'])
     artifact_info = qclient.get("/qiita_db/artifacts/%d/" % artifact_id)
 
     # getting just the biom file, [0] it should be only one
@@ -272,7 +272,7 @@ def pcoa(qclient, job_id, parameters, out_dir):
         mkdir(out_dir)
 
     qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
-    artifact_id = parameters['i-distance-matrix']
+    artifact_id = parameters['Distance matrix']
     artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
     dm_fp = artifact_info['files']['plain_text'][0]
     dm_qza = join(out_dir, 'q2-distance.qza')

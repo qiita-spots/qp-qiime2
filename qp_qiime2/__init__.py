@@ -25,14 +25,14 @@ plugin = QiitaPlugin(
 
 # Define the rarefy command
 req_params = {
-    'i-table': ('artifact', ['BIOM']),
-    'p-sampling-depth': ['integer', 1000]
+    'BIOM table': ('artifact', ['BIOM']),
+    'Sampling depth': ['integer', 1000]
 }
 opt_params = {}
 outputs = {'o-table': 'BIOM'}
 dflt_param_set = {
     'Defaults': {
-        'p-sampling-depth': 1000}
+        'Sampling depth': 1000}
 }
 qiime_cmd = QiitaCommand(
     "Rarefy features", "Rarefy",
@@ -60,7 +60,7 @@ qiime_cmd = QiitaCommand(
 plugin.register_command(qiime_cmd)
 
 # Define the pcoa command
-req_params = {'i-distance-matrix': ('artifact', ['distance_matrix'])}
+req_params = {'Distance matrix': ('artifact', ['distance_matrix'])}
 opt_params = {}
 outputs = {'o-pcoa': 'ordination_results'}
 dflt_param_set = {
