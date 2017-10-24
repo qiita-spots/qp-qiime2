@@ -469,6 +469,14 @@ class qiime2Tests(PluginTestCase):
         b = load_table(exp[0][0])
         self.assertIn('taxonomy', b.metadata(b.ids(axis='observation')[0],
                                              axis='observation'))
+        self.assertEqual(b.metadata('3862157', axis='observation')['taxonomy'],
+                         ['k__Bacteria', 'p__Proteobacteria',
+                          'c__Alphaproteobacteria', 'o__', 'f__',
+                          'g__', 's__'])
+        self.assertEqual(b.metadata('185100', axis='observation')['taxonomy'],
+                         ['k__Bacteria', 'p__Proteobacteria',
+                          'c__Deltaproteobacteria', 'o__Bdellovibrionales',
+                          'f__Bacteriovoracaceae', 'g__', 's__'])
 
     def test_emperor(self):
         out_dir = mkdtemp()
