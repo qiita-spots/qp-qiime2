@@ -736,7 +736,20 @@ def filter_samples(qclient, job_id, parameters, out_dir):
                      "%s\nStd err: %s" % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('Filtered table', 'BIOM', [(ffp, 'biom')])]
+    # After calling Qiime2, the taxonomy has been dropped from the BIOM table
+    # Re-add here
+    orig = load_table(biom_ifp)
+    res = load_table(ffp)
+
+    metadata = {i: orig.metadata(i, axis='observation')
+                for i in res.ids(axis='observation')}
+    res.add_metadata(metadata, axis='observation')
+
+    res_fp = join(out_dir, 'filtered.biom')
+    with biom_open(res_fp, 'w') as bf:
+        res.to_hdf5(bf, "Qiita's Qiime2 plugin")
+
+    ainfo = [ArtifactInfo('o-table', 'BIOM', [(res_fp, 'biom')])]
     return True, ainfo, ""
 
 

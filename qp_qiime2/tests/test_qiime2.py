@@ -443,9 +443,9 @@ class qiime2Tests(PluginTestCase):
 
         params = {
             'BIOM table': 8,
-            'Minimum feature frequency across samples': 5,
-            'Maximum feature frequency across samples': 10,
-            'Minimum features per sample': 5,
+            'Minimum feature frequency across samples': 1,
+            'Maximum feature frequency across samples': maxsize,
+            'Minimum features per sample': 1,
             'Maximum features per sample': maxsize,
             'SQLite WHERE-clause': ''
         }
@@ -463,10 +463,20 @@ class qiime2Tests(PluginTestCase):
         # only 1 element
         self.assertEqual(len(ainfo), 1)
         # and that element [0] should have this file
-        exp = [(join(out_dir,
-                     'filter_samples/filter_samples/feature-table.biom'),
-                'biom')]
+        exp = [(join(out_dir, 'filter_samples/filtered.biom'), 'biom')]
         self.assertEqual(ainfo[0].files, exp)
+
+        b = load_table(exp[0][0])
+        self.assertIn('taxonomy', b.metadata(b.ids(axis='observation')[0],
+                                             axis='observation'))
+        self.assertEqual(b.metadata('3862157', axis='observation')['taxonomy'],
+                         ['k__Bacteria', 'p__Proteobacteria',
+                          'c__Alphaproteobacteria', 'o__', 'f__',
+                          'g__', 's__'])
+        self.assertEqual(b.metadata('185100', axis='observation')['taxonomy'],
+                         ['k__Bacteria', 'p__Proteobacteria',
+                          'c__Deltaproteobacteria', 'o__Bdellovibrionales',
+                          'f__Bacteriovoracaceae', 'g__', 's__'])
 
     def test_emperor(self):
         out_dir = mkdtemp()
