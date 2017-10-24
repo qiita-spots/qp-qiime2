@@ -27,7 +27,7 @@ install:
   - export QIITA_SERVER_CERT=$HOME/miniconda3/envs/qiita/lib/python2.7/site-packages/qiita_core/support_files/server.crt
   - source deactivate
   # installing this plugin
-  - conda create --yes -n qiime2 --file https://data.qiime2.org/distro/core/qiime2-2017.9-conda-linux-64.txt
+  - conda create --yes --quiet -n qiime2 --file https://data.qiime2.org/distro/core/qiime2-2017.9-conda-linux-64.txt
   - source activate qiime2
   - conda install --yes --quiet -n qiime2 -c anaconda flake8
   - conda install --yes --quiet -c conda-forge hdf5 h5py
