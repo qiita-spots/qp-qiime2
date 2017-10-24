@@ -15,7 +15,7 @@ before_install:
   - conda update --yes conda
 install:
   # installing Qiita in it's own environment python2.7
-  - travis_retry conda create --yes -n qiita python=2.7 pip nose flake8
+  - travis_retry conda create --quiet --yes -n qiita python=2.7 pip nose flake8
     pyzmq networkx pyparsing natsort mock future libgfortran
     'pandas>=0.18' 'scipy>0.13.0' 'numpy>=1.7' 'h5py>=2.3.1'
   - source activate qiita
@@ -29,13 +29,10 @@ install:
   # installing this plugin
   - conda create --yes -n qiime2 --file https://data.qiime2.org/distro/core/qiime2-2017.9-conda-linux-64.txt
   - source activate qiime2
-  - conda install --yes -n qiime2 -c anaconda flake8
-  - conda install --yes -c conda-forge hdf5 h5py
+  - conda install --yes --quiet -n qiime2 -c anaconda flake8
+  - conda install --yes --quiet -c conda-forge hdf5 h5py
   - pip install coveralls
   - pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
-  # Installing state unifrac
-  - conda install --yes -c conda-forge cython
-  - conda install --yes -c biocore unifrac
   # we are gonna use the same qiime2 environmen to install qtp-diversity
   - pip install https://github.com/qiita-spots/qtp-diversity/archive/master.zip
   - configure_diversity_types --env-script "source activate qiime2" --server-cert $QIITA_SERVER_CERT
