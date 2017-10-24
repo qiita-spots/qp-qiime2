@@ -7,6 +7,7 @@
 # -----------------------------------------------------------------------------
 
 from unittest import main
+from sys import maxsize
 from os import remove
 from shutil import rmtree
 from tempfile import mkdtemp
@@ -17,11 +18,15 @@ from biom import load_table
 from qiita_client.testing import PluginTestCase
 
 from qiime2 import __version__ as qiime2_version
+from q2_diversity.plugin_setup import plugin as q2div_plugin
 
 from qp_qiime2 import plugin
-from qp_qiime2.qiime2 import (rarefy, beta_diversity, pcoa, beta_correlation,
-                              alpha_diversity, alpha_correlation, taxa_barplot,
-                              filter_samples, emperor, beta_group_significance)
+from qp_qiime2.qiime2 import (
+    rarefy, beta_diversity, pcoa, beta_correlation, alpha_diversity,
+    alpha_correlation, taxa_barplot, filter_samples, emperor,
+    beta_group_significance, BETA_DIVERSITY_METRICS, STATE_UNIFRAC_METRICS,
+    ALPHA_DIVERSITY_METRICS, ALPHA_CORRELATION_METHODS,
+    BETA_CORRELATION_METHODS, BETA_GROUP_SIG_METHODS)
 
 
 class qiime2Tests(PluginTestCase):
@@ -58,7 +63,7 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(msg, '')
         self.assertEqual(ainfo[0].files,
                          [(join(out_dir, 'rarefy', 'rarefied.biom'), 'biom')])
-        self.assertEqual(ainfo[0].output_name, 'o-table')
+        self.assertEqual(ainfo[0].output_name, 'Rarefied table')
 
         # testing that the table is actually rarefied, [0] cause there is only
         # one element, and [0][0] from that element we want the first element
@@ -108,7 +113,7 @@ class qiime2Tests(PluginTestCase):
         # actually test non phylogenetic beta diversity
         params = {
             'BIOM table': aid, 'Diversity metric': 'Euclidean distance',
-            'Phylogenetic tree': 'None'}
+            'Phylogenetic tree': 'None', 'Number of jobs': 1}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
                                   'Calculate beta diversity']),
@@ -129,6 +134,8 @@ class qiime2Tests(PluginTestCase):
         params['Diversity metric'] = 'Unweighted UniFrac'
         params['Phylogenetic tree'] = join(
             dirname(realpath(__file__)), 'prune_97_gg_13_8.tre')
+        params['Adjust variance (phylogenetic only)'] = False
+        params['Bypass tips (phylogenetic only)'] = False
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
         success, ainfo, msg = beta_diversity(
             self.qclient, jid, params, out_dir)
@@ -143,7 +150,7 @@ class qiime2Tests(PluginTestCase):
 
         # To avoid having to set up all these files, we are gonna test
         # that if phylogenetic and no tree it fails
-        params['Phylogenetic tree'] = None
+        params['Phylogenetic tree'] = "None"
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
         success, ainfo, msg = beta_diversity(
             self.qclient, jid, params, out_dir)
@@ -173,7 +180,7 @@ class qiime2Tests(PluginTestCase):
         # non phylogenetic beta diversity
         params = {
             'BIOM table': aid, 'Diversity metric': 'Euclidean distance',
-            'Phylogenetic tree': 'None'}
+            'Phylogenetic tree': 'None', 'Number of jobs': 1}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
                                   'Calculate beta diversity']),
@@ -193,7 +200,7 @@ class qiime2Tests(PluginTestCase):
         data = {'user': 'demo@microbio.me',
                 'command': dumps(
                     ['qiime2', qiime2_version,
-                     'Generate principal coordinates analysis (PCoA)']),
+                     'Perform Principal Coordinates Analysis (PCoA)']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -229,7 +236,7 @@ class qiime2Tests(PluginTestCase):
         # non phylogenetic beta diversity
         params = {
             'BIOM table': aid, 'Diversity metric': 'Euclidean distance',
-            'Phylogenetic tree': 'None'}
+            'Phylogenetic tree': 'None', 'Number of jobs': 1}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
                                   'Calculate beta diversity']),
@@ -342,7 +349,7 @@ class qiime2Tests(PluginTestCase):
 
         # To avoid having to set up all these files, we are gonna test
         # that if phylogenetic and no tree it fails
-        params['Phylogenetic tree'] = None
+        params['Phylogenetic tree'] = "None"
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
         success, ainfo, msg = alpha_diversity(
             self.qclient, jid, params, out_dir)
@@ -435,11 +442,11 @@ class qiime2Tests(PluginTestCase):
         self._clean_up_files.append(out_dir)
 
         params = {
-            'BIOM table': '8',
-            'Minimum feature frequency across samples': '1',
-            'Maximum feature frequency across samples': '9223372036854775807',
-            'Minimum features per sample': '1',
-            'Maximum features per sample': '9223372036854775807',
+            'BIOM table': 8,
+            'Minimum feature frequency across samples': 1,
+            'Maximum feature frequency across samples': maxsize,
+            'Minimum features per sample': 1,
+            'Maximum features per sample': maxsize,
             'SQLite WHERE-clause': ''
         }
         data = {'user': 'demo@microbio.me',
@@ -485,7 +492,7 @@ class qiime2Tests(PluginTestCase):
         # non phylogenetic beta diversity
         params = {
             'BIOM table': aid, 'Diversity metric': 'Euclidean distance',
-            'Phylogenetic tree': 'None'}
+            'Phylogenetic tree': 'None', 'Number of jobs': 1}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
                                   'Calculate beta diversity']),
@@ -505,7 +512,7 @@ class qiime2Tests(PluginTestCase):
         data = {'user': 'demo@microbio.me',
                 'command': dumps(
                     ['qiime2', qiime2_version,
-                     'Generate principal coordinates analysis (PCoA)']),
+                     'Perform Principal Coordinates Analysis (PCoA)']),
                 'status': 'running',
                 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
@@ -556,7 +563,7 @@ class qiime2Tests(PluginTestCase):
         # non phylogenetic beta diversity
         params = {
             'BIOM table': aid, 'Diversity metric': 'Euclidean distance',
-            'Phylogenetic tree': 'None'}
+            'Phylogenetic tree': 'None', 'Number of jobs': 1}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['qiime2', qiime2_version,
                                   'Calculate beta diversity']),
@@ -597,6 +604,49 @@ class qiime2Tests(PluginTestCase):
                      'beta_group_significance/beta_group_significance.qzv'),
                 'qzv')]
         self.assertEqual(ainfo[0].files, exp)
+
+    def test_metrics(self):
+        # Test beta diversity metrics
+        beta_methods = q2div_plugin.methods['beta'].signature.parameters[
+            'metric'].qiime_type.predicate.choices
+        beta_alt_methods = q2div_plugin.methods[
+            'beta_phylogenetic_alt'].signature.parameters[
+                'metric'].qiime_type.predicate.choices
+        q2_metrics = beta_methods.union(beta_alt_methods)
+        qp_metrics = set(BETA_DIVERSITY_METRICS.values()).union(
+            STATE_UNIFRAC_METRICS.values()).difference(STATE_UNIFRAC_METRICS)
+        self.assertEqual(q2_metrics, qp_metrics)
+
+        # Test alpha diversity metrics
+        alpha_methods = q2div_plugin.methods['alpha'].signature.parameters[
+            'metric'].qiime_type.predicate.choices
+        alpha_phyl_methods = q2div_plugin.methods[
+            'alpha_phylogenetic'].signature.parameters[
+                'metric'].qiime_type.predicate.choices
+        q2_metrics = alpha_methods.union(alpha_phyl_methods)
+        qp_metrics = set(ALPHA_DIVERSITY_METRICS.values())
+        self.assertEqual(q2_metrics, qp_metrics)
+
+        # Alpha correlation methods
+        q2_methods = q2div_plugin.visualizers[
+            'alpha_correlation'].signature.parameters[
+                'method'].qiime_type.predicate.choices
+        qp_methods = set(ALPHA_CORRELATION_METHODS.values())
+        self.assertEqual(q2_methods, qp_methods)
+
+        # Beta correlation methods
+        q2_methods = q2div_plugin.visualizers[
+            'beta_correlation'].signature.parameters[
+                'method'].qiime_type.predicate.choices
+        qp_methods = set(BETA_CORRELATION_METHODS.values())
+        self.assertEqual(q2_methods, qp_methods)
+
+        # Beta group significance methods
+        q2_methods = q2div_plugin.visualizers[
+            'beta_group_significance'].signature.parameters[
+                'method'].qiime_type.predicate.choices
+        qp_methods = set(BETA_GROUP_SIG_METHODS.values())
+        self.assertEqual(q2_methods, qp_methods)
 
 
 if __name__ == '__main__':

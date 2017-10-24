@@ -18,9 +18,10 @@ from qiita_client.util import system_call
 
 
 STATE_UNIFRAC_METRICS = {
-    "unweighted UniFrac": "unweighted",
-    "weighted normalized UniFrac": "weighted-normalized",
-    "weighted unnormalized UniFrac": "weighted-unnormalized"}
+    "unweighted UniFrac": "unweighted_unifrac",
+    "weighted normalized UniFrac": "weighted_normalized_unifrac",
+    "weighted unnormalized UniFrac": "weighted_unifrac",
+    "generalized UniFrac": "generalized_unifrac"}
 
 ALPHA_PHYLOGENETIC_METRICS = {'faith_pd'}
 
@@ -88,7 +89,8 @@ BETA_DIVERSITY_METRICS = {
     "Yule index": "yule",
     "Unweighted UniFrac": "unweighted UniFrac",
     "Weighted normalized UniFrac": "weighted normalized UniFrac",
-    "Weighted unnormalized UniFrac": "weighted unnormalized UniFrac"}
+    "Weighted unnormalized UniFrac": "weighted unnormalized UniFrac",
+    "Generalized UniFrac": "generalized UniFrac"}
 
 BETA_CORRELATION_METHODS = {
     "Spearman": "spearman",
@@ -145,7 +147,7 @@ def rarefy(qclient, job_id, parameters, out_dir):
     with biom_open(rarefied_fp, 'w') as bf:
         rarefied.to_hdf5(bf, "Qiita's Qiime2 plugin")
 
-    ainfo = [ArtifactInfo('o-table', 'BIOM', [(rarefied_fp, 'biom')])]
+    ainfo = [ArtifactInfo('Rarefied table', 'BIOM', [(rarefied_fp, 'biom')])]
 
     return True, ainfo, ""
 
@@ -182,6 +184,7 @@ def beta_diversity(qclient, job_id, parameters, out_dir):
     artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
     biom_fpi = artifact_info['files']['biom'][0]
     biom_qza = join(out_dir, 'q2-biom.qza')
+    num_jobs = parameters['Number of jobs']
 
     qclient.update_job_step(
         job_id, "Step 2 of 4: Converting Qiita artifacts to Q2 artifact")
@@ -216,12 +219,22 @@ def beta_diversity(qclient, job_id, parameters, out_dir):
     if tree is not None and metric in STATE_UNIFRAC_METRICS:
         su_metric = STATE_UNIFRAC_METRICS[metric]
         dtx_fp = join(out_dir, '%s.qza' % su_metric)
-        cmd = ('qiime state-unifrac %s --i-table %s --i-phylogeny %s '
-               '--o-distance-matrix %s' % (su_metric, biom_qza, tree, dtx_fp))
+        cmd = ('qiime diversity beta-phylogenetic-alt --p-metric %s '
+               '--i-table %s --i-phylogeny %s --o-distance-matrix %s '
+               '--p-n-jobs %s'
+               % (su_metric, biom_qza, tree, dtx_fp, num_jobs))
+        if parameters['Adjust variance (phylogenetic only)']:
+            cmd += ' --p-variance-adjusted'
+        if parameters['Bypass tips (phylogenetic only)']:
+            cmd += ' --p-bypass-tips'
+        if su_metric == 'generalized_unifrac':
+            cmd += '--p-alpha %s' % parameters[
+                'Alpha value (Generalized Unifrac only)']
     elif metric not in STATE_UNIFRAC_METRICS and tree is None:
         dtx_fp = join(out_dir, '%s.qza' % metric)
         cmd = ('qiime diversity beta --i-table %s --p-metric %s '
-               '--o-distance-matrix %s' % (biom_qza, metric, dtx_fp))
+               '--o-distance-matrix %s --p-n-jobs %s'
+               % (biom_qza, metric, dtx_fp, num_jobs))
     else:
         return False, None, ('Phylogenetic metric %s selected but no tree '
                              'exists' % metric)
@@ -243,7 +256,7 @@ def beta_diversity(qclient, job_id, parameters, out_dir):
                      "%s\nStd err: %s" % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('distance_matrix', 'distance_matrix',
+    ainfo = [ArtifactInfo('Distance matrix', 'distance_matrix',
                           [(ffp, 'plain_text')])]
     return True, ainfo, ""
 
@@ -310,7 +323,7 @@ def pcoa(qclient, job_id, parameters, out_dir):
                      "%s\nStd err: %s" % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('o-pcoa', 'ordination_results',
+    ainfo = [ArtifactInfo('Ordination results', 'ordination_results',
                           [(ffp, 'plain_text')])]
     return True, ainfo, ""
 
@@ -378,7 +391,7 @@ def beta_correlation(qclient, job_id, parameters, out_dir):
                      % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
+    ainfo = [ArtifactInfo('Beta correlation visualization', 'q2_visualization',
                           [(o_visualization, 'qzv')])]
     return True, ainfo, ""
 
@@ -474,7 +487,7 @@ def alpha_diversity(qclient, job_id, parameters, out_dir):
                      "%s\nStd err: %s" % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('o-alpha-diversity', 'alpha_vector',
+    ainfo = [ArtifactInfo('Alpha vectors', 'alpha_vector',
                           [(ffp, 'plain_text')])]
     return True, ainfo, ""
 
@@ -538,8 +551,8 @@ def alpha_correlation(qclient, job_id, parameters, out_dir):
                      % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
-                          [(o_visualization, 'qzv')])]
+    ainfo = [ArtifactInfo('Alpha correlation visualization',
+                          'q2_visualization', [(o_visualization, 'qzv')])]
     return True, ainfo, ""
 
 
@@ -630,7 +643,7 @@ def taxa_barplot(qclient, job_id, parameters, out_dir):
                      "Std err: %s" % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
+    ainfo = [ArtifactInfo('Taxa summaries visualization', 'q2_visualization',
                           [(taxa_plot_qzv, 'qzv')])]
     return True, ainfo, ""
 
@@ -803,7 +816,7 @@ def emperor(qclient, job_id, parameters, out_dir):
                      % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
+    ainfo = [ArtifactInfo('Emperor visualization', 'q2_visualization',
                           [(emperor_qzv, 'qzv')])]
     return True, ainfo, ""
 
@@ -871,6 +884,7 @@ def beta_group_significance(qclient, job_id, parameters, out_dir):
                      "Std err: %s" % (std_out, std_err))
         return False, None, error_msg
 
-    ainfo = [ArtifactInfo('q2_visualization', 'q2_visualization',
+    ainfo = [ArtifactInfo('Beta group significance visualization',
+                          'q2_visualization',
                           [(o_visualization, 'qzv')])]
     return True, ainfo, ""
