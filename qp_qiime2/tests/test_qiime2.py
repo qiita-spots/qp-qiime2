@@ -465,6 +465,9 @@ class qiime2Tests(PluginTestCase):
         # and that element [0] should have this file
         exp = [(join(out_dir, 'filter_samples/filtered.biom'), 'biom')]
         self.assertEqual(ainfo[0].files, exp)
+        self.assertIn(
+            ainfo[0].output_name,
+            plugin.task_dict['Filter samples by metadata'].outputs)
 
         b = load_table(exp[0][0])
         self.assertIn('taxonomy', b.metadata(b.ids(axis='observation')[0],

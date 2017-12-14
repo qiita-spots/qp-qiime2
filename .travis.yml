@@ -1,5 +1,6 @@
 language: python
-sudo: false
+sudo: required
+group: deprecated-2017Q4
 compiler:
   - clang
 env:
