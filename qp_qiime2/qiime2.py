@@ -749,7 +749,7 @@ def filter_samples(qclient, job_id, parameters, out_dir):
     with biom_open(res_fp, 'w') as bf:
         res.to_hdf5(bf, "Qiita's Qiime2 plugin")
 
-    ainfo = [ArtifactInfo('o-table', 'BIOM', [(res_fp, 'biom')])]
+    ainfo = [ArtifactInfo('Filtered table', 'BIOM', [(res_fp, 'biom')])]
     return True, ainfo, ""
 
 
