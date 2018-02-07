@@ -274,7 +274,7 @@ class qiime2Tests(PluginTestCase):
         exp = [(join(out_dir, 'beta_correlation/beta_correlation.qzv'), 'qzv')]
         self.assertEqual(ainfo[0].files, exp)
 
-        # testing faillure here, just to avoid reduplicating all the code above
+        # testing failure here, just to avoid reduplicating all the code above
         params = {'Distance matrix': aid,
                   'Metadata category': 'common_name',
                   'Correlation method': 'Spearman',
@@ -647,7 +647,7 @@ class qiime2Tests(PluginTestCase):
 
         # Beta correlation methods
         q2_methods = q2div_plugin.visualizers[
-            'beta_correlation'].signature.parameters[
+            'mantel'].signature.parameters[
                 'method'].qiime_type.predicate.choices
         qp_methods = set(BETA_CORRELATION_METHODS.values())
         self.assertEqual(q2_methods, qp_methods)
