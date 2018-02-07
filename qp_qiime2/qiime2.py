@@ -726,11 +726,15 @@ def filter_samples(qclient, job_id, parameters, out_dir):
 
     qclient.update_job_step(job_id, "Step 3 of 4: Filtering")
     filter_ofp = join(out_dir, 'biom_filtered.qza')
+    if 'Exclude ids selected by where parameter':
+        exclude_ids = '--p-no-exclude-ids'
+    else:
+        exclude_ids = '--p-exclude-ids'
     cmd = ('qiime feature-table filter-samples --m-metadata-file %s '
            '--o-filtered-table %s --p-max-frequency %d --p-max-features %d '
-           '--p-min-frequency %d --p-min-features %d --i-table %s' % (
+           '--p-min-frequency %d --p-min-features %d --i-table %s %s' % (
                metadata_fp, filter_ofp, p_max_frequency, p_max_features,
-               p_min_frequency, p_min_features, biom_ofp))
+               p_min_frequency, p_min_features, biom_ofp, exclude_ids))
     if p_where != '':
         cmd += ' --p-where "%s"' % p_where
     std_out, std_err, return_value = system_call(cmd)

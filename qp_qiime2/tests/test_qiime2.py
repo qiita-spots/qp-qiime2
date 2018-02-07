@@ -447,7 +447,8 @@ class qiime2Tests(PluginTestCase):
             'Maximum feature frequency across samples': maxsize,
             'Minimum features per sample': 1,
             'Maximum features per sample': maxsize,
-            'SQLite WHERE-clause': ''
+            'SQLite WHERE-clause': '',
+            'Exclude ids selected by where parameter': False
         }
         data = {'user': 'demo@microbio.me',
                 'command': dumps([
