@@ -351,11 +351,12 @@ def beta_correlation(qclient, job_id, parameters, out_dir):
     if not exists(out_dir):
         mkdir(out_dir)
 
-    qclient.update_job_step(job_id, "Step 1 of 3: Collecting information")
+    qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
     artifact_id = parameters['Distance matrix']
     artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
     dm_fp = artifact_info['files']['plain_text'][0]
     dm_qza = join(out_dir, 'q2-distance.qza')
+    metadata_qza = join(out_dir, 'q2-metadata.qza')
     analysis_id = artifact_info['analysis']
     metadata = qclient.get(
         "/qiita_db/analysis/%s/metadata/" % str(analysis_id))
@@ -368,7 +369,7 @@ def beta_correlation(qclient, job_id, parameters, out_dir):
     o_visualization = join(out_dir, 'beta_correlation.qzv')
 
     qclient.update_job_step(
-        job_id, "Step 2 of 3: Converting Qiita artifacts to Q2 artifact")
+        job_id, "Step 2 of 4: Converting Qiita artifacts to Q2 artifact")
     cmd = ('qiime tools import --input-path %s --output-path %s '
            '--type "DistanceMatrix"' % (dm_fp, dm_qza))
     std_out, std_err, return_value = system_call(cmd)
@@ -378,12 +379,25 @@ def beta_correlation(qclient, job_id, parameters, out_dir):
         return False, None, error_msg
 
     qclient.update_job_step(
-        job_id, "Step 3 of 3: Calculating beta correlation")
-    cmd = ('qiime diversity beta-correlation --i-distance-matrix %s '
-           '--m-metadata-file %s --m-metadata-category %s --p-method %s '
-           '--p-permutations %s --o-visualization %s' % (
-               dm_qza, metadata_fp, m_metadata_category, p_method,
-               p_permutations, o_visualization))
+        job_id, "Step 3 of 4: Calculating distance matrix from metadata "
+        "category")
+    cmd = ('qiime metadata distance-matrix --m-metadata-file %s '
+           '--m-metadata-category %s --o-distance-matrix %s' % (
+               metadata_fp, m_metadata_category, metadata_qza))
+    std_out, std_err, return_value = system_call(cmd)
+    if return_value != 0:
+        error_msg = ("Error calculating distance matrix from metadata:\n"
+                     "Std out: %s\nStd err: %s" % (std_out, std_err))
+        return False, None, error_msg
+
+    qclient.update_job_step(
+        job_id, "Step 4 of 4: Calculating beta correlation")
+    cmd = ('qiime diversity mantel --i-dm1 %s --i-dm2 %s --p-method %s '
+           '--p-permutations %s --p-no-intersect-ids '
+           '--p-label1 "Distance Matrix" --p-label2 "%s" '
+           '--o-visualization %s' % (
+              dm_qza, metadata_qza, p_method, p_permutations,
+              m_metadata_category, o_visualization))
 
     std_out, std_err, return_value = system_call(cmd)
     if return_value != 0:
@@ -712,11 +726,15 @@ def filter_samples(qclient, job_id, parameters, out_dir):
 
     qclient.update_job_step(job_id, "Step 3 of 4: Filtering")
     filter_ofp = join(out_dir, 'biom_filtered.qza')
+    if 'Exclude ids selected by where parameter':
+        exclude_ids = '--p-no-exclude-ids'
+    else:
+        exclude_ids = '--p-exclude-ids'
     cmd = ('qiime feature-table filter-samples --m-metadata-file %s '
            '--o-filtered-table %s --p-max-frequency %d --p-max-features %d '
-           '--p-min-frequency %d --p-min-features %d --i-table %s' % (
+           '--p-min-frequency %d --p-min-features %d --i-table %s %s' % (
                metadata_fp, filter_ofp, p_max_frequency, p_max_features,
-               p_min_frequency, p_min_features, biom_ofp))
+               p_min_frequency, p_min_features, biom_ofp, exclude_ids))
     if p_where != '':
         cmd += ' --p-where "%s"' % p_where
     std_out, std_err, return_value = system_call(cmd)

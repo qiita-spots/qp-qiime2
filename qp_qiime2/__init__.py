@@ -154,6 +154,7 @@ opt_params = {
         ('integer', maxsize),
     'Minimum features per sample': ('integer', 1),
     'Maximum features per sample': ('integer', maxsize),
+    'Exclude ids selected by where parameter': ['boolean', False],
     'SQLite WHERE-clause': ('string', '')}
 outputs = {'Filtered table': 'BIOM'}
 dflt_param_set = {
@@ -162,6 +163,7 @@ dflt_param_set = {
         'Maximum feature frequency across samples': maxsize,
         'Minimum features per sample': 1,
         'Maximum features per sample': maxsize,
+        'Exclude ids selected by where parameter': False,
         'SQLite WHERE-clause': ''}}
 qiime_cmd = QiitaCommand(
     "Filter samples by metadata", "Filter Samples",
