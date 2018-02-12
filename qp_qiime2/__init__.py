@@ -196,7 +196,7 @@ outputs = {'Beta group significance visualization': 'q2_visualization'}
 dflt_param_set = {
     'Defaults': {
         'Method': 'PERMANOVA',
-        'Comparison type': 'p-pairwise',
+        'Comparison type': 'Pairwise',
         'Number of permutations': 999}
 }
 qiime_cmd = QiitaCommand(
