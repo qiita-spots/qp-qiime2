@@ -156,7 +156,7 @@ class qiime2Tests(PluginTestCase):
             self.qclient, jid, params, out_dir)
         self.assertFalse(success)
         self.assertEqual(msg, 'Error. Metric: euclidean (is '
-                              'phylogenetic: %s), tree: None' %
+                              'phylogenetic: False), tree: %s' %
                               params['Phylogenetic tree'])
 
         params['Phylogenetic tree'] = "None"
