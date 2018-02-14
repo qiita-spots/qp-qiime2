@@ -361,7 +361,7 @@ class qiime2Tests(PluginTestCase):
         # that if phylogenetic and no tree it fails
         params['Diversity metric'] = 'Number of distinct features'
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
-        success, ainfo, msg = beta_diversity(
+        success, ainfo, msg = alpha_diversity(
             self.qclient, jid, params, out_dir)
         self.assertFalse(success)
         self.assertEqual(msg, 'Error. Metric: observed_otus (is '
