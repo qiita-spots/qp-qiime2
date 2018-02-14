@@ -228,7 +228,7 @@ def beta_diversity(qclient, job_id, parameters, out_dir):
         if parameters['Bypass tips (phylogenetic only)']:
             cmd += ' --p-bypass-tips'
         if su_metric == 'generalized_unifrac':
-            cmd += '--p-alpha %s' % parameters[
+            cmd += ' --p-alpha %s' % parameters[
                 'Alpha value (Generalized Unifrac only)']
     elif metric not in STATE_UNIFRAC_METRICS and tree is None:
         dtx_fp = join(out_dir, '%s.qza' % metric)
