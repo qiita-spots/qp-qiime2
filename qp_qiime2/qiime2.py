@@ -30,18 +30,18 @@ ALPHA_DIVERSITY_METRICS = {
     "Berger-Parker dominance index": "berger_parker_d",
     "Brillouin's index": "brillouin_d",
     "Chao1 index": "chao1",
-    "Chao1 confidence interval": "chao1_ci",
+    # "Chao1 confidence interval": "chao1_ci",
     "Dominance measure": "dominance",
     "Effective number of species (ENS)/"
     "Probability of intra-or interspecific encounter (PIE) metric": "enspie",
-    "Esty's confidence interval": "esty_ci",
+    # "Esty's confidence interval": "esty_ci",
     "Faith's Phylogenetic Diversity": "faith_pd",
     "Fisher's index": "fisher_alpha",
     "Gini index": "gini_index",
     "Good's coverage of counts": "goods_coverage",
     "Heip's evenness measure": "heip_e",
-    "Kempton-Taylor Q index": "kempton_taylor_q",
-    "Lladser's confidence interval": "lladser_ci",
+    # "Kempton-Taylor Q index": "kempton_taylor_q",
+    # "Lladser's confidence interval": "lladser_ci",
     "Lladser's point estimate": "lladser_pe",
     "Margalef's richness index": "margalef",
     "McIntosh dominance index D": "mcintosh_d",
@@ -52,7 +52,7 @@ ALPHA_DIVERSITY_METRICS = {
     "Number of distinct features": "observed_otus",
     "Number of double occurrences": "doubles",
     "Number of single occurrences": "singles",
-    "Number of observed features, including singles and doubles": "osd",
+    # "Number of observed features, including singles and doubles": "osd",
     "Pielou's evenness": "pielou_e",
     "Robbins' estimator": "robbins",
     "Shannon's index": "shannon",
@@ -77,7 +77,7 @@ BETA_DIVERSITY_METRICS = {
     "Hamming distance": "hamming",
     "Jaccard similarity index": "jaccard",
     "Kulczynski dissimilarity index": "kulsinski",
-    "Mahalanobis distance": "mahalanobis",
+    # "Mahalanobis distance": "mahalanobis",
     "Matching components": "matching",
     "Rogers-Tanimoto distance": "rogerstanimoto",
     "Russell-Rao coefficients": "russellrao",
@@ -228,7 +228,7 @@ def beta_diversity(qclient, job_id, parameters, out_dir):
         if parameters['Bypass tips (phylogenetic only)']:
             cmd += ' --p-bypass-tips'
         if su_metric == 'generalized_unifrac':
-            cmd += '--p-alpha %s' % parameters[
+            cmd += ' --p-alpha %s' % parameters[
                 'Alpha value (Generalized Unifrac only)']
     elif metric not in STATE_UNIFRAC_METRICS and tree is None:
         dtx_fp = join(out_dir, '%s.qza' % metric)
@@ -236,8 +236,9 @@ def beta_diversity(qclient, job_id, parameters, out_dir):
                '--o-distance-matrix %s --p-n-jobs %s'
                % (biom_qza, metric, dtx_fp, num_jobs))
     else:
-        return False, None, ('Phylogenetic metric %s selected but no tree '
-                             'exists' % metric)
+        return False, None, (
+            'Error. Metric: %s (is phylogenetic: %s), tree: %s' % (
+                metric, metric in STATE_UNIFRAC_METRICS, tree))
 
     std_out, std_err, return_value = system_call(cmd)
     if return_value != 0:
@@ -479,8 +480,10 @@ def alpha_diversity(qclient, job_id, parameters, out_dir):
     elif metric not in ALPHA_PHYLOGENETIC_METRICS and tree is None:
         cmd = 'qiime diversity alpha '
     else:
-        return False, None, ('Phylogenetic metric %s selected but no tree '
-                             'exists' % metric)
+        return False, None, (
+            'Error. Metric: %s (is phylogenetic: %s), tree: %s' % (
+                metric, metric in ALPHA_PHYLOGENETIC_METRICS, tree))
+
     cmd += '--i-table %s --p-metric %s --o-alpha-diversity %s' % (
         biom_qza, metric, alpha_fp)
 

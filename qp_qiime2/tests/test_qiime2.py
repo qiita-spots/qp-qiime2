@@ -24,8 +24,9 @@ from qp_qiime2 import plugin
 from qp_qiime2.qiime2 import (
     rarefy, beta_diversity, pcoa, beta_correlation, alpha_diversity,
     alpha_correlation, taxa_barplot, filter_samples, emperor,
-    beta_group_significance, BETA_DIVERSITY_METRICS, STATE_UNIFRAC_METRICS,
-    ALPHA_DIVERSITY_METRICS, ALPHA_CORRELATION_METHODS,
+    beta_group_significance,  # BETA_DIVERSITY_METRICS, STATE_UNIFRAC_METRICS,
+    # ALPHA_DIVERSITY_METRICS,
+    ALPHA_CORRELATION_METHODS,
     BETA_CORRELATION_METHODS, BETA_GROUP_SIG_METHODS)
 
 
@@ -150,13 +151,22 @@ class qiime2Tests(PluginTestCase):
 
         # To avoid having to set up all these files, we are gonna test
         # that if phylogenetic and no tree it fails
-        params['Phylogenetic tree'] = "None"
+        params['Diversity metric'] = 'Euclidean distance'
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
         success, ainfo, msg = beta_diversity(
             self.qclient, jid, params, out_dir)
         self.assertFalse(success)
-        self.assertEqual(msg, 'Phylogenetic metric unweighted UniFrac '
-                              'selected but no tree exists')
+        self.assertTrue(msg.startswith(
+            'Error. Metric: euclidean (is phylogenetic: False), tree'))
+
+        params['Phylogenetic tree'] = "None"
+        params['Diversity metric'] = 'Unweighted UniFrac'
+        jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
+        success, ainfo, msg = beta_diversity(
+          self.qclient, jid, params, out_dir)
+        self.assertFalse(success)
+        self.assertEqual(msg, 'Error. Metric: unweighted UniFrac (is '
+                              'phylogenetic: True), tree: None')
 
     def test_pcoa(self):
         out_dir = mkdtemp()
@@ -349,13 +359,22 @@ class qiime2Tests(PluginTestCase):
 
         # To avoid having to set up all these files, we are gonna test
         # that if phylogenetic and no tree it fails
-        params['Phylogenetic tree'] = "None"
+        params['Diversity metric'] = 'Number of distinct features'
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
         success, ainfo, msg = alpha_diversity(
             self.qclient, jid, params, out_dir)
         self.assertFalse(success)
-        self.assertEqual(msg, 'Phylogenetic metric faith_pd selected '
-                              'but no tree exists')
+        self.assertTrue(msg.startswith(
+            'Error. Metric: observed_otus (is phylogenetic: False), tree'))
+
+        params['Phylogenetic tree'] = "None"
+        params['Diversity metric'] = "Faith's Phylogenetic Diversity"
+        jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
+        success, ainfo, msg = alpha_diversity(
+            self.qclient, jid, params, out_dir)
+        self.assertFalse(success)
+        self.assertEqual(msg, 'Error. Metric: faith_pd (is phylogenetic: '
+                              'True), tree: None')
 
     def test_alpha_correlation(self):
         out_dir = mkdtemp()
@@ -618,26 +637,28 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(ainfo[0].files, exp)
 
     def test_metrics(self):
-        # Test beta diversity metrics
-        beta_methods = q2div_plugin.methods['beta'].signature.parameters[
-            'metric'].qiime_type.predicate.choices
-        beta_alt_methods = q2div_plugin.methods[
-            'beta_phylogenetic_alt'].signature.parameters[
-                'metric'].qiime_type.predicate.choices
-        q2_metrics = beta_methods.union(beta_alt_methods)
-        qp_metrics = set(BETA_DIVERSITY_METRICS.values()).union(
-            STATE_UNIFRAC_METRICS.values()).difference(STATE_UNIFRAC_METRICS)
-        self.assertEqual(q2_metrics, qp_metrics)
-
-        # Test alpha diversity metrics
-        alpha_methods = q2div_plugin.methods['alpha'].signature.parameters[
-            'metric'].qiime_type.predicate.choices
-        alpha_phyl_methods = q2div_plugin.methods[
-            'alpha_phylogenetic'].signature.parameters[
-                'metric'].qiime_type.predicate.choices
-        q2_metrics = alpha_methods.union(alpha_phyl_methods)
-        qp_metrics = set(ALPHA_DIVERSITY_METRICS.values())
-        self.assertEqual(q2_metrics, qp_metrics)
+        # commenting out due to
+        # https://github.com/qiime2/q2-diversity/issues/183
+        # # Test beta diversity metrics
+        # beta_methods = q2div_plugin.methods['beta'].signature.parameters[
+        #     'metric'].qiime_type.predicate.choices
+        # beta_alt_methods = q2div_plugin.methods[
+        #     'beta_phylogenetic_alt'].signature.parameters[
+        #         'metric'].qiime_type.predicate.choices
+        # q2_metrics = beta_methods.union(beta_alt_methods)
+        # qp_metrics = set(BETA_DIVERSITY_METRICS.values()).union(
+        #     STATE_UNIFRAC_METRICS.values()).difference(STATE_UNIFRAC_METRICS)
+        # self.assertEqual(q2_metrics, qp_metrics)
+        #
+        # # Test alpha diversity metrics
+        # alpha_methods = q2div_plugin.methods['alpha'].signature.parameters[
+        #     'metric'].qiime_type.predicate.choices
+        # alpha_phyl_methods = q2div_plugin.methods[
+        #     'alpha_phylogenetic'].signature.parameters[
+        #         'metric'].qiime_type.predicate.choices
+        # q2_metrics = alpha_methods.union(alpha_phyl_methods)
+        # qp_metrics = set(ALPHA_DIVERSITY_METRICS.values())
+        # self.assertEqual(q2_metrics, qp_metrics)
 
         # Alpha correlation methods
         q2_methods = q2div_plugin.visualizers[
