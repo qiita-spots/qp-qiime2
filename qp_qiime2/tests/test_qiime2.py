@@ -155,8 +155,8 @@ class qiime2Tests(PluginTestCase):
         success, ainfo, msg = beta_diversity(
             self.qclient, jid, params, out_dir)
         self.assertFalse(success)
-        self.assertEqual(msg, 'Phylogenetic metric unweighted UniFrac '
-                              'selected but no tree exists')
+        self.assertEqual(msg, 'Error. Metric: unweighted UniFrac (is '
+                              'phylogenetic: True), tree: None')
 
     def test_pcoa(self):
         out_dir = mkdtemp()
@@ -354,8 +354,8 @@ class qiime2Tests(PluginTestCase):
         success, ainfo, msg = alpha_diversity(
             self.qclient, jid, params, out_dir)
         self.assertFalse(success)
-        self.assertEqual(msg, 'Phylogenetic metric faith_pd selected '
-                              'but no tree exists')
+        self.assertEqual(msg, 'Error. Metric: faith_pd (is phylogenetic: '
+                              'True), tree: None')
 
     def test_alpha_correlation(self):
         out_dir = mkdtemp()

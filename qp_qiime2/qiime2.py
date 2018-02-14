@@ -236,8 +236,9 @@ def beta_diversity(qclient, job_id, parameters, out_dir):
                '--o-distance-matrix %s --p-n-jobs %s'
                % (biom_qza, metric, dtx_fp, num_jobs))
     else:
-        return False, None, ('Phylogenetic metric %s selected but no tree '
-                             'exists' % metric)
+        return False, None, (
+            'Error. Metric: %s (is phylogenetic: %s), tree: %s' % (
+                metric, metric in STATE_UNIFRAC_METRICS, tree))
 
     std_out, std_err, return_value = system_call(cmd)
     if return_value != 0:
@@ -479,8 +480,10 @@ def alpha_diversity(qclient, job_id, parameters, out_dir):
     elif metric not in ALPHA_PHYLOGENETIC_METRICS and tree is None:
         cmd = 'qiime diversity alpha '
     else:
-        return False, None, ('Phylogenetic metric %s selected but no tree '
-                             'exists' % metric)
+        return False, None, (
+            'Error. Metric: %s (is phylogenetic: %s), tree: %s' % (
+                metric, metric in ALPHA_PHYLOGENETIC_METRICS, tree))
+
     cmd += '--i-table %s --p-metric %s --o-alpha-diversity %s' % (
         biom_qza, metric, alpha_fp)
 
