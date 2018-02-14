@@ -364,9 +364,8 @@ class qiime2Tests(PluginTestCase):
         success, ainfo, msg = alpha_diversity(
             self.qclient, jid, params, out_dir)
         self.assertFalse(success)
-        self.assertEqual(msg, 'Error. Metric: observed_otus (is '
-                              'phylogenetic: False), tree: %s' %
-                              params['Phylogenetic tree'])
+        self.assertTrue(msg.startswith(
+            'Error. Metric: observed_otus (is phylogenetic: False), tree'))
 
         params['Phylogenetic tree'] = "None"
         params['Diversity metric'] = "Faith's Phylogenetic Diversity"
@@ -666,7 +665,7 @@ class qiime2Tests(PluginTestCase):
             'alpha_correlation'].signature.parameters[
                 'method'].qiime_type.predicate.choices
         qp_methods = set(ALPHA_CORRELATION_METHODS.values())
-        # self.assertEqual(q2_methods, qp_methods)
+        self.assertEqual(q2_methods, qp_methods)
 
         # Beta correlation methods
         q2_methods = q2div_plugin.visualizers[
