@@ -43,9 +43,36 @@ class qiime2Tests(PluginTestCase):
                 else:
                     remove(fp)
 
-    def test_rarefy(self):
+    def test_not_analysis_artifact(self):
         params = {
             'The feature table to be rarefied.': '5',
+            'The total frequency that each sample should be rarefied to. '
+            'Samples where the sum of frequencies is less than the sampling '
+            'depth will be not be included in the resulting table.': '2',
+            'qp-hide-method': u'rarefy',
+            'qp-hide-paramThe total frequency that each sample should be '
+            'rarefied to. Samples where the sum of frequencies is less than '
+            'the sampling depth will be not be included in the resulting '
+            'table.': 'sampling_depth',
+            'qp-hide-paramThe feature table to be rarefied.': 'table',
+            'qp-hide-plugin': 'feature-table'}
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'Rarefy table'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        self.assertFalse(success)
+        self.assertEqual(msg, 'Artifact "5" is not an analysis artifact.')
+
+    def test_rarefy(self):
+        params = {
+            'The feature table to be rarefied.': '8',
             'The total frequency that each sample should be rarefied to. '
             'Samples where the sum of frequencies is less than the sampling '
             'depth will be not be included in the resulting table.': '2',
@@ -76,7 +103,7 @@ class qiime2Tests(PluginTestCase):
 
     def test_rarefy_error(self):
         params = {
-            'The feature table to be rarefied.': '5',
+            'The feature table to be rarefied.': '8',
             'The total frequency that each sample should be rarefied to. '
             'Samples where the sum of frequencies is less than the sampling '
             'depth will be not be included in the resulting table.': '200000',
@@ -101,9 +128,9 @@ class qiime2Tests(PluginTestCase):
         self.assertFalse(success)
         self.assertIsNone(ainfo)
         self.assertEqual(
-            msg, 'Error: The rarefied table contains no samples or features. '
-            'Verify your table is valid and that you provided a shallow '
-            'enough sampling depth.')
+            msg, 'Error running: The rarefied table contains no samples or '
+            'features. Verify your table is valid and that you provided a '
+            'shallow enough sampling depth.')
 
     def test_beta(self):
         # first let's test non phylogenetic
@@ -112,7 +139,7 @@ class qiime2Tests(PluginTestCase):
             'is ignored for other metrics.': '1',
             'The beta diversity metric to be computed.': 'rogerstanimoto',
             'The feature table containing the samples over which beta '
-            'diversity should be computed.': '5',
+            'diversity should be computed.': '8',
             'The number of jobs to use for the computation. This works '
             'by breaking down the pairwise matrix into n_jobs even slices '
             'and computing them in parallel. If -1 all CPUs are used. If '
@@ -158,7 +185,7 @@ class qiime2Tests(PluginTestCase):
                 dirname(realpath(__file__)), 'prune_97_gg_13_8.tre'),
             'The beta diversity metric to be computed.': 'unweighted_unifrac',
             'The feature table containing the samples over which beta '
-            'diversity should be computed.': '5',
+            'diversity should be computed.': '8',
             '[Excluding weighted_unifrac] - The number of jobs to use for '
             'the computation. This works by breaking down the pairwise '
             'matrix into n_jobs even slices and computing them in parallel. '
@@ -198,6 +225,123 @@ class qiime2Tests(PluginTestCase):
                  'distance-matrix.tsv'), 'plain_text')])
         self.assertEqual(ainfo[0].output_name, 'distance_matrix')
 
+    def test_alpha(self):
+        # let's test non phylogenetic
+        params = {
+            'The alpha diversity metric to be computed.': 'simpson',
+            'The feature table containing the samples for which alpha '
+            'diversity should be computed.': '8',
+            'qp-hide-method': 'alpha',
+            'qp-hide-paramThe alpha diversity metric to be '
+            'computed.': 'metric',
+            'qp-hide-paramThe feature table containing the samples for '
+            'which alpha diversity should be computed.': 'table',
+            'qp-hide-plugin': 'diversity'}
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'Alpha diversity'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        self.assertEqual(msg, '')
+        self.assertTrue(success)
+        self.assertEqual(ainfo[0].files, [(
+            join(out_dir, 'alpha', 'alpha_diversity', 'alpha-diversity.tsv'),
+            'plain_text')])
+        self.assertEqual(ainfo[0].output_name, 'alpha_diversity')
+
+        # now let's try with phylogenetic
+        params = {
+            'Phylogenetic tree': join(
+                dirname(realpath(__file__)), 'prune_97_gg_13_8.tre'),
+            'The alpha diversity metric to be computed.': 'faith_pd',
+            'The feature table containing the samples for which alpha '
+            'diversity should be computed.': '8',
+            'qp-hide-method': 'alpha_phylogenetic',
+            'qp-hide-paramPhylogenetic tree': 'phylogeny',
+            'qp-hide-paramThe alpha diversity metric to be '
+            'computed.': 'metric',
+            'qp-hide-paramThe feature table containing the samples for '
+            'which alpha diversity should be computed.': 'table',
+            'qp-hide-plugin': 'diversity'}
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'Alpha diversity (phylogenetic)'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        self.assertEqual(msg, '')
+        self.assertTrue(success)
+        self.assertEqual(ainfo[0].files, [(
+            join(out_dir, 'alpha_phylogenetic', 'alpha_diversity',
+                 'alpha-diversity.tsv'), 'plain_text')])
+        self.assertEqual(ainfo[0].output_name, 'alpha_diversity')
+
+    def test_alpha_correlation(self):
+        # as we don't have an alpha vector we will calculate the a non
+        # phylogenetic and then test over that
+        # let's test non phylogenetic
+        params = {
+            'The alpha diversity metric to be computed.': 'simpson',
+            'The feature table containing the samples for which alpha '
+            'diversity should be computed.': '8',
+            'qp-hide-method': 'alpha',
+            'qp-hide-paramThe alpha diversity metric to be '
+            'computed.': 'metric',
+            'qp-hide-paramThe feature table containing the samples for '
+            'which alpha diversity should be computed.': 'table',
+            'qp-hide-plugin': 'diversity'}
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'Alpha diversity'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        data = {'filepaths': dumps(ainfo[0].files), 'type': "alpha_vector",
+                'name': "Non phylogenetic alpha vector", 'analysis': 1,
+                'data_type': '16S'}
+        reply = self.qclient.post('/apitest/artifact/', data=data)
+        aid = reply['artifact']
+
+        params = {
+            'The correlation test to be applied.': 'spearman',
+            'Vector of alpha diversity values by sample.': str(aid),
+            'qp-hide-metadata': 'metadata',
+            'qp-hide-method': 'alpha_correlation',
+            'qp-hide-paramThe correlation test to be applied.': 'method',
+            'qp-hide-paramVector of alpha diversity values by '
+            'sample.': 'alpha_diversity',
+            'qp-hide-plugin': 'diversity'}
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'Alpha diversity correlation'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        self.assertEqual(msg, '')
+        self.assertTrue(success)
+        # only 1 element
+        self.assertEqual(len(ainfo), 1)
+        # and that element [0] should have this file
+        exp = [(join(out_dir, 'alpha_correlation', 'visualization'), 'qzv')]
+        self.assertEqual(ainfo[0].files, exp)
+
     def test_filter_samples(self):
         # let's test a failure
         params = {
@@ -208,7 +352,7 @@ class qiime2Tests(PluginTestCase):
             'must be met to be included in the filtered feature table. If '
             'not provided, all samples in `metadata` that are also in the '
             'feature table will be retained.': '',
-            'The feature table from which samples should be filtered.': '5',
+            'The feature table from which samples should be filtered.': '8',
             'The maximum number of features that a sample can have to be '
             'retained. If no value is provided this will default to infinity '
             '(i.e., no maximum feature filter will be applied).': '1',
@@ -219,7 +363,7 @@ class qiime2Tests(PluginTestCase):
             'retained.': '0',
             'The minimum total frequency that a sample must have to be '
             'retained.': '0',
-            'qp-hide-metadata': '',
+            'qp-hide-metadata': 'metadata',
             'qp-hide-method': 'filter_samples',
             'qp-hide-paramThe feature table from which samples should be '
             'filtered.': 'table',

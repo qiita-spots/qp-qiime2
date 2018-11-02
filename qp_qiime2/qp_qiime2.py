@@ -13,6 +13,7 @@ from shutil import rmtree
 from qiita_client import ArtifactInfo
 
 import qiime2
+import pandas as pd
 
 
 PLUGINS = {
@@ -190,52 +191,82 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
     label = 'qp-hide-param'
     label_len = len(label)
     q2params = {}
+    q2inputs = {}
     method_inputs = method.signature.inputs.copy()
     method_params = method.signature.parameters.copy()
-    q2inputs = {}
+    analysis_id = None
     for k in list(parameters):
         if k in parameters and k.startswith(label):
             key = parameters.pop(k)
             val = parameters.pop(k[label_len:])
             if key in method_inputs.keys():
-                q2inputs[key] = (val, method_inputs[key].qiime_type)
-            elif key in ('phylogeny'):
-                q2inputs[key] = (val, QIITA_Q2_ARTIFACTS[key])
+                if key in ('phylogeny'):
+                    # ******** ToDo **********
+                    # here we need to add taxonomy
+                    # ************************
+                    fpath = val
+                    artifact_method = QIITA_Q2_ARTIFACTS[key]
+                else:
+                    # this is going to be an artifact so let's collect the
+                    # filepath here, this will also allow us to collect the
+                    # analysis_id
+                    ainfo = qclient.get("/qiita_db/artifacts/%s/" % val)
+                    if ainfo['analysis'] is None:
+                        msg = ('Artifact "%s" is not an analysis '
+                               'artifact.' % val)
+                        return False, None, msg
+                    analysis_id = ainfo['analysis']
+                    # at this stage in qiita we only have 2 types of artifacts:
+                    # biom / plain_text
+                    dt = method_inputs[key].qiime_type
+                    fp = 'plain_text'
+                    if Q2_QIITA_ARTIFACTS[dt].startswith('BIOM'):
+                        fp = 'biom'
+                    fpath = ainfo['files'][fp][0]
+                    artifact_method = method_inputs[key].qiime_type
+                q2inputs[key] = (fpath, artifact_method)
             else:
                 if val in ('', 'None'):
                     continue
                 val = method_params[key].view_type(val)
                 q2params[key] = val
+        elif k == 'qp-hide-metadata':
+            # remember, if we need metadata, we will always have
+            # qp-hide-metadata and optionaly we will have
+            # qp-hide-metadata-field
+            key = parameters.pop(k)
+            if 'qp-hide-metadata-field' in parameters:
+                val = parameters.pop(k[label_len:])
+                if val == '':
+                    continue
+                q2params[key] = val
+            q2inputs[key] = ('', '')
 
     # let's process/import inputs
     qclient.update_job_step(
         job_id, "Step 2 of 4: Converting Qiita artifacts to Q2 artifact")
-    for k, (aid, dt) in q2inputs.items():
-        # ******** ToDo **********
-        # here we need to add taxonomy
-        # ************************
-        if k in ('phylogeny'):
-            fpath = aid
+    for k, (fpath, dt) in q2inputs.items():
+        if k == 'metadata':
+            metadata = qclient.get(
+                "/qiita_db/analysis/%s/metadata/" % str(analysis_id))
+            metadata = pd.DataFrame.from_dict(metadata, orient='index')
+            metadata_fp = join(out_dir, 'metadata.txt')
+            metadata.to_csv(metadata_fp, index_label='#SampleID', na_rep='',
+                            sep='\t', encoding='utf-8')
+            q2params[k] = qiime2.Metadata.load(metadata_fp)
         else:
-            ainfo = qclient.get("/qiita_db/artifacts/%s/" % aid)['files']
-            # at this stage in qiita we only have 2 types of artifacts:
-            # biom / plain_text
-            fp = 'plain_text'
-            if Q2_QIITA_ARTIFACTS[dt].startswith('BIOM'):
-                fp = 'biom'
-            fpath = ainfo[fp][0]
-        try:
-            qza = qiime2.Artifact.import_data(dt, fpath)
-        except Exception as e:
-            return False, None, 'Error: %s' % str(e)
-        q2params[k] = qza
+            try:
+                qza = qiime2.Artifact.import_data(dt, fpath)
+            except Exception as e:
+                return False, None, 'Error converting: %s' % str(e)
+            q2params[k] = qza
 
     qclient.update_job_step(
         job_id, "Step 3 of 4: Running '%s %s'" % (q2plugin, q2method))
     try:
         results = method.__call__(**q2params)
     except Exception as e:
-        return False, None, 'Error: %s' % str(e)
+        return False, None, 'Error running: %s' % str(e)
 
     qclient.update_job_step(job_id, "Step 4 of 4: Processing results")
     ainfo = []
@@ -248,8 +279,8 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
         else:
             files = listdir(aout)
             if len(files) != 1:
-                msg = ('Error: There are some unexpected files'
-                       ': "%s"' % ', '.join(files))
+                msg = ('Error processing results: There are some unexpected '
+                       'files: "%s"' % ', '.join(files))
                 return False, None, msg
             fp = join(aout, files[0])
 

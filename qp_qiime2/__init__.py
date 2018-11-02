@@ -79,15 +79,13 @@ for qiita_artifact, q2_artifact in QIITA_Q2_ARTIFACTS.items():
                     etype = Q2_QIITA_ARTIFACTS[element.qiime_type]
                     if etype.startswith('BIOM'):
                         etype = 'BIOM'
+                    # this one is to "fix" the templates for phylogenetic
+                    # methods, like phylogenetic_distance_matrix
                     elif etype.startswith('phylogenetic_'):
                         etype = etype[len('phylogenetic_'):]
                     edesc = (element.description if element.has_description()
                              else pname)
                     outputs_params[edesc] = etype
-                    # Todo: how to save the name of the outputs??
-                    # # we need to add the actual name of the parameter so we
-                    # # can retrieve later
-                    # req_params['qp-hide-param_' + ename] = ('string', pname)
 
             if len(inputs) != 1 or not add_method:
                 # This is currently filtering out:
@@ -173,34 +171,24 @@ for qiita_artifact, q2_artifact in QIITA_Q2_ARTIFACTS.items():
                                 qname, mid, element.description))
 
                 # only optional parameters have defaults
-                if element.has_default():
-                    if pname == 'metadata':
-                        if data_type == 'string':
-                            opt_params['qp-hide-metadata-field'] = (
-                                'string', '')
-                        elif data_type == 'mapping':
-                            opt_params['qp-hide-metadata'] = ('string', '')
-                        else:
-                            raise ValueError(
-                                "Not valid metadata data type: %s" % data_type)
+                if pname == 'metadata':
+                    # for metadata types we always need to add the mapping
+                    # file because Qiime2 does this automatically for those
+                    # methods that request just a field
+                    if data_type == 'string':
+                        opt_params['qp-hide-metadata'] = ('string', '')
+                        opt_params['qp-hide-metadata-field'] = (
+                            'string', pname)
                     else:
-                        ename = element.description
+                        opt_params['qp-hide-metadata'] = ('string', pname)
+                else:
+                    ename = element.description
+                    if element.has_default():
                         opt_params[ename] = (data_type, default)
                         # we need to add the actual name of the parameter so we
                         # can retrieve later
                         opt_params['qp-hide-param' + ename] = ('string', pname)
-                else:
-                    if pname == 'metadata':
-                        if data_type == 'string':
-                            req_params['qp-hide-metadata-field'] = (
-                                'string', '')
-                        elif data_type == 'mapping':
-                            req_params['qp-hide-metadata'] = ('string', '')
-                        else:
-                            raise ValueError(
-                                "Not valid metadata data type: %s" % data_type)
                     else:
-                        ename = element.description
                         default = (default if default is not element.NOVALUE
                                    else 'None')
                         req_params[ename] = (data_type, default)
