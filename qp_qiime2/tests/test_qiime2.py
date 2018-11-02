@@ -106,59 +106,13 @@ class qiime2Tests(PluginTestCase):
             'enough sampling depth.')
 
     def test_beta(self):
-        # now test phylogenetic
-        params = {
-            'Phylogenetic tree': join(
-                dirname(realpath(__file__)), 'prune_97_gg_13_8.tre'),
-            'The beta diversity metric to be computed.': 'unweighted_unifrac',
-            'The feature table containing the samples over which beta '
-            'diversity should be computed.': '5',
-            '[Excluding weighted_unifrac] - The number of jobs to use for '
-            'the computation. This works by breaking down the pairwise '
-            'matrix into n_jobs even slices and computing them in parallel. '
-            'If -1 all CPUs are used. If 1 is given, no parallel computing '
-            'code is used at all, which is useful for debugging. For '
-            'n_jobs below -1, (n_cpus + 1 + n_jobs) are used. Thus for '
-            'n_jobs = -2, all CPUs but one are used. (Description from '
-            'sklearn.metrics.pairwise_distances)': '1',
-            'qp-hide-method': 'beta_phylogenetic',
-            'qp-hide-paramPhylogenetic tree': 'phylogeny',
-            'qp-hide-paramThe beta diversity metric to be computed.': 'metric',
-            'qp-hide-paramThe feature table containing the samples over '
-            'which beta diversity should be computed.': 'table',
-            'qp-hide-plugin': 'diversity',
-            'qp-hide_param[Excluding weighted_unifrac] - The number of jobs '
-            'to use for the computation. This works by breaking down the '
-            'pairwise matrix into n_jobs even slices and computing them '
-            'in parallel. If -1 all CPUs are used. If 1 is given, no '
-            'parallel computing code is used at all, which is useful for '
-            'debugging. For n_jobs below -1, (n_cpus + 1 + n_jobs) are used. '
-            'Thus for n_jobs = -2, all CPUs but one are used. (Description '
-            'from sklearn.metrics.pairwise_distances)': 'n_jobs'}
-        self.data['command'] = dumps(
-            ['qiime2', qiime2_version, 'Beta diversity (phylogenetic)'])
-        self.data['parameters'] = dumps(params)
-
-        jid = self.qclient.post(
-            '/apitest/processing_job/', data=self.data)['job']
-        out_dir = mkdtemp()
-        self._clean_up_files.append(out_dir)
-
-        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
-        self.assertEqual(msg, '')
-        self.assertTrue(success)
-        self.assertEqual(ainfo[0].files, [(
-            join(out_dir, 'beta', 'distance_matrix', 'distance-matrix.tsv'),
-            'plain_text')])
-        self.assertEqual(ainfo[0].output_name, 'distance_matrix')
-
         # first let's test non phylogenetic
         params = {
             'A pseudocount to handle zeros for compositional metrics.  This '
-            'is ignored for other metrics.': '5',
+            'is ignored for other metrics.': '1',
             'The beta diversity metric to be computed.': 'rogerstanimoto',
             'The feature table containing the samples over which beta '
-            'diversity should be computed.': '8',
+            'diversity should be computed.': '5',
             'The number of jobs to use for the computation. This works '
             'by breaking down the pairwise matrix into n_jobs even slices '
             'and computing them in parallel. If -1 all CPUs are used. If '
@@ -171,9 +125,9 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-paramThe feature table containing the samples over '
             'which beta diversity should be computed.': 'table',
             'qp-hide-plugin': 'diversity',
-            'qp-hide_paramA pseudocount to handle zeros for compositional '
+            'qp-hide-paramA pseudocount to handle zeros for compositional '
             'metrics.  This is ignored for other metrics.': 'pseudocount',
-            'qp-hide_paramThe number of jobs to use for the computation. '
+            'qp-hide-paramThe number of jobs to use for the computation. '
             'This works by breaking down the pairwise matrix into n_jobs even '
             'slices and computing them in parallel. If -1 all CPUs are used. '
             'If 1 is given, no parallel computing code is used at all, which '
@@ -197,6 +151,114 @@ class qiime2Tests(PluginTestCase):
             join(out_dir, 'beta', 'distance_matrix', 'distance-matrix.tsv'),
             'plain_text')])
         self.assertEqual(ainfo[0].output_name, 'distance_matrix')
+
+        # now test phylogenetic
+        params = {
+            'Phylogenetic tree': join(
+                dirname(realpath(__file__)), 'prune_97_gg_13_8.tre'),
+            'The beta diversity metric to be computed.': 'unweighted_unifrac',
+            'The feature table containing the samples over which beta '
+            'diversity should be computed.': '5',
+            '[Excluding weighted_unifrac] - The number of jobs to use for '
+            'the computation. This works by breaking down the pairwise '
+            'matrix into n_jobs even slices and computing them in parallel. '
+            'If -1 all CPUs are used. If 1 is given, no parallel computing '
+            'code is used at all, which is useful for debugging. For '
+            'n_jobs below -1, (n_cpus + 1 + n_jobs) are used. Thus for '
+            'n_jobs = -2, all CPUs but one are used. (Description from '
+            'sklearn.metrics.pairwise_distances)': '1',
+            'qp-hide-method': 'beta_phylogenetic',
+            'qp-hide-paramPhylogenetic tree': 'phylogeny',
+            'qp-hide-paramThe beta diversity metric to be computed.': 'metric',
+            'qp-hide-paramThe feature table containing the samples over '
+            'which beta diversity should be computed.': 'table',
+            'qp-hide-plugin': 'diversity',
+            'qp-hide-param[Excluding weighted_unifrac] - The number of jobs '
+            'to use for the computation. This works by breaking down the '
+            'pairwise matrix into n_jobs even slices and computing them '
+            'in parallel. If -1 all CPUs are used. If 1 is given, no '
+            'parallel computing code is used at all, which is useful for '
+            'debugging. For n_jobs below -1, (n_cpus + 1 + n_jobs) are used. '
+            'Thus for n_jobs = -2, all CPUs but one are used. (Description '
+            'from sklearn.metrics.pairwise_distances)': 'n_jobs'}
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'Beta diversity (phylogenetic)'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        self.assertEqual(msg, '')
+        self.assertTrue(success)
+        self.assertEqual(ainfo[0].files, [(
+            join(out_dir, 'beta_phylogenetic', 'distance_matrix',
+                 'distance-matrix.tsv'), 'plain_text')])
+        self.assertEqual(ainfo[0].output_name, 'distance_matrix')
+
+    def test_filter_samples(self):
+        # let's test a failure
+        params = {
+            'If true, the samples selected by `metadata` or `where` '
+            'parameters will be excluded from the filtered table instead of '
+            'being retained.': False,
+            'SQLite WHERE clause specifying sample metadata criteria that '
+            'must be met to be included in the filtered feature table. If '
+            'not provided, all samples in `metadata` that are also in the '
+            'feature table will be retained.': '',
+            'The feature table from which samples should be filtered.': '5',
+            'The maximum number of features that a sample can have to be '
+            'retained. If no value is provided this will default to infinity '
+            '(i.e., no maximum feature filter will be applied).': '1',
+            'The maximum total frequency that a sample can have to be '
+            'retained. If no value is provided this will default to infinity '
+            '(i.e., no maximum frequency filter will be applied).': '',
+            'The minimum number of features that a sample must have to be '
+            'retained.': '0',
+            'The minimum total frequency that a sample must have to be '
+            'retained.': '0',
+            'qp-hide-metadata': '',
+            'qp-hide-method': 'filter_samples',
+            'qp-hide-paramThe feature table from which samples should be '
+            'filtered.': 'table',
+            'qp-hide-plugin': 'feature-table',
+            'qp-hide-paramIf true, the samples selected by `metadata` or '
+            '`where` parameters will be excluded from the filtered table '
+            'instead of being retained.': 'exclude_ids',
+            'qp-hide-paramSQLite WHERE clause specifying sample metadata '
+            'criteria that must be met to be included in the filtered '
+            'feature table. If not provided, all samples in `metadata` that '
+            'are also in the feature table will be retained.': 'where',
+            'qp-hide-paramThe maximum number of features that a sample can '
+            'have to be retained. If no value is provided this will default '
+            'to infinity (i.e., no maximum feature filter will be '
+            'applied).': 'max_features',
+            'qp-hide-paramThe maximum total frequency that a sample can have '
+            'to be retained. If no value is provided this will default to '
+            'infinity (i.e., no maximum frequency filter will be '
+            'applied).': u'max_frequency',
+            'qp-hide-paramThe minimum number of features that a sample must '
+            'have to be retained.': 'min_features',
+            'qp-hide-paramThe minimum total frequency that a sample must '
+            'have to be retained.': 'min_frequency'}
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'Filter samples from table'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        self.assertEqual(msg, '')
+        self.assertTrue(success)
+        self.assertEqual(ainfo[0].files, [(
+            join(out_dir, 'filter_samples', 'filtered_table',
+                 'feature-table.biom'), 'biom')])
+        self.assertEqual(ainfo[0].output_name, 'filtered_table')
 
 
 if __name__ == '__main__':

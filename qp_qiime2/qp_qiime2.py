@@ -170,7 +170,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
         The results of the job
     """
     qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
-    q2plugin = parameters.pop('qp-hide-plugin').replace('-', '_')
+    q2plugin = parameters.pop('qp-hide-plugin')
     q2method = parameters.pop('qp-hide-method').replace('-', '_')
     pm = qiime2.sdk.PluginManager()
     method = pm.plugins[q2plugin].actions[q2method]
@@ -202,6 +202,8 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             elif key in ('phylogeny'):
                 q2inputs[key] = (val, QIITA_Q2_ARTIFACTS[key])
             else:
+                if val in ('', 'None'):
+                    continue
                 val = method_params[key].view_type(val)
                 q2params[key] = val
 
@@ -233,7 +235,6 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
     try:
         results = method.__call__(**q2params)
     except Exception as e:
-        raise (e)
         return False, None, 'Error: %s' % str(e)
 
     qclient.update_job_step(job_id, "Step 4 of 4: Processing results")

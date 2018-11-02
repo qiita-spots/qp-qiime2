@@ -34,9 +34,9 @@ for qiita_artifact, q2_artifact in QIITA_Q2_ARTIFACTS.items():
             # fragment-insertion
             continue
         for m in methods:
-            inputs = m.signature.inputs
-            outputs = m.signature.outputs
-            parameters = m.signature.parameters
+            inputs = m.signature.inputs.copy()
+            outputs = m.signature.outputs.copy()
+            parameters = m.signature.parameters.copy()
             add_method = True
 
             # storing this information in req_params so we can use internally
@@ -87,7 +87,7 @@ for qiita_artifact, q2_artifact in QIITA_Q2_ARTIFACTS.items():
                     # Todo: how to save the name of the outputs??
                     # # we need to add the actual name of the parameter so we
                     # # can retrieve later
-                    # req_params['qp-hide_param_' + ename] = ('string', pname)
+                    # req_params['qp-hide-param_' + ename] = ('string', pname)
 
             if len(inputs) != 1 or not add_method:
                 # This is currently filtering out:
@@ -188,7 +188,7 @@ for qiita_artifact, q2_artifact in QIITA_Q2_ARTIFACTS.items():
                         opt_params[ename] = (data_type, default)
                         # we need to add the actual name of the parameter so we
                         # can retrieve later
-                        opt_params['qp-hide_param' + ename] = ('string', pname)
+                        opt_params['qp-hide-param' + ename] = ('string', pname)
                 else:
                     if pname == 'metadata':
                         if data_type == 'string':
