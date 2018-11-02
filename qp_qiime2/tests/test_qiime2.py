@@ -133,7 +133,6 @@ class qiime2Tests(PluginTestCase):
             'shallow enough sampling depth.')
 
     def test_beta(self):
-        # first let's test non phylogenetic
         params = {
             'A pseudocount to handle zeros for compositional metrics.  This '
             'is ignored for other metrics.': '1',
@@ -179,7 +178,7 @@ class qiime2Tests(PluginTestCase):
             'plain_text')])
         self.assertEqual(ainfo[0].output_name, 'distance_matrix')
 
-        # now test phylogenetic
+    def test_beta_phylogenetic(self):
         params = {
             'Phylogenetic tree': join(
                 dirname(realpath(__file__)), 'prune_97_gg_13_8.tre'),
@@ -226,7 +225,6 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(ainfo[0].output_name, 'distance_matrix')
 
     def test_alpha(self):
-        # let's test non phylogenetic
         params = {
             'The alpha diversity metric to be computed.': 'simpson',
             'The feature table containing the samples for which alpha '
@@ -254,7 +252,7 @@ class qiime2Tests(PluginTestCase):
             'plain_text')])
         self.assertEqual(ainfo[0].output_name, 'alpha_diversity')
 
-        # now let's try with phylogenetic
+    def test_alpha_phylogenetic(self):
         params = {
             'Phylogenetic tree': join(
                 dirname(realpath(__file__)), 'prune_97_gg_13_8.tre'),
@@ -286,9 +284,8 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(ainfo[0].output_name, 'alpha_diversity')
 
     def test_alpha_correlation(self):
-        # as we don't have an alpha vector we will calculate the a non
-        # phylogenetic and then test over that
-        # let's test non phylogenetic
+        # as we don't have an alpha vector available, we will calculate
+        # one using a non phylogenetic metric
         params = {
             'The alpha diversity metric to be computed.': 'simpson',
             'The feature table containing the samples for which alpha '

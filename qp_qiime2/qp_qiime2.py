@@ -8,7 +8,6 @@
 
 from os import mkdir, listdir
 from os.path import join, exists
-from shutil import rmtree
 
 from qiita_client import ArtifactInfo
 
@@ -16,21 +15,12 @@ import qiime2
 import pandas as pd
 
 
-PLUGINS = {
-    'BIOM': ['taxa', 'sample-classifier', 'composition', 'phylogeny',
-             'feature-table', 'gneiss', 'diversity', 'longitudinal'],
-    'distance_matrix': ['diversity', 'sample-classifier', 'longitudinal'],
-    'ordination_results': ['diversity', 'emperor'],
-    'q2_visualization': ['diversity'],
-    'alpha_vector': ['diversity'],
-    # these are helper types so it's fine to leave them empty
-    'phylogenetic_alpha_vector': [],
-    'phylogenetic_distance_matrix': [],
-    'phylogeny': [],
-    'taxonomy': []
-}
+Q2_ALLOWED_PLUGINS = [
+    'taxa', 'sample-classifier', 'composition', 'phylogeny', 'feature-table',
+    'gneiss', 'diversity', 'longitudinal', 'emperor'
+]
 
-QIITA_Q2_ARTIFACTS = {
+QIITA_Q2_SEMANTIC_TYPE = {
     'BIOM-F': qiime2.sdk.util.parse_type('FeatureTable[Frequency]'),
     'BIOM-RF': qiime2.sdk.util.parse_type('FeatureTable[RelativeFrequency]'),
     'BIOM-PA': qiime2.sdk.util.parse_type('FeatureTable[PresenceAbsence]'),
@@ -46,9 +36,9 @@ QIITA_Q2_ARTIFACTS = {
     'taxonomy': qiime2.sdk.util.parse_type('FeatureData[Taxonomy]')
 }
 
-# for simplicity we are going to invert QIITA_Q2_ARTIFACTS so we can
+# for simplicity we are going to invert QIITA_Q2_SEMANTIC_TYPE so we can
 # search by key or value without having to do this operation several times
-Q2_QIITA_ARTIFACTS = {yy: x for x, y in QIITA_Q2_ARTIFACTS.items() for yy in y}
+Q2_QIITA_SEMANTIC_TYPE = {y: x for x, y in QIITA_Q2_SEMANTIC_TYPE.items()}
 
 PRIMITIVE_TYPES = {
     qiime2.core.type.primitive._Int: 'integer',
@@ -114,7 +104,7 @@ ALPHA_CORRELATION_METHODS = {
 BETA_DIVERSITY_METRICS = {
     "Bray-Curtis dissimilarity": "braycurtis",
     "Canberra distance": "canberra",
-    "Chebysev distance": "chebyshev",
+    "Chebyshev distance": "chebyshev",
     "City-block distance": "cityblock",
     "Correlation coefficient": "correlation",
     "Cosine similarity": "cosine",
@@ -181,9 +171,6 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
     # making sure that we always start with an empty folder
     if not exists(out_dir):
         mkdir(out_dir)
-    else:
-        rmtree(out_dir)
-        mkdir(out_dir)
 
     # let's generate the parameters, first remove the hidden parameters. We are
     # gonna separate in q2params and q2inputs as the inputs are going to need
@@ -205,7 +192,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     # here we need to add taxonomy
                     # ************************
                     fpath = val
-                    artifact_method = QIITA_Q2_ARTIFACTS[key]
+                    artifact_method = QIITA_Q2_SEMANTIC_TYPE[key]
                 else:
                     # this is going to be an artifact so let's collect the
                     # filepath here, this will also allow us to collect the
@@ -220,7 +207,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     # biom / plain_text
                     dt = method_inputs[key].qiime_type
                     fp = 'plain_text'
-                    if Q2_QIITA_ARTIFACTS[dt].startswith('BIOM'):
+                    if Q2_QIITA_SEMANTIC_TYPE[dt].startswith('BIOM'):
                         fp = 'biom'
                     fpath = ainfo['files'][fp][0]
                     artifact_method = method_inputs[key].qiime_type
@@ -250,6 +237,8 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             metadata = qclient.get(
                 "/qiita_db/analysis/%s/metadata/" % str(analysis_id))
             metadata = pd.DataFrame.from_dict(metadata, orient='index')
+            # the reason we need to save and load the mapping file is
+            # so Qiime2 assings the expected data types to the columns
             metadata_fp = join(out_dir, 'metadata.txt')
             metadata.to_csv(metadata_fp, index_label='#SampleID', na_rep='',
                             sep='\t', encoding='utf-8')
@@ -258,13 +247,14 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             try:
                 qza = qiime2.Artifact.import_data(dt, fpath)
             except Exception as e:
-                return False, None, 'Error converting: %s' % str(e)
+                return False, None, 'Error converting "%s": %s' % (
+                    str(dt), str(e))
             q2params[k] = qza
 
     qclient.update_job_step(
         job_id, "Step 3 of 4: Running '%s %s'" % (q2plugin, q2method))
     try:
-        results = method.__call__(**q2params)
+        results = method(**q2params)
     except Exception as e:
         return False, None, 'Error running: %s' % str(e)
 
@@ -273,7 +263,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
     for aname, q2artifact in zip(results._fields, results):
         aout = join(out_dir, aname)
         q2artifact.export_data(output_dir=aout)
-        if q2artifact.type.name == 'Visualization':
+        if isinstance(q2artifact, qiime2.Visualization):
             ainfo.append(
                 ArtifactInfo(aname, 'q2_visualization', [(aout, 'qzv')]))
         else:
@@ -285,8 +275,11 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             fp = join(aout, files[0])
 
             if q2artifact.type.name == 'FeatureTable':
-                ainfo.append(ArtifactInfo(aname, 'BIOM', [(fp, 'biom')]))
+                atype = 'BIOM'
+                ftype = 'biom'
             else:
-                ainfo.append(ArtifactInfo(aname, Q2_QIITA_ARTIFACTS[qza.type],
-                                          [(fp, 'plain_text')]))
+                atype = Q2_QIITA_SEMANTIC_TYPE[qza.type]
+                ftype = 'plain_text'
+            ainfo.append(ArtifactInfo(aname, atype, [(fp, ftype)]))
+
     return True, ainfo, ""

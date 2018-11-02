@@ -11,8 +11,8 @@ from json import dumps
 from qiita_client import QiitaPlugin, QiitaCommand
 
 from .qp_qiime2 import (
-    QIITA_Q2_ARTIFACTS, Q2_QIITA_ARTIFACTS, PLUGINS, PRIMITIVE_TYPES,
-    call_qiime2, ALPHA_DIVERSITY_METRICS)
+    QIITA_Q2_SEMANTIC_TYPE, Q2_QIITA_SEMANTIC_TYPE, Q2_ALLOWED_PLUGINS,
+    PRIMITIVE_TYPES, call_qiime2, ALPHA_DIVERSITY_METRICS)
 from qiime2 import __version__ as qiime2_version
 from qiime2.sdk.util import actions_by_input_type
 
@@ -20,19 +20,33 @@ from qiime2.sdk.util import actions_by_input_type
 # Initialize the qiita_plugin
 plugin = QiitaPlugin('qiime2', qiime2_version, 'QIIME 2')
 
-all_tbla = []
-for qiita_artifact, q2_artifact in QIITA_Q2_ARTIFACTS.items():
+# PLEASE READ:
+# We are going loop over QIITA_Q2_SEMANTIC_TYPE (lookup table)
+# so we can retrieve the q2plugin and their methods that work with that
+# given Q2/Qiita semantic type. Then we will ignore any plugin not in
+# Q2_ALLOWED_PLUGINS so we avoid adding plugins that we don't want; like
+# deblur or dada2. Finally, we are going to loop over the different inputs,
+# outputs and parameters from Q2 and convert them to QIITA's req_params,
+# opt_params and outputs.
+# Also, note that Qiita users like to have descriptions of the paramters
+# (q2-description) vs. the parameter itself (q2-parameter) so to allow this
+# we are going to store each parameter twice: one in the
+# opt_params[q2-description]: value; and
+# req_params['qp-hide-param' + q2-description]: q2-parameter
+for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
     for q2plugin, methods in actions_by_input_type(str(q2_artifact)):
+        # note that the qiita_artifact are strings not objects
         if qiita_artifact.startswith('BIOM'):
             qiita_artifact = 'BIOM'
 
-        if q2plugin.name not in PLUGINS[qiita_artifact]:
+        if q2plugin.name not in Q2_ALLOWED_PLUGINS:
             # This currently filters (which are processing commands):
             # feature-classifier
             # quality-control
             # vsearch
             # fragment-insertion
             continue
+
         for m in methods:
             inputs = m.signature.inputs.copy()
             outputs = m.signature.outputs.copy()
@@ -44,10 +58,10 @@ for qiita_artifact, q2_artifact in QIITA_Q2_ARTIFACTS.items():
             req_params = {'qp-hide-plugin': ('string', q2plugin.name),
                           'qp-hide-method': ('string', m.id)}
             for pname, element in inputs.items():
-                if element.qiime_type not in Q2_QIITA_ARTIFACTS:
+                if element.qiime_type not in Q2_QIITA_SEMANTIC_TYPE:
                     add_method = False
                     break
-                etype = Q2_QIITA_ARTIFACTS[element.qiime_type]
+                etype = Q2_QIITA_SEMANTIC_TYPE[element.qiime_type]
                 if etype.startswith('BIOM'):
                     etype = 'BIOM'
 
@@ -72,11 +86,11 @@ for qiita_artifact, q2_artifact in QIITA_Q2_ARTIFACTS.items():
 
             outputs_params = {}
             for pname, element in outputs.items():
-                if element.qiime_type not in Q2_QIITA_ARTIFACTS:
+                if element.qiime_type not in Q2_QIITA_SEMANTIC_TYPE:
                     add_method = False
                     break
                 else:
-                    etype = Q2_QIITA_ARTIFACTS[element.qiime_type]
+                    etype = Q2_QIITA_SEMANTIC_TYPE[element.qiime_type]
                     if etype.startswith('BIOM'):
                         etype = 'BIOM'
                     # this one is to "fix" the templates for phylogenetic
@@ -135,7 +149,7 @@ for qiita_artifact, q2_artifact in QIITA_Q2_ARTIFACTS.items():
                         'There is a new type: %s' % element.qiime_type)
 
                 # predicate are the options for each parameter, note that it
-                # can be a Choise/List or a Range (for Int/Floats). We ignore
+                # can be a Choice/List or a Range (for Int/Floats). We ignore
                 # numeric because they are ranges and we don't support ranges
                 # in Qiita.
                 # Note, the correct way to retrieve the latter is:
@@ -161,9 +175,8 @@ for qiita_artifact, q2_artifact in QIITA_Q2_ARTIFACTS.items():
                         data_type = 'choice:%s' % dumps(vals)
                         default = vals[0]
                     elif qname == 'emperor' and mid == 'plot':
-                        vals = list(ALPHA_DIVERSITY_METRICS.keys())
                         data_type = 'string'
-                        default = 'None'
+                        default = ''
                     else:
                         raise ValueError(
                             "There is an unexpected method (%s %s) with a "
