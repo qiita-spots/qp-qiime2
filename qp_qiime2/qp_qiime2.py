@@ -196,8 +196,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     # this is going to be an artifact so let's collect the
                     # filepath here, this will also allow us to collect the
                     # analysis_id
-                    ainfo = qclient.get(
-                        "/qiita_db/artifacts/%s/" % val)
+                    ainfo = qclient.get("/qiita_db/artifacts/%s/" % val)
                     if ainfo['analysis'] is None:
                         msg = ('Artifact "%s" is not an analysis '
                                'artifact.' % val)

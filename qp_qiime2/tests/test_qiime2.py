@@ -67,7 +67,6 @@ class qiime2Tests(PluginTestCase):
 
         jid = self.qclient.post(
             '/apitest/processing_job/', data=self.data)['job']
-
         out_dir = mkdtemp()
         self._clean_up_files.append(out_dir)
 
@@ -94,7 +93,6 @@ class qiime2Tests(PluginTestCase):
 
         jid = self.qclient.post(
             '/apitest/processing_job/', data=self.data)['job']
-
         out_dir = mkdtemp()
         self._clean_up_files.append(out_dir)
 
