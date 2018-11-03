@@ -80,7 +80,8 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
                     req_params[ename] = ('string', etype)
                     # deleting so we don't count it as part of the inputs
                     del inputs[pname]
-                    # we are gonna continue so we don't add this element twice
+                    # we are going to continue so we don't add this element
+                    # twice
                     continue
                 else:
                     ename = element.description
@@ -179,7 +180,7 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
                                  "a choice parameter (%s), without default" % (
                                     qname, mid, element.description))
                     # if we are in the diversity choice option, we might want
-                    # to replace the "nerd" names for user friendly ones
+                    # to replace the technical names for user friendly ones
                     if qname == 'diversity':
                         am = set(ALPHA_DIVERSITY_METRICS)
                         bm = set(BETA_DIVERSITY_METRICS)
@@ -195,7 +196,7 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
                             'alpha_rarefaction': am.union(amp),
                             'beta_rarefaction': bm.union(bmp)
                         }
-                        if mid not in mid:
+                        if mid not in vals:
                             raise ValueError(error_msg)
                         # converting to list to the serialize doesn't complaint
                         vals = list(vals[mid])

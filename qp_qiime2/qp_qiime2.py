@@ -174,8 +174,8 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
         mkdir(out_dir)
 
     # let's generate the parameters, first remove the hidden parameters. We are
-    # gonna separate in q2params and q2inputs as the inputs are going to need
-    # to be retrieved from qiita and converted to qza
+    # going to separate in q2params and q2inputs as the inputs are going to
+    # need to be retrieved from qiita and converted to qza
     label = 'qp-hide-param'
     label_len = len(label)
     q2params = {}
