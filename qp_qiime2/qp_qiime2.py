@@ -52,14 +52,9 @@ PRIMITIVE_TYPES = {
     qiime2.core.type.primitive._MetadataColumnExpression: 'string',
 }
 
-STATE_UNIFRAC_METRICS = {
-    "unweighted UniFrac": "unweighted_unifrac",
-    "weighted normalized UniFrac": "weighted_normalized_unifrac",
-    "weighted unnormalized UniFrac": "weighted_unifrac",
-    "generalized UniFrac": "generalized_unifrac",
+ALPHA_DIVERSITY_METRICS_PHYLOGENETIC = {
+    "Faith's Phylogenetic Diversity": "faith_pd",
 }
-
-ALPHA_PHYLOGENETIC_METRICS = {'faith_pd'}
 
 ALPHA_DIVERSITY_METRICS = {
     "Abundance-based Coverage Estimator (ACE) metric": "ace",
@@ -71,7 +66,6 @@ ALPHA_DIVERSITY_METRICS = {
     "Effective number of species (ENS)/"
     "Probability of intra-or interspecific encounter (PIE) metric": "enspie",
     "Esty's confidence interval": "esty_ci",
-    "Faith's Phylogenetic Diversity": "faith_pd",
     "Fisher's index": "fisher_alpha",
     "Gini index": "gini_index",
     "Good's coverage of counts": "goods_coverage",
@@ -100,8 +94,8 @@ ALPHA_CORRELATION_METHODS = {
     "Spearman": "spearman",
     "Pearson": "pearson"}
 
-
 BETA_DIVERSITY_METRICS = {
+    "Aitchison distance": "aitchison",
     "Bray-Curtis dissimilarity": "braycurtis",
     "Canberra distance": "canberra",
     "Chebyshev distance": "chebyshev",
@@ -122,11 +116,18 @@ BETA_DIVERSITY_METRICS = {
     "Species-by-species Euclidean": "seuclidean",
     "Squared Euclidean": "sqeuclidean",
     "Weighted Minkowski metric": "wminkowski",
-    "Yule index": "yule",
-    "Unweighted UniFrac": "unweighted UniFrac",
-    "Weighted normalized UniFrac": "weighted normalized UniFrac",
-    "Weighted unnormalized UniFrac": "weighted unnormalized UniFrac",
-    "Generalized UniFrac": "generalized UniFrac"}
+    "Yule index": "yule"}
+
+BETA_DIVERSITY_METRICS_PHYLOGENETIC = {
+    'Unweighted UniFrac': 'unweighted_unifrac',
+    'Weighted UniFrac': 'weighted_unifrac'
+}
+
+BETA_DIVERSITY_METRICS_PHYLOGENETIC_ALT = {
+    "Unweighted UniFrac": "unweighted_unifrac",
+    'Weighted UniFrac': 'weighted_unifrac',
+    "Weighted normalized UniFrac": "weighted_normalized_unifrac",
+    "Generalized UniFrac": "generalized_unifrac"}
 
 BETA_CORRELATION_METHODS = {
     "Spearman": "spearman",
@@ -182,22 +183,21 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
     method_inputs = method.signature.inputs.copy()
     method_params = method.signature.parameters.copy()
     analysis_id = None
+    biom_fp = None
     for k in list(parameters):
         if k in parameters and k.startswith(label):
             key = parameters.pop(k)
             val = parameters.pop(k[label_len:])
             if key in method_inputs.keys():
-                if key in ('phylogeny'):
-                    # ******** ToDo **********
-                    # here we need to add taxonomy
-                    # ************************
+                if key == 'phylogeny':
                     fpath = val
                     artifact_method = QIITA_Q2_SEMANTIC_TYPE[key]
                 else:
                     # this is going to be an artifact so let's collect the
                     # filepath here, this will also allow us to collect the
                     # analysis_id
-                    ainfo = qclient.get("/qiita_db/artifacts/%s/" % val)
+                    ainfo = qclient.get(
+                        "/qiita_db/artifacts/%s/" % val)
                     if ainfo['analysis'] is None:
                         msg = ('Artifact "%s" is not an analysis '
                                'artifact.' % val)
@@ -206,27 +206,46 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     # at this stage in qiita we only have 2 types of artifacts:
                     # biom / plain_text
                     dt = method_inputs[key].qiime_type
-                    fp = 'plain_text'
                     if Q2_QIITA_SEMANTIC_TYPE[dt].startswith('BIOM'):
-                        fp = 'biom'
-                    fpath = ainfo['files'][fp][0]
+                        fpath = ainfo['files']['biom'][0]
+                        biom_fp = fpath
+                    else:
+                        fpath = ainfo['files']['plain_text'][0]
+
                     artifact_method = method_inputs[key].qiime_type
                 q2inputs[key] = (fpath, artifact_method)
+            elif key == 'qp-hide-metadata-field':
+                    q2inputs['metadata'] = (val, val)
             else:
                 if val in ('', 'None'):
                     continue
-                val = method_params[key].view_type(val)
+
+                mkey = method_params[key]
+                if mkey.view_type is not mkey.NOVALUE:
+                    val = mkey.view_type(val)
+                elif val not in mkey.qiime_type:
+                    val = mkey.qiime_type.decode(val)
+
+                # let's bring back the original name of these parameters
+                methods_rn = [
+                    'alpha', 'alpha_phylogenetic', 'beta', 'beta_phylogenetic',
+                    'beta_phylogenetic_alt', 'alpha_rarefaction',
+                    'beta_rarefaction']
+                keys_rn = ['method', 'metric']
+                if (q2plugin == 'diversity' and q2method in methods_rn
+                        and key in keys_rn):
+                    all_metrics = {
+                        **ALPHA_DIVERSITY_METRICS, **BETA_DIVERSITY_METRICS,
+                        **ALPHA_DIVERSITY_METRICS_PHYLOGENETIC,
+                        **BETA_DIVERSITY_METRICS_PHYLOGENETIC,
+                        **BETA_DIVERSITY_METRICS_PHYLOGENETIC_ALT}
+                    val = all_metrics[val]
                 q2params[key] = val
-        elif k == 'qp-hide-metadata':
+        elif k in ('qp-hide-metadata', 'qp-hide-taxonomy'):
             # remember, if we need metadata, we will always have
             # qp-hide-metadata and optionaly we will have
             # qp-hide-metadata-field
             key = parameters.pop(k)
-            if 'qp-hide-metadata-field' in parameters:
-                val = parameters.pop(k[label_len:])
-                if val == '':
-                    continue
-                q2params[key] = val
             q2inputs[key] = ('', '')
 
     # let's process/import inputs
@@ -242,7 +261,19 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             metadata_fp = join(out_dir, 'metadata.txt')
             metadata.to_csv(metadata_fp, index_label='#SampleID', na_rep='',
                             sep='\t', encoding='utf-8')
-            q2params[k] = qiime2.Metadata.load(metadata_fp)
+            q2Metadata = qiime2.Metadata.load(metadata_fp)
+            if fpath:
+                q2params[k] = q2Metadata.get_column(fpath)
+            else:
+                q2params[k] = q2Metadata
+        elif k == 'taxonomy':
+            try:
+                qza = qiime2.Artifact.import_data(
+                    'FeatureData[Taxonomy]', biom_fp)
+            except Exception as e:
+                return False, None, ('Error generating taxonomy. Are you '
+                                     'sure this artifact has taxonomy?')
+            q2params['taxonomy'] = qza
         else:
             try:
                 qza = qiime2.Artifact.import_data(dt, fpath)

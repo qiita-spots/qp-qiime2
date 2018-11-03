@@ -16,9 +16,14 @@ from os.path import exists, isdir, join, realpath, dirname
 from qiita_client.testing import PluginTestCase
 
 from qiime2 import __version__ as qiime2_version
+from qiime2.sdk import PluginManager
 
-from qp_qiime2 import plugin
-from qp_qiime2 import call_qiime2
+from qp_qiime2 import plugin, call_qiime2
+from qp_qiime2.qp_qiime2 import (
+    BETA_DIVERSITY_METRICS, BETA_DIVERSITY_METRICS_PHYLOGENETIC,
+    BETA_DIVERSITY_METRICS_PHYLOGENETIC_ALT, ALPHA_DIVERSITY_METRICS,
+    ALPHA_DIVERSITY_METRICS_PHYLOGENETIC, ALPHA_CORRELATION_METHODS,
+    BETA_CORRELATION_METHODS)
 
 
 class qiime2Tests(PluginTestCase):
@@ -136,7 +141,8 @@ class qiime2Tests(PluginTestCase):
         params = {
             'A pseudocount to handle zeros for compositional metrics.  This '
             'is ignored for other metrics.': '1',
-            'The beta diversity metric to be computed.': 'rogerstanimoto',
+            'The beta diversity metric to be '
+            'computed.': "Rogers-Tanimoto distance",
             'The feature table containing the samples over which beta '
             'diversity should be computed.': '8',
             'The number of jobs to use for the computation. This works '
@@ -182,7 +188,7 @@ class qiime2Tests(PluginTestCase):
         params = {
             'Phylogenetic tree': join(
                 dirname(realpath(__file__)), 'prune_97_gg_13_8.tre'),
-            'The beta diversity metric to be computed.': 'unweighted_unifrac',
+            'The beta diversity metric to be computed.': 'Unweighted UniFrac',
             'The feature table containing the samples over which beta '
             'diversity should be computed.': '8',
             '[Excluding weighted_unifrac] - The number of jobs to use for '
@@ -224,9 +230,112 @@ class qiime2Tests(PluginTestCase):
                  'distance-matrix.tsv'), 'plain_text')])
         self.assertEqual(ainfo[0].output_name, 'distance_matrix')
 
+    def test_beta_correlation(self):
+        # as we don't have a distance matrix, we will process one first
+        params = {
+            'A pseudocount to handle zeros for compositional metrics.  This '
+            'is ignored for other metrics.': '1',
+            'The beta diversity metric to be '
+            'computed.': "Rogers-Tanimoto distance",
+            'The feature table containing the samples over which beta '
+            'diversity should be computed.': '8',
+            'The number of jobs to use for the computation. This works '
+            'by breaking down the pairwise matrix into n_jobs even slices '
+            'and computing them in parallel. If -1 all CPUs are used. If '
+            '1 is given, no parallel computing code is used at all, which '
+            'is useful for debugging. For n_jobs below -1, (n_cpus + 1 + '
+            'n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are '
+            'used. (Description from sklearn.metrics.pairwise_distances)': '1',
+            'qp-hide-method': 'beta',
+            'qp-hide-paramThe beta diversity metric to be computed.': 'metric',
+            'qp-hide-paramThe feature table containing the samples over '
+            'which beta diversity should be computed.': 'table',
+            'qp-hide-plugin': 'diversity',
+            'qp-hide-paramA pseudocount to handle zeros for compositional '
+            'metrics.  This is ignored for other metrics.': 'pseudocount',
+            'qp-hide-paramThe number of jobs to use for the computation. '
+            'This works by breaking down the pairwise matrix into n_jobs even '
+            'slices and computing them in parallel. If -1 all CPUs are used. '
+            'If 1 is given, no parallel computing code is used at all, which '
+            'is useful for debugging. For n_jobs below -1, (n_cpus + 1 + '
+            'n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are '
+            'used. (Description from '
+            'sklearn.metrics.pairwise_distances)': 'n_jobs'}
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'Beta diversity'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        data = {'filepaths': dumps(ainfo[0].files), 'type': "distance_matrix",
+                'name': "Non phylogenetic distance matrix", 'analysis': 1,
+                'data_type': '16S'}
+        reply = self.qclient.post('/apitest/artifact/', data=data)
+        aid = reply['artifact']
+
+        params = {
+            'If supplied, IDs that are not found in both distance matrices '
+            'will be discarded before applying the Mantel test. Default '
+            'behavior is to error on any mismatched IDs.': True,
+            'Label for `distance_matrix` in the output '
+            'visualization.': 'Metadata',
+            'Label for `metadata_distance_matrix` in the output '
+            'visualization.': 'Distance Matrix',
+            'Matrix of distances between pairs of samples.': str(aid),
+            'Metadata column to use': 'taxon_id',
+            'The correlation test to be applied in the Mantel '
+            'test.': 'pearson',
+            'The number of permutations to be run when computing p-values. '
+            'Supplying a value of zero will disable permutation testing and '
+            'p-values will not be calculated (this results in *much* quicker '
+            'execution time if p-values are not desired).': '999',
+            'qp-hide-method': 'beta_correlation',
+            'qp-hide-paramIf supplied, IDs that are not found in both '
+            'distance matrices will be discarded before applying the Mantel '
+            'test. Default behavior is to error on any mismatched '
+            'IDs.': 'intersect_ids',
+            'qp-hide-paramLabel for `distance_matrix` in the output '
+            'visualization.': 'label1',
+            'qp-hide-paramLabel for `metadata_distance_matrix` in the output '
+            'visualization.': 'label2',
+            'qp-hide-paramMatrix of distances between pairs of '
+            'samples.': 'distance_matrix',
+            'qp-hide-paramMetadata column to use': 'qp-hide-metadata-field',
+            'qp-hide-paramThe correlation test to be applied in the '
+            'Mantel test.': u'method',
+            'qp-hide-paramThe number of permutations to be run when '
+            'computing p-values. Supplying a value of zero will disable '
+            'permutation testing and p-values will not be calculated '
+            '(this results in *much* quicker execution time if p-values '
+            'are not desired).': 'permutations',
+            'qp-hide-plugin': u'diversity'}
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'Beta diversity correlation'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        self.assertEqual(msg, '')
+        self.assertTrue(success)
+        self.assertEqual(ainfo[0].files, [(
+            join(out_dir, 'beta_correlation', 'metadata_distance_matrix',
+                 'distance-matrix.tsv'), 'plain_text')])
+        self.assertEqual(ainfo[0].output_name, 'metadata_distance_matrix')
+        exp = [(join(out_dir, 'beta_correlation',
+               'mantel_scatter_visualization'), 'qzv')]
+        self.assertEqual(ainfo[1].files, exp)
+
     def test_alpha(self):
         params = {
-            'The alpha diversity metric to be computed.': 'simpson',
+            'The alpha diversity metric to be computed.': "Simpson's index",
             'The feature table containing the samples for which alpha '
             'diversity should be computed.': '8',
             'qp-hide-method': 'alpha',
@@ -256,7 +365,8 @@ class qiime2Tests(PluginTestCase):
         params = {
             'Phylogenetic tree': join(
                 dirname(realpath(__file__)), 'prune_97_gg_13_8.tre'),
-            'The alpha diversity metric to be computed.': 'faith_pd',
+            'The alpha diversity metric to be '
+            'computed.': "Faith's Phylogenetic Diversity",
             'The feature table containing the samples for which alpha '
             'diversity should be computed.': '8',
             'qp-hide-method': 'alpha_phylogenetic',
@@ -287,7 +397,7 @@ class qiime2Tests(PluginTestCase):
         # as we don't have an alpha vector available, we will calculate
         # one using a non phylogenetic metric
         params = {
-            'The alpha diversity metric to be computed.': 'simpson',
+            'The alpha diversity metric to be computed.': "Simpson's index",
             'The feature table containing the samples for which alpha '
             'diversity should be computed.': '8',
             'qp-hide-method': 'alpha',
@@ -333,11 +443,32 @@ class qiime2Tests(PluginTestCase):
         success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
         self.assertEqual(msg, '')
         self.assertTrue(success)
-        # only 1 element
         self.assertEqual(len(ainfo), 1)
-        # and that element [0] should have this file
         exp = [(join(out_dir, 'alpha_correlation', 'visualization'), 'qzv')]
         self.assertEqual(ainfo[0].files, exp)
+
+    def test_taxa_barplot(self):
+        params = {
+            'Feature table to visualize at various taxonomic levels.': '8',
+            'qp-hide-metadata': 'metadata',
+            'qp-hide-method': 'barplot',
+            'qp-hide-paramFeature table to visualize at various taxonomic '
+            'levels.': 'table',
+            'qp-hide-plugin': 'taxa',
+            'qp-hide-taxonomy': 'taxonomy'}
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version,
+             'Visualize taxonomy with an interactive bar plot'])
+        self.data['parameters'] = dumps(params)
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        self.assertEqual(msg, 'Error generating taxonomy. Are you '
+                              'sure this artifact has taxonomy?')
+        self.assertFalse(success)
 
     def test_filter_samples(self):
         # let's test a failure
@@ -400,6 +531,243 @@ class qiime2Tests(PluginTestCase):
             join(out_dir, 'filter_samples', 'filtered_table',
                  'feature-table.biom'), 'biom')])
         self.assertEqual(ainfo[0].output_name, 'filtered_table')
+
+    def test_emperor(self):
+        # we don't have a pcoa so we will need to calculate beta, then pcoa,
+        # and then finally tests emperor
+        params = {
+            'A pseudocount to handle zeros for compositional metrics.  This '
+            'is ignored for other metrics.': '1',
+            'The beta diversity metric to be '
+            'computed.': "Rogers-Tanimoto distance",
+            'The feature table containing the samples over which beta '
+            'diversity should be computed.': '8',
+            'The number of jobs to use for the computation. This works '
+            'by breaking down the pairwise matrix into n_jobs even slices '
+            'and computing them in parallel. If -1 all CPUs are used. If '
+            '1 is given, no parallel computing code is used at all, which '
+            'is useful for debugging. For n_jobs below -1, (n_cpus + 1 + '
+            'n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are '
+            'used. (Description from sklearn.metrics.pairwise_distances)': '1',
+            'qp-hide-method': 'beta',
+            'qp-hide-paramThe beta diversity metric to be computed.': 'metric',
+            'qp-hide-paramThe feature table containing the samples over '
+            'which beta diversity should be computed.': 'table',
+            'qp-hide-plugin': 'diversity',
+            'qp-hide-paramA pseudocount to handle zeros for compositional '
+            'metrics.  This is ignored for other metrics.': 'pseudocount',
+            'qp-hide-paramThe number of jobs to use for the computation. '
+            'This works by breaking down the pairwise matrix into n_jobs even '
+            'slices and computing them in parallel. If -1 all CPUs are used. '
+            'If 1 is given, no parallel computing code is used at all, which '
+            'is useful for debugging. For n_jobs below -1, (n_cpus + 1 + '
+            'n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are '
+            'used. (Description from '
+            'sklearn.metrics.pairwise_distances)': 'n_jobs'}
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'Beta diversity'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        data = {'filepaths': dumps(ainfo[0].files), 'type': "distance_matrix",
+                'name': "Non phylogenetic distance matrix", 'analysis': 1,
+                'data_type': '16S'}
+        reply = self.qclient.post('/apitest/artifact/', data=data)
+        aid = reply['artifact']
+
+        params = {
+            "Dimensions to reduce the distance matrix to. This number "
+            "determines how many eigenvectors and eigenvalues are "
+            "returned,and influences the choice of algorithm used to "
+            "compute them. By default, uses the default eigendecomposition "
+            "method, SciPy's eigh, which computes all eigenvectors and "
+            "eigenvalues in an exact manner. For very large matrices, this is "
+            "expected to be slow. If a value is specified for this parameter, "
+            "then the fast, heuristic eigendecomposition algorithm fsvd is "
+            "used, which only computes and returns the number of dimensions "
+            "specified, but suffers some degree of accuracy loss, the "
+            "magnitude of which varies across different datasets.": '-29',
+            'The distance matrix on which PCoA should be computed.': str(aid),
+            'qp-hide-method': 'pcoa',
+            'qp-hide-paramThe distance matrix on which PCoA should be '
+            'computed.': 'distance_matrix',
+            'qp-hide-plugin': 'diversity'}
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'Principal Coordinate Analysis'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        data = {'filepaths': dumps(ainfo[0].files),
+                'type': "ordination_results",
+                'name': "PCoA results", 'analysis': 1, 'data_type': '16S'}
+        reply = self.qclient.post('/apitest/artifact/', data=data)
+        aid = reply['artifact']
+
+        params = {
+            'Numeric sample metadata columns that should be included as '
+            'axes in the Emperor plot.': '',
+            'The principal coordinates matrix to be plotted.': str(aid),
+            'qp-hide-metadata': 'metadata',
+            'qp-hide-method': 'plot',
+            'qp-hide-paramNumeric sample metadata columns that should be '
+            'included as axes in the Emperor plot.': 'custom_axes',
+            'qp-hide-paramThe principal coordinates matrix to be '
+            'plotted.': 'pcoa',
+            'qp-hide-plugin': 'emperor'}
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'Visualize and Interact with '
+             'Principal Coordinates Analysis Plots'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        self.assertEqual(msg, '')
+        self.assertTrue(success)
+        self.assertEqual(ainfo[0].files, [(
+            join(out_dir, 'plot', 'visualization'), 'qzv')])
+        self.assertEqual(ainfo[0].output_name, 'visualization')
+
+    def test_beta_group_significance(self):
+        # as we don't have a distance matrix, we will process one first
+        params = {
+            'A pseudocount to handle zeros for compositional metrics.  This '
+            'is ignored for other metrics.': '1',
+            'The beta diversity metric to be '
+            'computed.': "Rogers-Tanimoto distance",
+            'The feature table containing the samples over which beta '
+            'diversity should be computed.': '8',
+            'The number of jobs to use for the computation. This works '
+            'by breaking down the pairwise matrix into n_jobs even slices '
+            'and computing them in parallel. If -1 all CPUs are used. If '
+            '1 is given, no parallel computing code is used at all, which '
+            'is useful for debugging. For n_jobs below -1, (n_cpus + 1 + '
+            'n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are '
+            'used. (Description from sklearn.metrics.pairwise_distances)': '1',
+            'qp-hide-method': 'beta',
+            'qp-hide-paramThe beta diversity metric to be computed.': 'metric',
+            'qp-hide-paramThe feature table containing the samples over '
+            'which beta diversity should be computed.': 'table',
+            'qp-hide-plugin': 'diversity',
+            'qp-hide-paramA pseudocount to handle zeros for compositional '
+            'metrics.  This is ignored for other metrics.': 'pseudocount',
+            'qp-hide-paramThe number of jobs to use for the computation. '
+            'This works by breaking down the pairwise matrix into n_jobs even '
+            'slices and computing them in parallel. If -1 all CPUs are used. '
+            'If 1 is given, no parallel computing code is used at all, which '
+            'is useful for debugging. For n_jobs below -1, (n_cpus + 1 + '
+            'n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are '
+            'used. (Description from '
+            'sklearn.metrics.pairwise_distances)': 'n_jobs'}
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'Beta diversity'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        data = {'filepaths': dumps(ainfo[0].files), 'type': "distance_matrix",
+                'name': "Non phylogenetic distance matrix", 'analysis': 1,
+                'data_type': '16S'}
+        reply = self.qclient.post('/apitest/artifact/', data=data)
+        aid = reply['artifact']
+
+        params = {
+            'Matrix of distances between pairs of samples.': str(aid),
+            'Perform pairwise tests between all pairs of groups in addition '
+            'to the test across all groups. This can be very slow if there '
+            'are a lot of groups in the metadata column.': True,
+            'The group significance test to be applied.': 'permanova',
+            'The number of permutations to be run when computing '
+            'p-values.': '10',
+            'Metadata column to use': 'description_duplicate',
+            'qp-hide-paramMetadata column to use': 'qp-hide-metadata-field',
+            'qp-hide-method': 'beta_group_significance',
+            'qp-hide-paramMatrix of distances between pairs of '
+            'samples.': 'distance_matrix',
+            'qp-hide-plugin': 'diversity',
+            'qp-hide-paramPerform pairwise tests between all pairs of groups '
+            'in addition to the test across all groups. This can be very slow '
+            'if there are a lot of groups in the metadata column.': 'pairwise',
+            'qp-hide-paramThe group significance test to be '
+            'applied.': 'method',
+            'qp-hide-paramThe number of permutations to be run when '
+            'computing p-values.': 'permutations'}
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'Beta diversity group significance'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        self.assertFalse(success)
+        self.assertEqual(
+            msg, "Error running: All values in the grouping vector are "
+            "unique. This method cannot operate on a grouping vector with "
+            "only unique values (e.g., there are no 'within' distances "
+            "because each group of objects contains only a single object).")
+
+    def test_metrics(self):
+        pm = PluginManager()
+        actions = pm.plugins['diversity'].actions
+
+        # Test beta diversity metrics
+        q2_metrics = actions['beta'].signature.parameters[
+            'metric'].qiime_type.predicate.choices
+        qp_metrics = set(BETA_DIVERSITY_METRICS.values())
+        self.assertEqual(q2_metrics, qp_metrics)
+
+        q2_metrics = actions['beta_phylogenetic'].signature.parameters[
+            'metric'].qiime_type.predicate.choices
+        qp_metrics = set(BETA_DIVERSITY_METRICS_PHYLOGENETIC.values())
+        self.assertEqual(q2_metrics, qp_metrics)
+
+        q2_metrics = actions['beta_phylogenetic_alt'].signature.parameters[
+            'metric'].qiime_type.predicate.choices
+        qp_metrics = set(BETA_DIVERSITY_METRICS_PHYLOGENETIC_ALT.values())
+        self.assertEqual(q2_metrics, qp_metrics)
+
+        # Test alpha diversity metrics
+        q2_metrics = actions['alpha'].signature.parameters[
+            'metric'].qiime_type.predicate.choices
+        qp_metrics = set(ALPHA_DIVERSITY_METRICS.values())
+        self.assertEqual(q2_metrics, qp_metrics)
+
+        q2_metrics = actions['alpha_phylogenetic'].signature.parameters[
+            'metric'].qiime_type.predicate.choices
+        qp_metrics = set(ALPHA_DIVERSITY_METRICS_PHYLOGENETIC.values())
+        self.assertEqual(q2_metrics, qp_metrics)
+
+        # Alpha correlation methods
+        q2_metrics = actions['alpha_correlation'].signature.parameters[
+            'method'].qiime_type.predicate.choices
+        qp_metrics = set(ALPHA_CORRELATION_METHODS.values())
+        self.assertEqual(q2_metrics, qp_metrics)
+
+        # Beta correlation methods
+        q2_metrics = actions['beta_correlation'].signature.parameters[
+            'method'].qiime_type.predicate.choices
+        qp_metrics = set(BETA_CORRELATION_METHODS.values())
+        self.assertEqual(q2_metrics, qp_metrics)
 
 
 if __name__ == '__main__':
