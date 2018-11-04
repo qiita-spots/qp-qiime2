@@ -12,7 +12,10 @@ from qiita_client import QiitaPlugin, QiitaCommand
 
 from .qp_qiime2 import (
     QIITA_Q2_SEMANTIC_TYPE, Q2_QIITA_SEMANTIC_TYPE, Q2_ALLOWED_PLUGINS,
-    PRIMITIVE_TYPES, call_qiime2, ALPHA_DIVERSITY_METRICS)
+    PRIMITIVE_TYPES, call_qiime2, ALPHA_DIVERSITY_METRICS,
+    ALPHA_DIVERSITY_METRICS_PHYLOGENETIC, BETA_DIVERSITY_METRICS,
+    BETA_DIVERSITY_METRICS_PHYLOGENETIC,
+    BETA_DIVERSITY_METRICS_PHYLOGENETIC_ALT)
 from qiime2 import __version__ as qiime2_version
 from qiime2.sdk.util import actions_by_input_type
 
@@ -77,6 +80,9 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
                     req_params[ename] = ('string', etype)
                     # deleting so we don't count it as part of the inputs
                     del inputs[pname]
+                    # we are going to continue so we don't add this element
+                    # twice
+                    continue
                 else:
                     ename = element.description
                     req_params[ename] = ('artifact', [etype])
@@ -163,35 +169,59 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
                     vals = list(predicate.iter_boundaries())
                     data_type = 'choice:%s' % dumps(vals)
                     default = vals[0]
-                # alpha_rarefaction can have a choice param with no values so
-                # we need to fix so users can actually select things; however,
-                # we want to make sure that this is the only one, if not, raise
-                # an error
+                # the diversity methods can have a choice param with no values
+                # so we need to fix so users can actually select things;
+                # however,we want to make sure that this is the only one,
+                # if not, raise an error
                 if data_type == 'choice' and default is None:
                     qname = q2plugin.name
                     mid = m.id
-                    if qname == 'diversity' and mid == 'alpha_rarefaction':
-                        vals = list(ALPHA_DIVERSITY_METRICS.keys())
+                    error_msg = ("There is an unexpected method (%s %s) with "
+                                 "a choice parameter (%s), without default" % (
+                                    qname, mid, element.description))
+                    # if we are in the diversity choice option, we might want
+                    # to replace the technical names for user friendly ones
+                    if qname == 'diversity':
+                        am = set(ALPHA_DIVERSITY_METRICS)
+                        bm = set(BETA_DIVERSITY_METRICS)
+                        amp = set(ALPHA_DIVERSITY_METRICS_PHYLOGENETIC)
+                        bmp = set(BETA_DIVERSITY_METRICS_PHYLOGENETIC)
+                        bmpa = set(BETA_DIVERSITY_METRICS_PHYLOGENETIC_ALT)
+                        vals = {
+                            'alpha': am,
+                            'alpha_phylogenetic': amp,
+                            'beta': bm,
+                            'beta_phylogenetic': bmp,
+                            'beta_phylogenetic_alt': bmpa,
+                            'alpha_rarefaction': am.union(amp),
+                            'beta_rarefaction': bm.union(bmp)
+                        }
+                        if mid not in vals:
+                            raise ValueError(error_msg)
+                        # converting to list to the serialize doesn't complaint
+                        vals = list(vals[mid])
                         data_type = 'choice:%s' % dumps(vals)
                         default = vals[0]
                     elif qname == 'emperor' and mid == 'plot':
                         data_type = 'string'
                         default = ''
                     else:
-                        raise ValueError(
-                            "There is an unexpected method (%s %s) with a "
-                            "choice parameter (%s), without default" % (
-                                qname, mid, element.description))
+                        raise ValueError(error_msg)
 
-                # only optional parameters have defaults
                 if pname == 'metadata':
-                    # for metadata types we always need to add the mapping
-                    # file because Qiime2 does this automatically for those
-                    # methods that request just a field
+                    # Q2 does some CLI magic when dealing with mapping
+                    # files, if the method requires a column, the CLI will
+                    # request the filepath, parse it and then pass as metadata
+                    # column. For fun, both cases full/column metadata are
+                    # called metadata. However, for Qiita we will need to make
+                    # this difference more obvious.
                     if data_type == 'string':
-                        opt_params['qp-hide-metadata'] = ('string', '')
-                        opt_params['qp-hide-metadata-field'] = (
-                            'string', pname)
+                        # as this one needs input from the user, we will create
+                        # as any other opt_params
+                        name = "Metadata column to use"
+                        opt_params[name] = ('string', '')
+                        name = 'qp-hide-param' + name
+                        opt_params[name] = ('string', 'qp-hide-metadata-field')
                     else:
                         opt_params['qp-hide-metadata'] = ('string', pname)
                 else:
