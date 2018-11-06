@@ -308,7 +308,9 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                 atype = 'BIOM'
                 ftype = 'biom'
             else:
-                atype = Q2_QIITA_SEMANTIC_TYPE[qza.type]
+                atype = Q2_QIITA_SEMANTIC_TYPE[q2artifact.type]
+                if atype.startswith('phylogenetic_'):
+                    atype = atype[len('phylogenetic_'):]
                 ftype = 'plain_text'
             ainfo.append(ArtifactInfo(aname, atype, [(fp, ftype)]))
 

@@ -103,9 +103,7 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
                     # methods, like phylogenetic_distance_matrix
                     elif etype.startswith('phylogenetic_'):
                         etype = etype[len('phylogenetic_'):]
-                    edesc = (element.description if element.has_description()
-                             else pname)
-                    outputs_params[edesc] = etype
+                    outputs_params[pname] = etype
 
             if len(inputs) != 1 or not add_method:
                 # This is currently filtering out:

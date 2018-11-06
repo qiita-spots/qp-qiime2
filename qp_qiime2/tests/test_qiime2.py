@@ -53,12 +53,14 @@ class qiime2Tests(PluginTestCase):
             'The feature table to be rarefied.': '5',
             'The total frequency that each sample should be rarefied to. '
             'Samples where the sum of frequencies is less than the sampling '
-            'depth will be not be included in the resulting table.': '2',
+            'depth will be not be included in the resulting table unless '
+            'subsampling is performed with replacement.': '2',
             'qp-hide-method': u'rarefy',
             'qp-hide-paramThe total frequency that each sample should be '
             'rarefied to. Samples where the sum of frequencies is less than '
             'the sampling depth will be not be included in the resulting '
-            'table.': 'sampling_depth',
+            'table unless subsampling is performed with '
+            'replacement.': 'sampling_depth',
             'qp-hide-paramThe feature table to be rarefied.': 'table',
             'qp-hide-plugin': 'feature-table'}
         self.data['command'] = dumps(
@@ -79,12 +81,14 @@ class qiime2Tests(PluginTestCase):
             'The feature table to be rarefied.': '8',
             'The total frequency that each sample should be rarefied to. '
             'Samples where the sum of frequencies is less than the sampling '
-            'depth will be not be included in the resulting table.': '2',
+            'depth will be not be included in the resulting table unless '
+            'subsampling is performed with replacement.': '2',
             'qp-hide-method': u'rarefy',
             'qp-hide-paramThe total frequency that each sample should be '
             'rarefied to. Samples where the sum of frequencies is less than '
             'the sampling depth will be not be included in the resulting '
-            'table.': 'sampling_depth',
+            'table unless subsampling is performed with '
+            'replacement.': 'sampling_depth',
             'qp-hide-paramThe feature table to be rarefied.': 'table',
             'qp-hide-plugin': 'feature-table'}
         self.data['command'] = dumps(
@@ -102,6 +106,7 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(ainfo[0].files, [(
             join(out_dir, 'rarefy', 'rarefied_table', 'feature-table.biom'),
             'biom')])
+        self.assertEqual(ainfo[0].artifact_type, 'BIOM')
         self.assertEqual(ainfo[0].output_name, 'rarefied_table')
 
     def test_rarefy_error(self):
@@ -109,12 +114,14 @@ class qiime2Tests(PluginTestCase):
             'The feature table to be rarefied.': '8',
             'The total frequency that each sample should be rarefied to. '
             'Samples where the sum of frequencies is less than the sampling '
-            'depth will be not be included in the resulting table.': '200000',
+            'depth will be not be included in the resulting table unless '
+            'subsampling is performed with replacement.': '200000',
             'qp-hide-method': u'rarefy',
             'qp-hide-paramThe total frequency that each sample should be '
             'rarefied to. Samples where the sum of frequencies is less than '
             'the sampling depth will be not be included in the resulting '
-            'table.': 'sampling_depth',
+            'table unless subsampling is performed with '
+            'replacement.': 'sampling_depth',
             'qp-hide-paramThe feature table to be rarefied.': 'table',
             'qp-hide-plugin': 'feature-table'}
         self.data['command'] = dumps(
@@ -180,6 +187,7 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(ainfo[0].files, [(
             join(out_dir, 'beta', 'distance_matrix', 'distance-matrix.tsv'),
             'plain_text')])
+        self.assertEqual(ainfo[0].artifact_type, 'distance_matrix')
         self.assertEqual(ainfo[0].output_name, 'distance_matrix')
 
     def test_beta_phylogenetic(self):
@@ -226,6 +234,7 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(ainfo[0].files, [(
             join(out_dir, 'beta_phylogenetic', 'distance_matrix',
                  'distance-matrix.tsv'), 'plain_text')])
+        self.assertEqual(ainfo[0].artifact_type, 'distance_matrix')
         self.assertEqual(ainfo[0].output_name, 'distance_matrix')
 
     def test_beta_correlation(self):
@@ -326,10 +335,12 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(ainfo[0].files, [(
             join(out_dir, 'beta_correlation', 'metadata_distance_matrix',
                  'distance-matrix.tsv'), 'plain_text')])
+        self.assertEqual(ainfo[0].artifact_type, 'distance_matrix')
         self.assertEqual(ainfo[0].output_name, 'metadata_distance_matrix')
         exp = [(join(out_dir, 'beta_correlation',
                'mantel_scatter_visualization'), 'qzv')]
         self.assertEqual(ainfo[1].files, exp)
+        self.assertEqual(ainfo[1].artifact_type, 'q2_visualization')
 
     def test_alpha(self):
         params = {
@@ -357,6 +368,7 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(ainfo[0].files, [(
             join(out_dir, 'alpha', 'alpha_diversity', 'alpha-diversity.tsv'),
             'plain_text')])
+        self.assertEqual(ainfo[0].artifact_type, 'alpha_vector')
         self.assertEqual(ainfo[0].output_name, 'alpha_diversity')
 
     def test_alpha_phylogenetic(self):
@@ -389,6 +401,7 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(ainfo[0].files, [(
             join(out_dir, 'alpha_phylogenetic', 'alpha_diversity',
                  'alpha-diversity.tsv'), 'plain_text')])
+        self.assertEqual(ainfo[0].artifact_type, 'alpha_vector')
         self.assertEqual(ainfo[0].output_name, 'alpha_diversity')
 
     def test_alpha_correlation(self):
@@ -444,6 +457,7 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(len(ainfo), 1)
         exp = [(join(out_dir, 'alpha_correlation', 'visualization'), 'qzv')]
         self.assertEqual(ainfo[0].files, exp)
+        self.assertEqual(ainfo[0].artifact_type, 'q2_visualization')
 
     def test_taxa_barplot(self):
         params = {
@@ -528,6 +542,7 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(ainfo[0].files, [(
             join(out_dir, 'filter_samples', 'filtered_table',
                  'feature-table.biom'), 'biom')])
+        self.assertEqual(ainfo[0].artifact_type, 'BIOM')
         self.assertEqual(ainfo[0].output_name, 'filtered_table')
 
     def test_emperor(self):
@@ -637,6 +652,7 @@ class qiime2Tests(PluginTestCase):
         self.assertTrue(success)
         self.assertEqual(ainfo[0].files, [(
             join(out_dir, 'plot', 'visualization'), 'qzv')])
+        self.assertEqual(ainfo[0].artifact_type, 'q2_visualization')
         self.assertEqual(ainfo[0].output_name, 'visualization')
 
     def test_beta_group_significance(self):
