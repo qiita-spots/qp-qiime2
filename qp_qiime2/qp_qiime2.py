@@ -90,14 +90,11 @@ ALPHA_DIVERSITY_METRICS = {
     "Simpson's evenness measure E": "simpson_e",
     "Strong's dominance index (Dw)": "strong"}
 
-ALPHA_CORRELATION_METHODS = {
-    "Spearman": "spearman",
-    "Pearson": "pearson"}
-
 BETA_DIVERSITY_METRICS = {
     "Aitchison distance": "aitchison",
     "Bray-Curtis dissimilarity": "braycurtis",
     "Canberra distance": "canberra",
+    "Canberra distance in Adkins form": "canberra_adkins",
     "Chebyshev distance": "chebyshev",
     "City-block distance": "cityblock",
     "Correlation coefficient": "correlation",
@@ -119,27 +116,35 @@ BETA_DIVERSITY_METRICS = {
     "Yule index": "yule"}
 
 BETA_DIVERSITY_METRICS_PHYLOGENETIC = {
-    'Unweighted UniFrac': 'unweighted_unifrac',
-    'Weighted UniFrac': 'weighted_unifrac'
-}
-
-BETA_DIVERSITY_METRICS_PHYLOGENETIC_ALT = {
     "Unweighted UniFrac": "unweighted_unifrac",
     'Weighted UniFrac': 'weighted_unifrac',
     "Weighted normalized UniFrac": "weighted_normalized_unifrac",
-    "Generalized UniFrac": "generalized_unifrac"}
+    "Generalized UniFrac": "generalized_unifrac"
+}
 
-BETA_CORRELATION_METHODS = {
+CORRELATION_METHODS = {
     "Spearman": "spearman",
     "Pearson": "pearson"}
 
 BETA_GROUP_SIG_METHODS = {
+    "PERMDISP": "permdisp",
     "PERMANOVA": "permanova",
     "ANOSIM": "anosim"}
 
-BETA_GROUP_SIG_TYPE = {
-    "Pairwise": "p-pairwise",
-    "Non-pairwise": "p-no-pairwise"}
+RENAME_COMMANDS = {
+    ('alpha', 'metric'): ALPHA_DIVERSITY_METRICS,
+    ('beta', 'metric'): BETA_DIVERSITY_METRICS,
+    ('alpha_phylogenetic', 'metric'): ALPHA_DIVERSITY_METRICS_PHYLOGENETIC,
+    ('beta_phylogenetic', 'metric'): BETA_DIVERSITY_METRICS_PHYLOGENETIC,
+    ('alpha_rarefaction', 'metrics'): {
+        **ALPHA_DIVERSITY_METRICS, **ALPHA_DIVERSITY_METRICS_PHYLOGENETIC},
+    ('beta_rarefaction', 'metric'): {
+        **BETA_DIVERSITY_METRICS, **BETA_DIVERSITY_METRICS_PHYLOGENETIC},
+    ('beta_rarefaction', 'correlation_method'): CORRELATION_METHODS,
+    ('beta_correlation', 'method'): CORRELATION_METHODS,
+    ('alpha_correlation', 'method'): CORRELATION_METHODS,
+    ('beta_group_significance', 'method'): BETA_GROUP_SIG_METHODS,
+}
 
 
 def call_qiime2(qclient, job_id, parameters, out_dir):
@@ -226,19 +231,9 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     val = mkey.qiime_type.decode(val)
 
                 # let's bring back the original name of these parameters
-                methods_rn = [
-                    'alpha', 'alpha_phylogenetic', 'beta', 'beta_phylogenetic',
-                    'beta_phylogenetic_alt', 'alpha_rarefaction',
-                    'beta_rarefaction']
-                keys_rn = ['method', 'metric']
-                if (q2plugin == 'diversity' and q2method in methods_rn
-                        and key in keys_rn):
-                    all_metrics = {
-                        **ALPHA_DIVERSITY_METRICS, **BETA_DIVERSITY_METRICS,
-                        **ALPHA_DIVERSITY_METRICS_PHYLOGENETIC,
-                        **BETA_DIVERSITY_METRICS_PHYLOGENETIC,
-                        **BETA_DIVERSITY_METRICS_PHYLOGENETIC_ALT}
-                    val = all_metrics[val]
+                value_pair = (q2method, key)
+                if (q2plugin == 'diversity' and value_pair in RENAME_COMMANDS):
+                    val = RENAME_COMMANDS[value_pair][val]
                 q2params[key] = val
         elif k in ('qp-hide-metadata', 'qp-hide-taxonomy'):
             # remember, if we need metadata, we will always have

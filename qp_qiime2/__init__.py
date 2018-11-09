@@ -12,10 +12,7 @@ from qiita_client import QiitaPlugin, QiitaCommand
 
 from .qp_qiime2 import (
     QIITA_Q2_SEMANTIC_TYPE, Q2_QIITA_SEMANTIC_TYPE, Q2_ALLOWED_PLUGINS,
-    PRIMITIVE_TYPES, call_qiime2, ALPHA_DIVERSITY_METRICS,
-    ALPHA_DIVERSITY_METRICS_PHYLOGENETIC, BETA_DIVERSITY_METRICS,
-    BETA_DIVERSITY_METRICS_PHYLOGENETIC,
-    BETA_DIVERSITY_METRICS_PHYLOGENETIC_ALT)
+    PRIMITIVE_TYPES, call_qiime2, RENAME_COMMANDS)
 from qiime2 import __version__ as qiime2_version
 from qiime2.sdk.util import actions_by_input_type
 
@@ -167,43 +164,32 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
                     vals = list(predicate.iter_boundaries())
                     data_type = 'choice:%s' % dumps(vals)
                     default = vals[0]
+
+                qname = q2plugin.name
+                mid = m.id
+                # if we are in the diversity plugin, the method starts with
+                # alpha/beta, and the parameter is 'metric', we might want
+                # to replace the technical names for user friendly ones
+                value_pair = (mid, pname)
+                if qname == 'diversity' and value_pair in RENAME_COMMANDS:
+                    # converting to list to the serialize doesn't complaint
+                    vals = list(RENAME_COMMANDS[value_pair])
+                    data_type = 'choice:%s' % dumps(vals)
+                    default = vals[0]
+
                 # the diversity methods can have a choice param with no values
                 # so we need to fix so users can actually select things;
                 # however,we want to make sure that this is the only one,
                 # if not, raise an error
                 if data_type == 'choice' and default is None:
-                    qname = q2plugin.name
-                    mid = m.id
-                    error_msg = ("There is an unexpected method (%s %s) with "
-                                 "a choice parameter (%s), without default" % (
-                                    qname, mid, element.description))
-                    # if we are in the diversity choice option, we might want
-                    # to replace the technical names for user friendly ones
-                    if qname == 'diversity':
-                        am = set(ALPHA_DIVERSITY_METRICS)
-                        bm = set(BETA_DIVERSITY_METRICS)
-                        amp = set(ALPHA_DIVERSITY_METRICS_PHYLOGENETIC)
-                        bmp = set(BETA_DIVERSITY_METRICS_PHYLOGENETIC)
-                        bmpa = set(BETA_DIVERSITY_METRICS_PHYLOGENETIC_ALT)
-                        vals = {
-                            'alpha': am,
-                            'alpha_phylogenetic': amp,
-                            'beta': bm,
-                            'beta_phylogenetic': bmp,
-                            'beta_phylogenetic_alt': bmpa,
-                            'alpha_rarefaction': am.union(amp),
-                            'beta_rarefaction': bm.union(bmp)
-                        }
-                        if mid not in vals:
-                            raise ValueError(error_msg)
-                        # converting to list to the serialize doesn't complaint
-                        vals = list(vals[mid])
-                        data_type = 'choice:%s' % dumps(vals)
-                        default = vals[0]
-                    elif qname == 'emperor' and mid == 'plot':
+                    if qname == 'emperor' and mid == 'plot':
                         data_type = 'string'
                         default = ''
                     else:
+                        error_msg = (
+                            "There is an unexpected method (%s %s) with a "
+                            "choice parameter (%s: %s), without default" % (
+                                qname, mid, pname, element.description))
                         raise ValueError(error_msg)
 
                 if pname == 'metadata':
