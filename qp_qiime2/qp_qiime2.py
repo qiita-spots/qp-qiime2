@@ -7,7 +7,8 @@
 # -----------------------------------------------------------------------------
 
 from os import mkdir, listdir
-from os.path import join, exists
+from os.path import join, exists, basename
+from shutil import copyfile
 
 from qiita_client import ArtifactInfo
 
@@ -187,21 +188,28 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
     q2inputs = {}
     method_inputs = method.signature.inputs.copy()
     method_params = method.signature.parameters.copy()
+    artifact_id = None
     analysis_id = None
     biom_fp = None
+    tree_fp = None
     for k in list(parameters):
         if k in parameters and k.startswith(label):
             key = parameters.pop(k)
             val = parameters.pop(k[label_len:])
             if key in method_inputs.keys():
                 if key == 'phylogeny':
-                    fpath = val
+                    if val == 'Artifact tree, if exists':
+                        fpath = tree_fp
+                    else:
+                        fpath = val
                     artifact_method = QIITA_Q2_SEMANTIC_TYPE[key]
                 else:
                     # this is going to be an artifact so let's collect the
                     # filepath here, this will also allow us to collect the
                     # analysis_id
-                    ainfo = qclient.get("/qiita_db/artifacts/%s/" % val)
+                    artifact_id = val
+                    ainfo = qclient.get(
+                        "/qiita_db/artifacts/%s/" % artifact_id)
                     if ainfo['analysis'] is None:
                         msg = ('Artifact "%s" is not an analysis '
                                'artifact.' % val)
@@ -212,6 +220,10 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     dt = method_inputs[key].qiime_type
                     if Q2_QIITA_SEMANTIC_TYPE[dt].startswith('BIOM'):
                         fpath = ainfo['files']['biom'][0]
+                        # if it's a BIOM and there is a plain_text is the
+                        # result of the archive at this stage: a tree
+                        if 'plain_text' in ainfo['files']:
+                            tree_fp = ainfo['files']['plain_text'][0]
                         biom_fp = fpath
                     else:
                         fpath = ainfo['files']['plain_text'][0]
@@ -300,13 +312,23 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             fp = join(aout, files[0])
 
             if q2artifact.type.name == 'FeatureTable':
-                atype = 'BIOM'
-                ftype = 'biom'
+                # if there is a tree, let's copy it and then add it to
+                # the new artifact
+                if tree_fp is not None:
+                    bn = basename(tree_fp)
+                    new_tree_fp = join(
+                        out_dir, aout, 'from_%d_%s' % (artifact_id, bn))
+                    copyfile(tree_fp, new_tree_fp)
+                    ai = ArtifactInfo(aname, 'BIOM', [
+                        (fp, 'biom', new_tree_fp, 'plain_text')])
+                else:
+                    ai = ArtifactInfo(aname, 'BIOM', [(fp, 'biom')])
+
             else:
                 atype = Q2_QIITA_SEMANTIC_TYPE[q2artifact.type]
                 if atype.startswith('phylogenetic_'):
                     atype = atype[len('phylogenetic_'):]
-                ftype = 'plain_text'
-            ainfo.append(ArtifactInfo(aname, atype, [(fp, ftype)]))
+                ai = ArtifactInfo(aname, atype, [(fp, 'plain_text')])
+            ainfo.append(ai)
 
     return True, ainfo, ""

@@ -69,7 +69,7 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
                 if etype == 'phylogeny':
                     ename = 'Phylogenetic tree'
                     req_params[ename] = (
-                        'choice:["default", "None"]', 'None')
+                        'choice:["None", "Artifact tree, if exists"]', 'None')
                     # deleting so we don't count it as part of the inputs
                     del inputs[pname]
                 elif etype == 'taxonomy':
