@@ -320,7 +320,8 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                         out_dir, aout, 'from_%s_%s' % (artifact_id, bn))
                     copyfile(tree_fp, new_tree_fp)
                     ai = ArtifactInfo(aname, 'BIOM', [
-                        (fp, 'biom', new_tree_fp, 'plain_text')])
+                        (fp, 'biom'),
+                        (new_tree_fp, 'plain_text')])
                 else:
                     ai = ArtifactInfo(aname, 'BIOM', [(fp, 'biom')])
 
