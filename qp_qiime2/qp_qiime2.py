@@ -192,16 +192,20 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
     analysis_id = None
     biom_fp = None
     tree_fp = None
+    tree_fp_check = False
     for k in list(parameters):
         if k in parameters and k.startswith(label):
             key = parameters.pop(k)
             val = parameters.pop(k[label_len:])
             if key in method_inputs.keys():
                 if key == 'phylogeny':
+                    # there is a chance that we parse/loop over the phylogeny
+                    # option before the artifact so tree_fp will still be
+                    # None; thus we will need to check this after we are done
+                    # with this loop
                     if val == 'Artifact tree, if exists':
-                        fpath = tree_fp
-                    else:
-                        fpath = val
+                        tree_fp_check = True
+                    fpath = val
                     artifact_method = QIITA_Q2_SEMANTIC_TYPE[key]
                 else:
                     # this is going to be an artifact so let's collect the
@@ -253,6 +257,10 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             # qp-hide-metadata-field
             key = parameters.pop(k)
             q2inputs[key] = ('', '')
+
+    # if we are here, we need to use the internal tree from the artifact
+    if tree_fp_check:
+        q2inputs['phylogeny'][0] = tree_fp
 
     # let's process/import inputs
     qclient.update_job_step(
