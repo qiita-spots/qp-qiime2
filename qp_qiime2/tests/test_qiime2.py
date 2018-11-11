@@ -337,7 +337,7 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(ainfo[0].artifact_type, 'distance_matrix')
         self.assertEqual(ainfo[0].output_name, 'metadata_distance_matrix')
         exp = [(join(out_dir, 'beta_correlation',
-               'mantel_scatter_visualization'), 'qzv')]
+               'mantel_scatter_visualization.qzv'), 'qzv')]
         self.assertEqual(ainfo[1].files, exp)
         self.assertEqual(ainfo[1].artifact_type, 'q2_visualization')
 
@@ -454,7 +454,8 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(msg, '')
         self.assertTrue(success)
         self.assertEqual(len(ainfo), 1)
-        exp = [(join(out_dir, 'alpha_correlation', 'visualization'), 'qzv')]
+        exp = [
+            (join(out_dir, 'alpha_correlation', 'visualization.qzv'), 'qzv')]
         self.assertEqual(ainfo[0].files, exp)
         self.assertEqual(ainfo[0].artifact_type, 'q2_visualization')
 
@@ -650,7 +651,7 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(msg, '')
         self.assertTrue(success)
         self.assertEqual(ainfo[0].files, [(
-            join(out_dir, 'plot', 'visualization'), 'qzv')])
+            join(out_dir, 'plot', 'visualization.qzv'), 'qzv')])
         self.assertEqual(ainfo[0].artifact_type, 'q2_visualization')
         self.assertEqual(ainfo[0].output_name, 'visualization')
 

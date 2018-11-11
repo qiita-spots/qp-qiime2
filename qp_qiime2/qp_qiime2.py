@@ -307,11 +307,12 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
     ainfo = []
     for aname, q2artifact in zip(results._fields, results):
         aout = join(out_dir, aname)
-        q2artifact.export_data(output_dir=aout)
         if isinstance(q2artifact, qiime2.Visualization):
+            qzv_fp = q2artifact.save(aout)
             ainfo.append(
-                ArtifactInfo(aname, 'q2_visualization', [(aout, 'qzv')]))
+                ArtifactInfo(aname, 'q2_visualization', [(qzv_fp, 'qzv')]))
         else:
+            q2artifact.export_data(output_dir=aout)
             files = listdir(aout)
             if len(files) != 1:
                 msg = ('Error processing results: There are some unexpected '
