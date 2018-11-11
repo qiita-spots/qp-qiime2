@@ -260,7 +260,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
 
     # if we are here, we need to use the internal tree from the artifact
     if tree_fp_check:
-        q2inputs['phylogeny'][0] = tree_fp
+        q2inputs['phylogeny'] = (tree_fp, q2inputs['phylogeny'][1])
 
     # let's process/import inputs
     qclient.update_job_step(
