@@ -7,7 +7,8 @@
 # -----------------------------------------------------------------------------
 
 from os import mkdir, listdir
-from os.path import join, exists
+from os.path import join, exists, basename
+from shutil import copyfile
 
 from qiita_client import ArtifactInfo
 
@@ -90,14 +91,11 @@ ALPHA_DIVERSITY_METRICS = {
     "Simpson's evenness measure E": "simpson_e",
     "Strong's dominance index (Dw)": "strong"}
 
-ALPHA_CORRELATION_METHODS = {
-    "Spearman": "spearman",
-    "Pearson": "pearson"}
-
 BETA_DIVERSITY_METRICS = {
     "Aitchison distance": "aitchison",
     "Bray-Curtis dissimilarity": "braycurtis",
     "Canberra distance": "canberra",
+    "Canberra distance in Adkins form": "canberra_adkins",
     "Chebyshev distance": "chebyshev",
     "City-block distance": "cityblock",
     "Correlation coefficient": "correlation",
@@ -119,27 +117,35 @@ BETA_DIVERSITY_METRICS = {
     "Yule index": "yule"}
 
 BETA_DIVERSITY_METRICS_PHYLOGENETIC = {
-    'Unweighted UniFrac': 'unweighted_unifrac',
-    'Weighted UniFrac': 'weighted_unifrac'
-}
-
-BETA_DIVERSITY_METRICS_PHYLOGENETIC_ALT = {
     "Unweighted UniFrac": "unweighted_unifrac",
     'Weighted UniFrac': 'weighted_unifrac',
     "Weighted normalized UniFrac": "weighted_normalized_unifrac",
-    "Generalized UniFrac": "generalized_unifrac"}
+    "Generalized UniFrac": "generalized_unifrac"
+}
 
-BETA_CORRELATION_METHODS = {
+CORRELATION_METHODS = {
     "Spearman": "spearman",
     "Pearson": "pearson"}
 
 BETA_GROUP_SIG_METHODS = {
+    "PERMDISP": "permdisp",
     "PERMANOVA": "permanova",
     "ANOSIM": "anosim"}
 
-BETA_GROUP_SIG_TYPE = {
-    "Pairwise": "p-pairwise",
-    "Non-pairwise": "p-no-pairwise"}
+RENAME_COMMANDS = {
+    ('alpha', 'metric'): ALPHA_DIVERSITY_METRICS,
+    ('beta', 'metric'): BETA_DIVERSITY_METRICS,
+    ('alpha_phylogenetic', 'metric'): ALPHA_DIVERSITY_METRICS_PHYLOGENETIC,
+    ('beta_phylogenetic', 'metric'): BETA_DIVERSITY_METRICS_PHYLOGENETIC,
+    ('alpha_rarefaction', 'metrics'): {
+        **ALPHA_DIVERSITY_METRICS, **ALPHA_DIVERSITY_METRICS_PHYLOGENETIC},
+    ('beta_rarefaction', 'metric'): {
+        **BETA_DIVERSITY_METRICS, **BETA_DIVERSITY_METRICS_PHYLOGENETIC},
+    ('beta_rarefaction', 'correlation_method'): CORRELATION_METHODS,
+    ('beta_correlation', 'method'): CORRELATION_METHODS,
+    ('alpha_correlation', 'method'): CORRELATION_METHODS,
+    ('beta_group_significance', 'method'): BETA_GROUP_SIG_METHODS,
+}
 
 
 def call_qiime2(qclient, job_id, parameters, out_dir):
@@ -182,21 +188,32 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
     q2inputs = {}
     method_inputs = method.signature.inputs.copy()
     method_params = method.signature.parameters.copy()
+    artifact_id = None
     analysis_id = None
     biom_fp = None
+    tree_fp = None
+    tree_fp_check = False
     for k in list(parameters):
         if k in parameters and k.startswith(label):
             key = parameters.pop(k)
             val = parameters.pop(k[label_len:])
             if key in method_inputs.keys():
                 if key == 'phylogeny':
+                    # there is a chance that we parse/loop over the phylogeny
+                    # option before the artifact so tree_fp will still be
+                    # None; thus we will need to check this after we are done
+                    # with this loop
+                    if val == 'Artifact tree, if exists':
+                        tree_fp_check = True
                     fpath = val
                     artifact_method = QIITA_Q2_SEMANTIC_TYPE[key]
                 else:
                     # this is going to be an artifact so let's collect the
                     # filepath here, this will also allow us to collect the
                     # analysis_id
-                    ainfo = qclient.get("/qiita_db/artifacts/%s/" % val)
+                    artifact_id = val
+                    ainfo = qclient.get(
+                        "/qiita_db/artifacts/%s/" % artifact_id)
                     if ainfo['analysis'] is None:
                         msg = ('Artifact "%s" is not an analysis '
                                'artifact.' % val)
@@ -207,6 +224,10 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     dt = method_inputs[key].qiime_type
                     if Q2_QIITA_SEMANTIC_TYPE[dt].startswith('BIOM'):
                         fpath = ainfo['files']['biom'][0]
+                        # if it's a BIOM and there is a plain_text is the
+                        # result of the archive at this stage: a tree
+                        if 'plain_text' in ainfo['files']:
+                            tree_fp = ainfo['files']['plain_text'][0]
                         biom_fp = fpath
                     else:
                         fpath = ainfo['files']['plain_text'][0]
@@ -226,19 +247,9 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     val = mkey.qiime_type.decode(val)
 
                 # let's bring back the original name of these parameters
-                methods_rn = [
-                    'alpha', 'alpha_phylogenetic', 'beta', 'beta_phylogenetic',
-                    'beta_phylogenetic_alt', 'alpha_rarefaction',
-                    'beta_rarefaction']
-                keys_rn = ['method', 'metric']
-                if (q2plugin == 'diversity' and q2method in methods_rn
-                        and key in keys_rn):
-                    all_metrics = {
-                        **ALPHA_DIVERSITY_METRICS, **BETA_DIVERSITY_METRICS,
-                        **ALPHA_DIVERSITY_METRICS_PHYLOGENETIC,
-                        **BETA_DIVERSITY_METRICS_PHYLOGENETIC,
-                        **BETA_DIVERSITY_METRICS_PHYLOGENETIC_ALT}
-                    val = all_metrics[val]
+                value_pair = (q2method, key)
+                if (q2plugin == 'diversity' and value_pair in RENAME_COMMANDS):
+                    val = RENAME_COMMANDS[value_pair][val]
                 q2params[key] = val
         elif k in ('qp-hide-metadata', 'qp-hide-taxonomy'):
             # remember, if we need metadata, we will always have
@@ -246,6 +257,10 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             # qp-hide-metadata-field
             key = parameters.pop(k)
             q2inputs[key] = ('', '')
+
+    # if we are here, we need to use the internal tree from the artifact
+    if tree_fp_check:
+        q2inputs['phylogeny'] = (tree_fp, q2inputs['phylogeny'][1])
 
     # let's process/import inputs
     qclient.update_job_step(
@@ -292,11 +307,12 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
     ainfo = []
     for aname, q2artifact in zip(results._fields, results):
         aout = join(out_dir, aname)
-        q2artifact.export_data(output_dir=aout)
         if isinstance(q2artifact, qiime2.Visualization):
+            qzv_fp = q2artifact.save(aout)
             ainfo.append(
-                ArtifactInfo(aname, 'q2_visualization', [(aout, 'qzv')]))
+                ArtifactInfo(aname, 'q2_visualization', [(qzv_fp, 'qzv')]))
         else:
+            q2artifact.export_data(output_dir=aout)
             files = listdir(aout)
             if len(files) != 1:
                 msg = ('Error processing results: There are some unexpected '
@@ -305,13 +321,24 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             fp = join(aout, files[0])
 
             if q2artifact.type.name == 'FeatureTable':
-                atype = 'BIOM'
-                ftype = 'biom'
+                # if there is a tree, let's copy it and then add it to
+                # the new artifact
+                if tree_fp is not None:
+                    bn = basename(tree_fp)
+                    new_tree_fp = join(
+                        out_dir, aout, 'from_%s_%s' % (artifact_id, bn))
+                    copyfile(tree_fp, new_tree_fp)
+                    ai = ArtifactInfo(aname, 'BIOM', [
+                        (fp, 'biom'),
+                        (new_tree_fp, 'plain_text')])
+                else:
+                    ai = ArtifactInfo(aname, 'BIOM', [(fp, 'biom')])
+
             else:
                 atype = Q2_QIITA_SEMANTIC_TYPE[q2artifact.type]
                 if atype.startswith('phylogenetic_'):
                     atype = atype[len('phylogenetic_'):]
-                ftype = 'plain_text'
-            ainfo.append(ArtifactInfo(aname, atype, [(fp, ftype)]))
+                ai = ArtifactInfo(aname, atype, [(fp, 'plain_text')])
+            ainfo.append(ai)
 
     return True, ainfo, ""
