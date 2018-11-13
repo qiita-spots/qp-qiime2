@@ -235,7 +235,11 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     artifact_method = method_inputs[key].qiime_type
                 q2inputs[key] = (fpath, artifact_method)
             elif key == 'qp-hide-metadata-field':
-                    q2inputs['metadata'] = (val, val)
+                if val == '':
+                    msg = ("Error: You didn't write a metadata field in "
+                           "'%s'" % k[label_len:])
+                    return False, None, msg
+                q2inputs['metadata'] = (val, val)
             else:
                 if val in ('', 'None'):
                     continue

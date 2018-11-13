@@ -236,6 +236,103 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(ainfo[0].artifact_type, 'distance_matrix')
         self.assertEqual(ainfo[0].output_name, 'distance_matrix')
 
+    def test_metadata_field(self):
+        # as we don't have a distance matrix, we will process one first
+        params = {
+            'A pseudocount to handle zeros for compositional metrics.  This '
+            'is ignored for other metrics.': '1',
+            'The beta diversity metric to be '
+            'computed.': "Rogers-Tanimoto distance",
+            'The feature table containing the samples over which beta '
+            'diversity should be computed.': '8',
+            'The number of jobs to use for the computation. This works '
+            'by breaking down the pairwise matrix into n_jobs even slices '
+            'and computing them in parallel. If -1 all CPUs are used. If '
+            '1 is given, no parallel computing code is used at all, which '
+            'is useful for debugging. For n_jobs below -1, (n_cpus + 1 + '
+            'n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are '
+            'used. (Description from sklearn.metrics.pairwise_distances)': '1',
+            'qp-hide-method': 'beta',
+            'qp-hide-paramThe beta diversity metric to be computed.': 'metric',
+            'qp-hide-paramThe feature table containing the samples over '
+            'which beta diversity should be computed.': 'table',
+            'qp-hide-plugin': 'diversity',
+            'qp-hide-paramA pseudocount to handle zeros for compositional '
+            'metrics.  This is ignored for other metrics.': 'pseudocount',
+            'qp-hide-paramThe number of jobs to use for the computation. '
+            'This works by breaking down the pairwise matrix into n_jobs even '
+            'slices and computing them in parallel. If -1 all CPUs are used. '
+            'If 1 is given, no parallel computing code is used at all, which '
+            'is useful for debugging. For n_jobs below -1, (n_cpus + 1 + '
+            'n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are '
+            'used. (Description from '
+            'sklearn.metrics.pairwise_distances)': 'n_jobs'}
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'Beta diversity'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        data = {'filepaths': dumps(ainfo[0].files), 'type': "distance_matrix",
+                'name': "Non phylogenetic distance matrix", 'analysis': 1,
+                'data_type': '16S'}
+        reply = self.qclient.post('/apitest/artifact/', data=data)
+        aid = reply['artifact']
+
+        params = {
+            'If supplied, IDs that are not found in both distance matrices '
+            'will be discarded before applying the Mantel test. Default '
+            'behavior is to error on any mismatched IDs.': True,
+            'Label for `distance_matrix` in the output '
+            'visualization.': 'Metadata',
+            'Label for `metadata_distance_matrix` in the output '
+            'visualization.': 'Distance Matrix',
+            'Matrix of distances between pairs of samples.': str(aid),
+            'Metadata column to use': '',
+            'The correlation test to be applied in the Mantel '
+            'test.': 'Pearson',
+            'The number of permutations to be run when computing p-values. '
+            'Supplying a value of zero will disable permutation testing and '
+            'p-values will not be calculated (this results in *much* quicker '
+            'execution time if p-values are not desired).': '999',
+            'qp-hide-method': 'beta_correlation',
+            'qp-hide-paramIf supplied, IDs that are not found in both '
+            'distance matrices will be discarded before applying the Mantel '
+            'test. Default behavior is to error on any mismatched '
+            'IDs.': 'intersect_ids',
+            'qp-hide-paramLabel for `distance_matrix` in the output '
+            'visualization.': 'label1',
+            'qp-hide-paramLabel for `metadata_distance_matrix` in the output '
+            'visualization.': 'label2',
+            'qp-hide-paramMatrix of distances between pairs of '
+            'samples.': 'distance_matrix',
+            'qp-hide-paramMetadata column to use': 'qp-hide-metadata-field',
+            'qp-hide-paramThe correlation test to be applied in the '
+            'Mantel test.': 'method',
+            'qp-hide-paramThe number of permutations to be run when '
+            'computing p-values. Supplying a value of zero will disable '
+            'permutation testing and p-values will not be calculated '
+            '(this results in *much* quicker execution time if p-values '
+            'are not desired).': 'permutations',
+            'qp-hide-plugin': 'diversity'}
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'Beta diversity correlation'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        self.assertEqual(msg, "Error: You didn't write a metadata field in "
+                         "'Metadata column to use'")
+        self.assertFalse(success)
+
     def test_beta_correlation(self):
         # as we don't have a distance matrix, we will process one first
         params = {
