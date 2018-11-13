@@ -478,9 +478,13 @@ class qiime2Tests(PluginTestCase):
         self._clean_up_files.append(out_dir)
 
         success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
-        self.assertEqual(msg, 'Error generating taxonomy. Are you '
-                              'sure this artifact has taxonomy?')
-        self.assertFalse(success)
+        self.assertEqual(msg, '')
+        self.assertTrue(success)
+        self.assertEqual(len(ainfo), 1)
+        exp = [
+            (join(out_dir, 'barplot', 'visualization.qzv'), 'qzv')]
+        self.assertEqual(ainfo[0].files, exp)
+        self.assertEqual(ainfo[0].artifact_type, 'q2_visualization')
 
     def test_filter_samples(self):
         # let's test a failure

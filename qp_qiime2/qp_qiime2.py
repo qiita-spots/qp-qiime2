@@ -283,7 +283,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
         elif k == 'taxonomy':
             try:
                 qza = qiime2.Artifact.import_data(
-                    'FeatureData[Taxonomy]', biom_fp)
+                    'FeatureData[Taxonomy]', biom_fp, 'BIOMV210Format')
             except Exception:
                 return False, None, ('Error generating taxonomy. Are you '
                                      'sure this artifact has taxonomy?')
