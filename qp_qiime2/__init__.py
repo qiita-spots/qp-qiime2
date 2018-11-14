@@ -209,7 +209,7 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
                     else:
                         opt_params['qp-hide-metadata'] = ('string', pname)
                 else:
-                    ename = element.description
+                    ename = '%s (%s)' % (element.description, pname)
                     if element.has_default():
                         opt_params[ename] = (data_type, default)
                         # we need to add the actual name of the parameter so we
