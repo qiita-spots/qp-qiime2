@@ -53,13 +53,13 @@ class qiime2Tests(PluginTestCase):
             'The total frequency that each sample should be rarefied to. '
             'Samples where the sum of frequencies is less than the sampling '
             'depth will be not be included in the resulting table unless '
-            'subsampling is performed with replacement.': '2',
+            'subsampling is performed with replacement. (sampling_depth)': '2',
             'qp-hide-method': 'rarefy',
             'qp-hide-paramThe total frequency that each sample should be '
             'rarefied to. Samples where the sum of frequencies is less than '
             'the sampling depth will be not be included in the resulting '
             'table unless subsampling is performed with '
-            'replacement.': 'sampling_depth',
+            'replacement. (sampling_depth)': 'sampling_depth',
             'qp-hide-paramThe feature table to be rarefied.': 'table',
             'qp-hide-plugin': 'feature-table'}
         self.data['command'] = dumps(
@@ -81,13 +81,13 @@ class qiime2Tests(PluginTestCase):
             'The total frequency that each sample should be rarefied to. '
             'Samples where the sum of frequencies is less than the sampling '
             'depth will be not be included in the resulting table unless '
-            'subsampling is performed with replacement.': '2',
+            'subsampling is performed with replacement. (sampling_depth)': '2',
             'qp-hide-method': 'rarefy',
             'qp-hide-paramThe total frequency that each sample should be '
             'rarefied to. Samples where the sum of frequencies is less than '
             'the sampling depth will be not be included in the resulting '
             'table unless subsampling is performed with '
-            'replacement.': 'sampling_depth',
+            'replacement. (sampling_depth)': 'sampling_depth',
             'qp-hide-paramThe feature table to be rarefied.': 'table',
             'qp-hide-plugin': 'feature-table'}
         self.data['command'] = dumps(
@@ -114,13 +114,14 @@ class qiime2Tests(PluginTestCase):
             'The total frequency that each sample should be rarefied to. '
             'Samples where the sum of frequencies is less than the sampling '
             'depth will be not be included in the resulting table unless '
-            'subsampling is performed with replacement.': '200000',
+            'subsampling is performed with replacement. '
+            '(sampling_depth)': '200000',
             'qp-hide-method': 'rarefy',
             'qp-hide-paramThe total frequency that each sample should be '
             'rarefied to. Samples where the sum of frequencies is less than '
             'the sampling depth will be not be included in the resulting '
             'table unless subsampling is performed with '
-            'replacement.': 'sampling_depth',
+            'replacement. (sampling_depth)': 'sampling_depth',
             'qp-hide-paramThe feature table to be rarefied.': 'table',
             'qp-hide-plugin': 'feature-table'}
         self.data['command'] = dumps(
@@ -144,18 +145,20 @@ class qiime2Tests(PluginTestCase):
     def test_beta(self):
         params = {
             'A pseudocount to handle zeros for compositional metrics.  This '
-            'is ignored for other metrics.': '1',
+            'is ignored for other metrics. (pseudocount)': '1',
             'The beta diversity metric to be '
-            'computed.': "Rogers-Tanimoto distance",
+            'computed. (metric)': "Rogers-Tanimoto distance",
             'The feature table containing the samples over which beta '
             'diversity should be computed.': '8',
             'qp-hide-method': 'beta',
-            'qp-hide-paramThe beta diversity metric to be computed.': 'metric',
+            'qp-hide-paramThe beta diversity metric to be computed. '
+            '(metric)': 'metric',
             'qp-hide-paramThe feature table containing the samples over '
             'which beta diversity should be computed.': 'table',
             'qp-hide-plugin': 'diversity',
             'qp-hide-paramA pseudocount to handle zeros for compositional '
-            'metrics.  This is ignored for other metrics.': 'pseudocount'}
+            'metrics.  This is ignored for other metrics. '
+            '(pseudocount)': 'pseudocount'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version, 'Beta diversity'])
         self.data['parameters'] = dumps(params)
@@ -180,42 +183,45 @@ class qiime2Tests(PluginTestCase):
             'in a tree. By ignoring them, specificity can be traded for '
             'reduced compute time. This has the effect of collapsing the '
             'phylogeny, and is analogous (in concept) to moving from 99% '
-            'to 97% OTUs': True,
+            'to 97% OTUs (bypass_tips)': True,
             'Perform variance adjustment based on Chang et al. BMC '
             'Bioinformatics 2011. Weights distances based on the proportion '
             'of the relative abundance represented between the samples at a '
-            'given node under evaluation.': True,
+            'given node under evaluation. (variance_adjusted)': True,
             'Phylogenetic tree': join(
                 dirname(realpath(__file__)), 'prune_97_gg_13_8.tre'),
-            'The beta diversity metric to be computed.': 'Unweighted UniFrac',
+            'The beta diversity metric to be computed. '
+            '(metric)': 'Unweighted UniFrac',
             'The feature table containing the samples over which beta '
             'diversity should be computed.': '8',
-            'The number of workers to use.': '1',
+            'The number of workers to use. (n_jobs)': '1',
             'This parameter is only used when the choice of metric is '
             'generalized_unifrac. The value of alpha controls importance of '
             'sample proportions. 1.0 is weighted normalized UniFrac. 0.0 is '
             'close to unweighted UniFrac, but only if the sample proportions '
-            'are dichotomized.': '',
+            'are dichotomized. (alpha)': '',
             'qp-hide-method': 'beta_phylogenetic',
             'qp-hide-paramIn a bifurcating tree, the tips make up about 50% '
             'of the nodes in a tree. By ignoring them, specificity can be '
             'traded for reduced compute time. This has the effect of '
             'collapsing the phylogeny, and is analogous (in concept) to '
-            'moving from 99% to 97% OTUs': 'bypass_tips',
+            'moving from 99% to 97% OTUs (bypass_tips)': 'bypass_tips',
             'qp-hide-paramPerform variance adjustment based on Chang et al. '
             'BMC Bioinformatics 2011. Weights distances based on the '
             'proportion of the relative abundance represented between the '
-            'samples at a given node under evaluation.': 'variance_adjusted',
+            'samples at a given node under evaluation. '
+            '(variance_adjusted)': 'variance_adjusted',
             'qp-hide-paramPhylogenetic tree': 'phylogeny',
-            'qp-hide-paramThe beta diversity metric to be computed.': 'metric',
+            'qp-hide-paramThe beta diversity metric to be computed. '
+            '(metric)': 'metric',
             'qp-hide-paramThe feature table containing the samples over which '
             'beta diversity should be computed.': 'table',
-            'qp-hide-paramThe number of workers to use.': 'n_jobs',
+            'qp-hide-paramThe number of workers to use. (n_jobs)': 'n_jobs',
             'qp-hide-paramThis parameter is only used when the choice of '
             'metric is generalized_unifrac. The value of alpha controls '
             'importance of sample proportions. 1.0 is weighted normalized '
             'UniFrac. 0.0 is close to unweighted UniFrac, but only if the '
-            'sample proportions are dichotomized.': 'alpha',
+            'sample proportions are dichotomized. (alpha)': 'alpha',
             'qp-hide-plugin': 'diversity'
         }
         self.data['command'] = dumps(
@@ -240,9 +246,9 @@ class qiime2Tests(PluginTestCase):
         # as we don't have a distance matrix, we will process one first
         params = {
             'A pseudocount to handle zeros for compositional metrics.  This '
-            'is ignored for other metrics.': '1',
+            'is ignored for other metrics. (pseudocount)': '1',
             'The beta diversity metric to be '
-            'computed.': "Rogers-Tanimoto distance",
+            'computed. (metric)': "Rogers-Tanimoto distance",
             'The feature table containing the samples over which beta '
             'diversity should be computed.': '8',
             'The number of jobs to use for the computation. This works '
@@ -251,14 +257,17 @@ class qiime2Tests(PluginTestCase):
             '1 is given, no parallel computing code is used at all, which '
             'is useful for debugging. For n_jobs below -1, (n_cpus + 1 + '
             'n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are '
-            'used. (Description from sklearn.metrics.pairwise_distances)': '1',
+            'used. (Description from sklearn.metrics.pairwise_distances) '
+            '(n_jobs)': '1',
             'qp-hide-method': 'beta',
-            'qp-hide-paramThe beta diversity metric to be computed.': 'metric',
+            'qp-hide-paramThe beta diversity metric to be computed. '
+            '(metric)': 'metric',
             'qp-hide-paramThe feature table containing the samples over '
             'which beta diversity should be computed.': 'table',
             'qp-hide-plugin': 'diversity',
             'qp-hide-paramA pseudocount to handle zeros for compositional '
-            'metrics.  This is ignored for other metrics.': 'pseudocount',
+            'metrics.  This is ignored for other metrics. '
+            '(pseudocount)': 'pseudocount',
             'qp-hide-paramThe number of jobs to use for the computation. '
             'This works by breaking down the pairwise matrix into n_jobs even '
             'slices and computing them in parallel. If -1 all CPUs are used. '
@@ -266,7 +275,7 @@ class qiime2Tests(PluginTestCase):
             'is useful for debugging. For n_jobs below -1, (n_cpus + 1 + '
             'n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are '
             'used. (Description from '
-            'sklearn.metrics.pairwise_distances)': 'n_jobs'}
+            'sklearn.metrics.pairwise_distances) (n_jobs)': 'n_jobs'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version, 'Beta diversity'])
         self.data['parameters'] = dumps(params)
@@ -286,38 +295,40 @@ class qiime2Tests(PluginTestCase):
         params = {
             'If supplied, IDs that are not found in both distance matrices '
             'will be discarded before applying the Mantel test. Default '
-            'behavior is to error on any mismatched IDs.': True,
+            'behavior is to error on any mismatched IDs. '
+            '(intersect_ids)': True,
             'Label for `distance_matrix` in the output '
-            'visualization.': 'Metadata',
+            'visualization. (label1)': 'Metadata',
             'Label for `metadata_distance_matrix` in the output '
-            'visualization.': 'Distance Matrix',
+            'visualization. (label2)': 'Distance Matrix',
             'Matrix of distances between pairs of samples.': str(aid),
             'Metadata column to use': '',
             'The correlation test to be applied in the Mantel '
-            'test.': 'Pearson',
+            'test. (method)': 'Pearson',
             'The number of permutations to be run when computing p-values. '
             'Supplying a value of zero will disable permutation testing and '
             'p-values will not be calculated (this results in *much* quicker '
-            'execution time if p-values are not desired).': '999',
+            'execution time if p-values are not desired). '
+            '(permutations)': '10',
             'qp-hide-method': 'beta_correlation',
             'qp-hide-paramIf supplied, IDs that are not found in both '
             'distance matrices will be discarded before applying the Mantel '
             'test. Default behavior is to error on any mismatched '
-            'IDs.': 'intersect_ids',
+            'IDs. (intersect_ids)': 'intersect_ids',
             'qp-hide-paramLabel for `distance_matrix` in the output '
-            'visualization.': 'label1',
+            'visualization. (label1)': 'label1',
             'qp-hide-paramLabel for `metadata_distance_matrix` in the output '
-            'visualization.': 'label2',
+            'visualization. (label2)': 'label2',
             'qp-hide-paramMatrix of distances between pairs of '
             'samples.': 'distance_matrix',
             'qp-hide-paramMetadata column to use': 'qp-hide-metadata-field',
             'qp-hide-paramThe correlation test to be applied in the '
-            'Mantel test.': 'method',
+            'Mantel test. (method)': 'method',
             'qp-hide-paramThe number of permutations to be run when '
             'computing p-values. Supplying a value of zero will disable '
             'permutation testing and p-values will not be calculated '
             '(this results in *much* quicker execution time if p-values '
-            'are not desired).': 'permutations',
+            'are not desired). (permutations)': 'permutations',
             'qp-hide-plugin': 'diversity'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version, 'Beta diversity correlation'])
@@ -337,9 +348,9 @@ class qiime2Tests(PluginTestCase):
         # as we don't have a distance matrix, we will process one first
         params = {
             'A pseudocount to handle zeros for compositional metrics.  This '
-            'is ignored for other metrics.': '1',
+            'is ignored for other metrics. (pseudocount)': '1',
             'The beta diversity metric to be '
-            'computed.': "Rogers-Tanimoto distance",
+            'computed. (metric)': "Rogers-Tanimoto distance",
             'The feature table containing the samples over which beta '
             'diversity should be computed.': '8',
             'The number of jobs to use for the computation. This works '
@@ -348,14 +359,17 @@ class qiime2Tests(PluginTestCase):
             '1 is given, no parallel computing code is used at all, which '
             'is useful for debugging. For n_jobs below -1, (n_cpus + 1 + '
             'n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are '
-            'used. (Description from sklearn.metrics.pairwise_distances)': '1',
+            'used. (Description from sklearn.metrics.pairwise_distances) '
+            '(n_jobs)': '1',
             'qp-hide-method': 'beta',
-            'qp-hide-paramThe beta diversity metric to be computed.': 'metric',
+            'qp-hide-paramThe beta diversity metric to be computed. '
+            '(metric)': 'metric',
             'qp-hide-paramThe feature table containing the samples over '
             'which beta diversity should be computed.': 'table',
             'qp-hide-plugin': 'diversity',
             'qp-hide-paramA pseudocount to handle zeros for compositional '
-            'metrics.  This is ignored for other metrics.': 'pseudocount',
+            'metrics.  This is ignored for other metrics. '
+            '(pseudocount)': 'pseudocount',
             'qp-hide-paramThe number of jobs to use for the computation. '
             'This works by breaking down the pairwise matrix into n_jobs even '
             'slices and computing them in parallel. If -1 all CPUs are used. '
@@ -363,7 +377,7 @@ class qiime2Tests(PluginTestCase):
             'is useful for debugging. For n_jobs below -1, (n_cpus + 1 + '
             'n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are '
             'used. (Description from '
-            'sklearn.metrics.pairwise_distances)': 'n_jobs'}
+            'sklearn.metrics.pairwise_distances) (n_jobs)': 'n_jobs'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version, 'Beta diversity'])
         self.data['parameters'] = dumps(params)
@@ -383,38 +397,40 @@ class qiime2Tests(PluginTestCase):
         params = {
             'If supplied, IDs that are not found in both distance matrices '
             'will be discarded before applying the Mantel test. Default '
-            'behavior is to error on any mismatched IDs.': True,
+            'behavior is to error on any mismatched IDs. '
+            '(intersect_ids)': True,
             'Label for `distance_matrix` in the output '
-            'visualization.': 'Metadata',
+            'visualization. (label1)': 'Metadata',
             'Label for `metadata_distance_matrix` in the output '
-            'visualization.': 'Distance Matrix',
+            'visualization. (label2)': 'Distance Matrix',
             'Matrix of distances between pairs of samples.': str(aid),
             'Metadata column to use': 'taxon_id',
             'The correlation test to be applied in the Mantel '
-            'test.': 'Pearson',
+            'test. (method)': 'Pearson',
             'The number of permutations to be run when computing p-values. '
             'Supplying a value of zero will disable permutation testing and '
             'p-values will not be calculated (this results in *much* quicker '
-            'execution time if p-values are not desired).': '999',
+            'execution time if p-values are not desired). '
+            '(permutations)': '10',
             'qp-hide-method': 'beta_correlation',
             'qp-hide-paramIf supplied, IDs that are not found in both '
             'distance matrices will be discarded before applying the Mantel '
             'test. Default behavior is to error on any mismatched '
-            'IDs.': 'intersect_ids',
+            'IDs. (intersect_ids)': 'intersect_ids',
             'qp-hide-paramLabel for `distance_matrix` in the output '
-            'visualization.': 'label1',
+            'visualization. (label1)': 'label1',
             'qp-hide-paramLabel for `metadata_distance_matrix` in the output '
-            'visualization.': 'label2',
+            'visualization. (label2)': 'label2',
             'qp-hide-paramMatrix of distances between pairs of '
             'samples.': 'distance_matrix',
             'qp-hide-paramMetadata column to use': 'qp-hide-metadata-field',
             'qp-hide-paramThe correlation test to be applied in the '
-            'Mantel test.': 'method',
+            'Mantel test. (method)': 'method',
             'qp-hide-paramThe number of permutations to be run when '
             'computing p-values. Supplying a value of zero will disable '
             'permutation testing and p-values will not be calculated '
             '(this results in *much* quicker execution time if p-values '
-            'are not desired).': 'permutations',
+            'are not desired). (permutations)': 'permutations',
             'qp-hide-plugin': 'diversity'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version, 'Beta diversity correlation'])
@@ -440,12 +456,13 @@ class qiime2Tests(PluginTestCase):
 
     def test_alpha(self):
         params = {
-            'The alpha diversity metric to be computed.': "Simpson's index",
+            'The alpha diversity metric to be computed. '
+            '(metric)': "Simpson's index",
             'The feature table containing the samples for which alpha '
             'diversity should be computed.': '8',
             'qp-hide-method': 'alpha',
             'qp-hide-paramThe alpha diversity metric to be '
-            'computed.': 'metric',
+            'computed. (metric)': 'metric',
             'qp-hide-paramThe feature table containing the samples for '
             'which alpha diversity should be computed.': 'table',
             'qp-hide-plugin': 'diversity'}
@@ -472,13 +489,13 @@ class qiime2Tests(PluginTestCase):
             'Phylogenetic tree': join(
                 dirname(realpath(__file__)), 'prune_97_gg_13_8.tre'),
             'The alpha diversity metric to be '
-            'computed.': "Faith's Phylogenetic Diversity",
+            'computed. (metric)': "Faith's Phylogenetic Diversity",
             'The feature table containing the samples for which alpha '
             'diversity should be computed.': '8',
             'qp-hide-method': 'alpha_phylogenetic',
             'qp-hide-paramPhylogenetic tree': 'phylogeny',
             'qp-hide-paramThe alpha diversity metric to be '
-            'computed.': 'metric',
+            'computed. (metric)': 'metric',
             'qp-hide-paramThe feature table containing the samples for '
             'which alpha diversity should be computed.': 'table',
             'qp-hide-plugin': 'diversity'}
@@ -504,12 +521,13 @@ class qiime2Tests(PluginTestCase):
         # as we don't have an alpha vector available, we will calculate
         # one using a non phylogenetic metric
         params = {
-            'The alpha diversity metric to be computed.': "Simpson's index",
+            'The alpha diversity metric to be computed. '
+            '(metric)': "Simpson's index",
             'The feature table containing the samples for which alpha '
             'diversity should be computed.': '8',
             'qp-hide-method': 'alpha',
             'qp-hide-paramThe alpha diversity metric to be '
-            'computed.': 'metric',
+            'computed. (metric)': 'metric',
             'qp-hide-paramThe feature table containing the samples for '
             'which alpha diversity should be computed.': 'table',
             'qp-hide-plugin': 'diversity'}
@@ -530,11 +548,12 @@ class qiime2Tests(PluginTestCase):
         aid = reply['artifact']
 
         params = {
-            'The correlation test to be applied.': 'Spearman',
+            'The correlation test to be applied. (method)': 'Spearman',
             'Vector of alpha diversity values by sample.': str(aid),
             'qp-hide-metadata': 'metadata',
             'qp-hide-method': 'alpha_correlation',
-            'qp-hide-paramThe correlation test to be applied.': 'method',
+            'qp-hide-paramThe correlation test to be applied. '
+            '(method)': 'method',
             'qp-hide-paramVector of alpha diversity values by '
             'sample.': 'alpha_diversity',
             'qp-hide-plugin': 'diversity'}
@@ -588,22 +607,24 @@ class qiime2Tests(PluginTestCase):
         params = {
             'If true, the samples selected by `metadata` or `where` '
             'parameters will be excluded from the filtered table instead of '
-            'being retained.': False,
+            'being retained. (exclude_ids)': False,
             'SQLite WHERE clause specifying sample metadata criteria that '
             'must be met to be included in the filtered feature table. If '
             'not provided, all samples in `metadata` that are also in the '
-            'feature table will be retained.': '',
+            'feature table will be retained. (where)': '',
             'The feature table from which samples should be filtered.': '8',
             'The maximum number of features that a sample can have to be '
             'retained. If no value is provided this will default to infinity '
-            '(i.e., no maximum feature filter will be applied).': '1',
+            '(i.e., no maximum feature filter will be applied). '
+            '(max_features)': '1',
             'The maximum total frequency that a sample can have to be '
             'retained. If no value is provided this will default to infinity '
-            '(i.e., no maximum frequency filter will be applied).': '',
+            '(i.e., no maximum frequency filter will be applied). '
+            '(max_frequency)': '',
             'The minimum number of features that a sample must have to be '
-            'retained.': '0',
+            'retained. (min_features)': '0',
             'The minimum total frequency that a sample must have to be '
-            'retained.': '0',
+            'retained. (min_frequency)': '0',
             'qp-hide-metadata': 'metadata',
             'qp-hide-method': 'filter_samples',
             'qp-hide-paramThe feature table from which samples should be '
@@ -611,23 +632,23 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-plugin': 'feature-table',
             'qp-hide-paramIf true, the samples selected by `metadata` or '
             '`where` parameters will be excluded from the filtered table '
-            'instead of being retained.': 'exclude_ids',
+            'instead of being retained. (exclude_ids)': 'exclude_ids',
             'qp-hide-paramSQLite WHERE clause specifying sample metadata '
             'criteria that must be met to be included in the filtered '
             'feature table. If not provided, all samples in `metadata` that '
-            'are also in the feature table will be retained.': 'where',
+            'are also in the feature table will be retained. (where)': 'where',
             'qp-hide-paramThe maximum number of features that a sample can '
             'have to be retained. If no value is provided this will default '
             'to infinity (i.e., no maximum feature filter will be '
-            'applied).': 'max_features',
+            'applied). (max_features)': 'max_features',
             'qp-hide-paramThe maximum total frequency that a sample can have '
             'to be retained. If no value is provided this will default to '
             'infinity (i.e., no maximum frequency filter will be '
-            'applied).': 'max_frequency',
+            'applied). (max_frequency)': 'max_frequency',
             'qp-hide-paramThe minimum number of features that a sample must '
-            'have to be retained.': 'min_features',
+            'have to be retained. (min_features)': 'min_features',
             'qp-hide-paramThe minimum total frequency that a sample must '
-            'have to be retained.': 'min_frequency'}
+            'have to be retained. (min_frequency)': 'min_frequency'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version, 'Filter samples from table'])
         self.data['parameters'] = dumps(params)
@@ -651,9 +672,9 @@ class qiime2Tests(PluginTestCase):
         # and then finally tests emperor
         params = {
             'A pseudocount to handle zeros for compositional metrics.  This '
-            'is ignored for other metrics.': '1',
+            'is ignored for other metrics. (pseudocount)': '1',
             'The beta diversity metric to be '
-            'computed.': "Rogers-Tanimoto distance",
+            'computed. (metric)': "Rogers-Tanimoto distance",
             'The feature table containing the samples over which beta '
             'diversity should be computed.': '8',
             'The number of jobs to use for the computation. This works '
@@ -662,14 +683,17 @@ class qiime2Tests(PluginTestCase):
             '1 is given, no parallel computing code is used at all, which '
             'is useful for debugging. For n_jobs below -1, (n_cpus + 1 + '
             'n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are '
-            'used. (Description from sklearn.metrics.pairwise_distances)': '1',
+            'used. (Description from sklearn.metrics.pairwise_distances) '
+            '(n_jobs)': '1',
             'qp-hide-method': 'beta',
-            'qp-hide-paramThe beta diversity metric to be computed.': 'metric',
+            'qp-hide-paramThe beta diversity metric to be computed. '
+            '(metric)': 'metric',
             'qp-hide-paramThe feature table containing the samples over '
             'which beta diversity should be computed.': 'table',
             'qp-hide-plugin': 'diversity',
             'qp-hide-paramA pseudocount to handle zeros for compositional '
-            'metrics.  This is ignored for other metrics.': 'pseudocount',
+            'metrics.  This is ignored for other metrics. '
+            '(pseudocount)': 'pseudocount',
             'qp-hide-paramThe number of jobs to use for the computation. '
             'This works by breaking down the pairwise matrix into n_jobs even '
             'slices and computing them in parallel. If -1 all CPUs are used. '
@@ -677,7 +701,7 @@ class qiime2Tests(PluginTestCase):
             'is useful for debugging. For n_jobs below -1, (n_cpus + 1 + '
             'n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are '
             'used. (Description from '
-            'sklearn.metrics.pairwise_distances)': 'n_jobs'}
+            'sklearn.metrics.pairwise_distances) (n_jobs)': 'n_jobs'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version, 'Beta diversity'])
         self.data['parameters'] = dumps(params)
@@ -697,15 +721,16 @@ class qiime2Tests(PluginTestCase):
         params = {
             "Dimensions to reduce the distance matrix to. This number "
             "determines how many eigenvectors and eigenvalues are "
-            "returned,and influences the choice of algorithm used to "
-            "compute them. By default, uses the default eigendecomposition "
-            "method, SciPy's eigh, which computes all eigenvectors and "
-            "eigenvalues in an exact manner. For very large matrices, this is "
-            "expected to be slow. If a value is specified for this parameter, "
-            "then the fast, heuristic eigendecomposition algorithm fsvd is "
-            "used, which only computes and returns the number of dimensions "
+            "returned,and influences the choice of algorithm used to compute "
+            "them. By default, uses the default eigendecomposition method, "
+            "SciPy's eigh, which computes all eigenvectors and eigenvalues "
+            "in an exact manner. For very large matrices, this is expected to "
+            "be slow. If a value is specified for this parameter, then the "
+            "fast, heuristic eigendecomposition algorithm fsvd is used, "
+            "which only computes and returns the number of dimensions "
             "specified, but suffers some degree of accuracy loss, the "
-            "magnitude of which varies across different datasets.": '-29',
+            "magnitude of which varies across different datasets. "
+            "(number_of_dimensions)": '',
             'The distance matrix on which PCoA should be computed.': str(aid),
             'qp-hide-method': 'pcoa',
             'qp-hide-paramThe distance matrix on which PCoA should be '
@@ -729,12 +754,13 @@ class qiime2Tests(PluginTestCase):
 
         params = {
             'Numeric sample metadata columns that should be included as '
-            'axes in the Emperor plot.': '',
+            'axes in the Emperor plot. (custom_axes)': '',
             'The principal coordinates matrix to be plotted.': str(aid),
             'qp-hide-metadata': 'metadata',
             'qp-hide-method': 'plot',
             'qp-hide-paramNumeric sample metadata columns that should be '
-            'included as axes in the Emperor plot.': 'custom_axes',
+            'included as axes in the Emperor plot. '
+            '(custom_axes)': 'custom_axes',
             'qp-hide-paramThe principal coordinates matrix to be '
             'plotted.': 'pcoa',
             'qp-hide-plugin': 'emperor'}
@@ -760,9 +786,9 @@ class qiime2Tests(PluginTestCase):
         # as we don't have a distance matrix, we will process one first
         params = {
             'A pseudocount to handle zeros for compositional metrics.  This '
-            'is ignored for other metrics.': '1',
+            'is ignored for other metrics. (pseudocount)': '1',
             'The beta diversity metric to be '
-            'computed.': "Rogers-Tanimoto distance",
+            'computed. (metric)': "Rogers-Tanimoto distance",
             'The feature table containing the samples over which beta '
             'diversity should be computed.': '8',
             'The number of jobs to use for the computation. This works '
@@ -771,14 +797,17 @@ class qiime2Tests(PluginTestCase):
             '1 is given, no parallel computing code is used at all, which '
             'is useful for debugging. For n_jobs below -1, (n_cpus + 1 + '
             'n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are '
-            'used. (Description from sklearn.metrics.pairwise_distances)': '1',
+            'used. (Description from sklearn.metrics.pairwise_distances) '
+            '(n_jobs)': '1',
             'qp-hide-method': 'beta',
-            'qp-hide-paramThe beta diversity metric to be computed.': 'metric',
+            'qp-hide-paramThe beta diversity metric to be computed. '
+            '(metric)': 'metric',
             'qp-hide-paramThe feature table containing the samples over '
             'which beta diversity should be computed.': 'table',
             'qp-hide-plugin': 'diversity',
             'qp-hide-paramA pseudocount to handle zeros for compositional '
-            'metrics.  This is ignored for other metrics.': 'pseudocount',
+            'metrics.  This is ignored for other metrics. '
+            '(pseudocount)': 'pseudocount',
             'qp-hide-paramThe number of jobs to use for the computation. '
             'This works by breaking down the pairwise matrix into n_jobs even '
             'slices and computing them in parallel. If -1 all CPUs are used. '
@@ -786,7 +815,7 @@ class qiime2Tests(PluginTestCase):
             'is useful for debugging. For n_jobs below -1, (n_cpus + 1 + '
             'n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are '
             'used. (Description from '
-            'sklearn.metrics.pairwise_distances)': 'n_jobs'}
+            'sklearn.metrics.pairwise_distances) (n_jobs)': 'n_jobs'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version, 'Beta diversity'])
         self.data['parameters'] = dumps(params)
@@ -807,10 +836,10 @@ class qiime2Tests(PluginTestCase):
             'Matrix of distances between pairs of samples.': str(aid),
             'Perform pairwise tests between all pairs of groups in addition '
             'to the test across all groups. This can be very slow if there '
-            'are a lot of groups in the metadata column.': True,
-            'The group significance test to be applied.': 'PERMANOVA',
+            'are a lot of groups in the metadata column. (pairwise)': True,
+            'The group significance test to be applied. (method)': 'PERMANOVA',
             'The number of permutations to be run when computing '
-            'p-values.': '10',
+            'p-values. (permutations)': '10',
             'Metadata column to use': 'description_duplicate',
             'qp-hide-paramMetadata column to use': 'qp-hide-metadata-field',
             'qp-hide-method': 'beta_group_significance',
@@ -819,11 +848,12 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-plugin': 'diversity',
             'qp-hide-paramPerform pairwise tests between all pairs of groups '
             'in addition to the test across all groups. This can be very slow '
-            'if there are a lot of groups in the metadata column.': 'pairwise',
+            'if there are a lot of groups in the metadata column. '
+            '(pairwise)': 'pairwise',
             'qp-hide-paramThe group significance test to be '
-            'applied.': 'method',
+            'applied. (method)': 'method',
             'qp-hide-paramThe number of permutations to be run when '
-            'computing p-values.': 'permutations'}
+            'computing p-values. (permutations)': 'permutations'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version, 'Beta diversity group significance'])
         self.data['parameters'] = dumps(params)
