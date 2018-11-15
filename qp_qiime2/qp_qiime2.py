@@ -328,7 +328,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             fp = join(aout, files[0])
 
             if q2artifact.type.name == 'FeatureTable':
-                # Let's readd the observation metadata if exists in the input
+                # Let's read the observation metadata if exists in the input
                 if biom_fp is not None:
                     fin = load_table(biom_fp)
                     fout = load_table(fp)
