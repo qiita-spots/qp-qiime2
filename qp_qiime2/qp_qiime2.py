@@ -10,6 +10,9 @@ from os import mkdir, listdir
 from os.path import join, exists, basename
 from shutil import copyfile
 
+from biom import load_table
+from biom.util import biom_open
+
 from qiita_client import ArtifactInfo
 
 import qiime2
@@ -325,6 +328,18 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             fp = join(aout, files[0])
 
             if q2artifact.type.name == 'FeatureTable':
+                # Let's readd the observation metadata if exists in the input
+                if biom_fp is not None:
+                    fin = load_table(biom_fp)
+                    fout = load_table(fp)
+                    metadata = {
+                        i: fin.metadata(i, axis='observation')
+                        for i in fout.ids(axis='observation')}
+                    fout.add_metadata(metadata, axis='observation')
+                    with biom_open(fp, 'w') as bf:
+                        fout.to_hdf5(bf, "Qiita's Qiime2 plugin with "
+                                     "observation metadata")
+
                 # if there is a tree, let's copy it and then add it to
                 # the new artifact
                 if tree_fp is not None:
