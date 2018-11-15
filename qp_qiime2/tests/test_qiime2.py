@@ -12,6 +12,7 @@ from shutil import rmtree
 from tempfile import mkdtemp
 from json import dumps
 from os.path import exists, isdir, join, realpath, dirname
+from biom import load_table
 
 from qiita_client.testing import PluginTestCase
 
@@ -102,11 +103,19 @@ class qiime2Tests(PluginTestCase):
         success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
         self.assertTrue(success)
         self.assertEqual(msg, '')
-        self.assertEqual(ainfo[0].files, [(
-            join(out_dir, 'rarefy', 'rarefied_table', 'feature-table.biom'),
-            'biom')])
+        obs_fp = join(out_dir, 'rarefy', 'rarefied_table',
+                      'feature-table.biom')
+        self.assertEqual(ainfo[0].files, [(obs_fp, 'biom')])
         self.assertEqual(ainfo[0].artifact_type, 'BIOM')
         self.assertEqual(ainfo[0].output_name, 'rarefied_table')
+
+        # let's check that the new biom has metadata
+        b = load_table(obs_fp)
+        # as rarefaction is random, we need to get one of the ids to check
+        # for metadata
+        obs_id = b.ids(axis='observation')[0]
+        obs_metadata = b.metadata(obs_id, axis='observation')
+        self.assertEqual(obs_metadata['taxonomy'][0], 'k__Bacteria')
 
     def test_rarefy_error(self):
         params = {
