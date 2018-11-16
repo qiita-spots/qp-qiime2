@@ -625,7 +625,7 @@ class qiime2Tests(PluginTestCase):
             'The maximum number of features that a sample can have to be '
             'retained. If no value is provided this will default to infinity '
             '(i.e., no maximum feature filter will be applied). '
-            '(max_features)': '1',
+            '(max_features)': '14509',
             'The maximum total frequency that a sample can have to be '
             'retained. If no value is provided this will default to infinity '
             '(i.e., no maximum frequency filter will be applied). '
@@ -879,6 +879,132 @@ class qiime2Tests(PluginTestCase):
             "unique. This method cannot operate on a grouping vector with "
             "only unique values (e.g., there are no 'within' distances "
             "because each group of objects contains only a single object).")
+
+    def test_filter_features(self):
+        params = {
+            'If true, the features selected by `metadata` or `where` '
+            'parameters will be excluded from the filtered table instead of '
+            'being retained. (exclude_ids)': False,
+            'SQLite WHERE clause specifying feature metadata criteria that '
+            'must be met to be included in the filtered feature table. If '
+            'not provided, all features in `metadata` that are also in the '
+            'feature table will be retained. (where)': '',
+            'The feature table from which features should be filtered.': '8',
+            'The maximum number of samples that a feature can be observed in '
+            'to be retained. If no value is provided this will default to '
+            'infinity (i.e., no maximum sample filter will be applied). '
+            '(max_samples)': '',
+            'The maximum total frequency that a feature can have to be '
+            'retained. If no value is provided this will default to infinity '
+            '(i.e., no maximum frequency filter will be applied). '
+            '(max_frequency)': '',
+            'The minimum number of samples that a feature must be observed '
+            'in to be retained. (min_samples)': '2',
+            'The minimum total frequency that a feature must have to be '
+            'retained. (min_frequency)': '0',
+            'qp-hide-metadata': 'metadata',
+            'qp-hide-method': 'filter_features',
+            'qp-hide-paramIf true, the features selected by `metadata` or '
+            '`where` parameters will be excluded from the filtered table '
+            'instead of being retained. (exclude_ids)': 'exclude_ids',
+            'qp-hide-paramSQLite WHERE clause specifying feature metadata '
+            'criteria that must be met to be included in the filtered '
+            'feature table. If not provided, all features in `metadata` '
+            'that are also in the feature table will be retained. '
+            '(where)': 'where',
+            'qp-hide-paramThe feature table from which features should be '
+            'filtered.': 'table',
+            'qp-hide-paramThe maximum number of samples that a feature can '
+            'be observed in to be retained. If no value is provided this will '
+            'default to infinity (i.e., no maximum sample filter will be '
+            'applied). (max_samples)': 'max_samples',
+            'qp-hide-paramThe maximum total frequency that a feature can '
+            'have to be retained. If no value is provided this will default '
+            'to infinity (i.e., no maximum frequency filter will be applied). '
+            '(max_frequency)': 'max_frequency',
+            'qp-hide-paramThe minimum number of samples that a feature must '
+            'be observed in to be retained. (min_samples)': 'min_samples',
+            'qp-hide-paramThe minimum total frequency that a feature must '
+            'have to be retained. (min_frequency)': 'min_frequency',
+            'qp-hide-plugin': 'feature-table'}
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'Filter features from table'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        self.assertEqual(msg, '')
+        self.assertTrue(success)
+        self.assertEqual(ainfo[0].files, [(
+            join(out_dir, 'filter_features', 'filtered_table',
+                 'feature-table.biom'), 'biom')])
+        self.assertEqual(ainfo[0].artifact_type, 'BIOM')
+        self.assertEqual(ainfo[0].output_name, 'filtered_table')
+
+    def test_filter_features_failure(self):
+        params = {
+            'If true, the features selected by `metadata` or `where` '
+            'parameters will be excluded from the filtered table instead of '
+            'being retained. (exclude_ids)': False,
+            'SQLite WHERE clause specifying feature metadata criteria that '
+            'must be met to be included in the filtered feature table. If '
+            'not provided, all features in `metadata` that are also in the '
+            'feature table will be retained. (where)': '',
+            'The feature table from which features should be filtered.': '8',
+            'The maximum number of samples that a feature can be observed in '
+            'to be retained. If no value is provided this will default to '
+            'infinity (i.e., no maximum sample filter will be applied). '
+            '(max_samples)': '',
+            'The maximum total frequency that a feature can have to be '
+            'retained. If no value is provided this will default to infinity '
+            '(i.e., no maximum frequency filter will be applied). '
+            '(max_frequency)': '',
+            'The minimum number of samples that a feature must be observed '
+            'in to be retained. (min_samples)': '100000000',
+            'The minimum total frequency that a feature must have to be '
+            'retained. (min_frequency)': '0',
+            'qp-hide-metadata': 'metadata',
+            'qp-hide-method': 'filter_features',
+            'qp-hide-paramIf true, the features selected by `metadata` or '
+            '`where` parameters will be excluded from the filtered table '
+            'instead of being retained. (exclude_ids)': 'exclude_ids',
+            'qp-hide-paramSQLite WHERE clause specifying feature metadata '
+            'criteria that must be met to be included in the filtered '
+            'feature table. If not provided, all features in `metadata` '
+            'that are also in the feature table will be retained. '
+            '(where)': 'where',
+            'qp-hide-paramThe feature table from which features should be '
+            'filtered.': 'table',
+            'qp-hide-paramThe maximum number of samples that a feature can '
+            'be observed in to be retained. If no value is provided this will '
+            'default to infinity (i.e., no maximum sample filter will be '
+            'applied). (max_samples)': 'max_samples',
+            'qp-hide-paramThe maximum total frequency that a feature can '
+            'have to be retained. If no value is provided this will default '
+            'to infinity (i.e., no maximum frequency filter will be applied). '
+            '(max_frequency)': 'max_frequency',
+            'qp-hide-paramThe minimum number of samples that a feature must '
+            'be observed in to be retained. (min_samples)': 'min_samples',
+            'qp-hide-paramThe minimum total frequency that a feature must '
+            'have to be retained. (min_frequency)': 'min_frequency',
+            'qp-hide-plugin': 'feature-table'}
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'Filter features from table'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        self.assertEqual(
+            msg, 'The resulting table is empty, please review your parameters')
+        self.assertFalse(success)
 
     def test_metrics(self):
         pm = PluginManager()

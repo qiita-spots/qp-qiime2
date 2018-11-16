@@ -196,6 +196,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
     biom_fp = None
     tree_fp = None
     tree_fp_check = False
+    command_has_where_statement = False
     for k in list(parameters):
         if k in parameters and k.startswith(label):
             key = parameters.pop(k)
@@ -244,6 +245,8 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     return False, None, msg
                 q2inputs['metadata'] = (val, val)
             else:
+                if key == 'where':
+                    command_has_where_statement = True
                 if val in ('', 'None'):
                     continue
 
@@ -264,6 +267,11 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             # qp-hide-metadata-field
             key = parameters.pop(k)
             q2inputs[key] = ('', '')
+
+    # if the command_has_where_statement and is not in the q2inputs we need to
+    # remove the metadata file
+    if command_has_where_statement and 'metadata' in q2inputs:
+        q2inputs.pop('metadata')
 
     # if we are here, we need to use the internal tree from the artifact
     if tree_fp_check:
@@ -332,6 +340,13 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                 if biom_fp is not None:
                     fin = load_table(biom_fp)
                     fout = load_table(fp)
+
+                    # making sure that the resulting biom is not empty
+                    if fout.shape == (0, 0):
+                        msg = ('The resulting table is empty, please review '
+                               'your parameters')
+                        return False, None, msg
+
                     metadata = {
                         i: fin.metadata(i, axis='observation')
                         for i in fout.ids(axis='observation')}
