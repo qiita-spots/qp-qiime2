@@ -6,7 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # -----------------------------------------------------------------------------
 
-from os import mkdir, listdir
+from os import mkdir, listdir, chmod
 from os.path import join, exists, basename
 from shutil import copyfile
 
@@ -334,6 +334,9 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                        'files: "%s"' % ', '.join(files))
                 return False, None, msg
             fp = join(aout, files[0])
+            # making sure the newly created file comes with the correct
+            # permissions for nginx
+            chmod(fp, 0o664)
 
             if q2artifact.type.name == 'FeatureTable':
                 # Let's read the observation metadata if exists in the input
