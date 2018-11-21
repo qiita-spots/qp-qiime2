@@ -7,7 +7,7 @@
 # -----------------------------------------------------------------------------
 
 from unittest import main
-from os import remove
+from os import remove, stat
 from shutil import rmtree
 from tempfile import mkdtemp
 from json import dumps
@@ -487,11 +487,15 @@ class qiime2Tests(PluginTestCase):
         success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
         self.assertEqual(msg, '')
         self.assertTrue(success)
-        self.assertEqual(ainfo[0].files, [(
-            join(out_dir, 'alpha', 'alpha_diversity', 'alpha-diversity.tsv'),
-            'plain_text')])
+        exp_fp = join(out_dir, 'alpha', 'alpha_diversity',
+                      'alpha-diversity.tsv')
+        self.assertEqual(ainfo[0].files, [(exp_fp, 'plain_text')])
         self.assertEqual(ainfo[0].artifact_type, 'alpha_vector')
         self.assertEqual(ainfo[0].output_name, 'alpha_diversity')
+
+        # let's test for file permissions
+        obs = oct(stat(exp_fp).st_mode)[-3:]
+        self.assertEqual(obs, '664')
 
     def test_alpha_phylogenetic(self):
         params = {
