@@ -196,7 +196,6 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
     biom_fp = None
     tree_fp = None
     tree_fp_check = False
-    command_has_where_statement = False
     for k in list(parameters):
         if k in parameters and k.startswith(label):
             key = parameters.pop(k)
@@ -245,21 +244,27 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     return False, None, msg
                 q2inputs['metadata'] = (val, val)
             else:
-                if key == 'where':
-                    command_has_where_statement = True
                 if val in ('', 'None'):
                     continue
 
                 mkey = method_params[key]
-                if mkey.view_type is not mkey.NOVALUE:
-                    val = mkey.view_type(val)
-                elif val not in mkey.qiime_type:
-                    val = mkey.qiime_type.decode(val)
+                # users can only select one value so if the view_type is set
+                # we will not convert
+                if mkey.view_type is not set:
+                    if mkey.view_type is not mkey.NOVALUE:
+                        val = mkey.view_type(val)
+                    elif val not in mkey.qiime_type:
+                        val = mkey.qiime_type.decode(val)
 
                 # let's bring back the original name of these parameters
                 value_pair = (q2method, key)
                 if (q2plugin == 'diversity' and value_pair in RENAME_COMMANDS):
                     val = RENAME_COMMANDS[value_pair][val]
+
+                # if the view_type is set we need to convert to an actual
+                # set
+                if mkey.view_type is set:
+                    val = {val}
                 q2params[key] = val
         elif k in ('qp-hide-metadata', 'qp-hide-taxonomy'):
             # remember, if we need metadata, we will always have
@@ -268,9 +273,14 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             key = parameters.pop(k)
             q2inputs[key] = ('', '')
 
-    # if the command_has_where_statement and is not in the q2inputs we need to
-    # remove the metadata file
-    if command_has_where_statement and 'metadata' in q2inputs:
+    # if 'metadata' is in q2inputs but 'where' exist and is empty in q2params,
+    # remove the parameter metadata
+    # NOTE: AFAIK there is no way to differentiate between sample and prep
+    #       metadata in Q2 so the need to remove for filter_features
+
+    if ('filter_features' == q2method or (
+            'metadata' in q2inputs and ('where' in q2params and
+                                        not q2params['where']))):
         q2inputs.pop('metadata')
 
     # if we are here, we need to use the internal tree from the artifact

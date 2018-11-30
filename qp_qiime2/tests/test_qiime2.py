@@ -251,6 +251,55 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(ainfo[0].artifact_type, 'distance_matrix')
         self.assertEqual(ainfo[0].output_name, 'distance_matrix')
 
+    def test_alpha_rarefaction(self):
+        params = {
+            'Feature table to compute rarefaction curves from.': '8',
+            'Phylogenetic tree': join(
+                dirname(realpath(__file__)), 'prune_97_gg_13_8.tre'),
+            'The maximum rarefaction depth. Must be greater than min_depth. '
+            '(max_depth)': '1000',
+            'The metrics to be measured. By default computes observed_otus, '
+            'shannon, and if phylogeny is provided, faith_pd. '
+            '(metrics)': "Faith's Phylogenetic Diversity",
+            'The minimum rarefaction depth. (min_depth)': u'1',
+            'The number of rarefaction depths to include between min_depth '
+            'and max_depth. (steps)': '10',
+            'The number of rarefied feature tables to compute at each step. '
+            '(iterations)': '10',
+            'qp-hide-metadata': 'metadata',
+            'qp-hide-method': 'alpha_rarefaction',
+            'qp-hide-paramFeature table to compute rarefaction curves '
+            'from.': 'table',
+            'qp-hide-paramPhylogenetic tree': 'phylogeny',
+            'qp-hide-paramThe maximum rarefaction depth. Must be greater '
+            'than min_depth. (max_depth)': 'max_depth',
+            'qp-hide-paramThe metrics to be measured. By default computes '
+            'observed_otus, shannon, and if phylogeny is provided, faith_pd. '
+            '(metrics)': u'metrics',
+            'qp-hide-paramThe minimum rarefaction depth. '
+            '(min_depth)': 'min_depth',
+            'qp-hide-paramThe number of rarefaction depths to include '
+            'between min_depth and max_depth. (steps)': 'steps',
+            'qp-hide-paramThe number of rarefied feature tables to compute '
+            'at each step. (iterations)': 'iterations',
+            'qp-hide-plugin': 'diversity'}
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'Alpha rarefaction curves'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        self.assertEqual(msg, '')
+        self.assertTrue(success)
+        exp = [(join(out_dir, 'alpha_rarefaction',
+               'visualization.qzv'), 'qzv')]
+        self.assertEqual(ainfo[0].files, exp)
+        self.assertEqual(ainfo[0].artifact_type, 'q2_visualization')
+
     def test_metadata_field(self):
         # as we don't have a distance matrix, we will process one first
         params = {
@@ -624,7 +673,8 @@ class qiime2Tests(PluginTestCase):
             'SQLite WHERE clause specifying sample metadata criteria that '
             'must be met to be included in the filtered feature table. If '
             'not provided, all samples in `metadata` that are also in the '
-            'feature table will be retained. (where)': '',
+            'feature table will be retained. '
+            '(where)': '"anonymized_name" = "SKB8"',
             'The feature table from which samples should be filtered.': '8',
             'The maximum number of features that a sample can have to be '
             'retained. If no value is provided this will default to infinity '
