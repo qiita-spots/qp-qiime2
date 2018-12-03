@@ -250,7 +250,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                 mkey = method_params[key]
                 # users can only select one value so if the view_type is set
                 # we will not convert
-                if mkey.view_type is not set:
+                if mkey.view_type not in (set, str):
                     if mkey.view_type is not mkey.NOVALUE:
                         val = mkey.view_type(val)
                     elif val not in mkey.qiime_type:

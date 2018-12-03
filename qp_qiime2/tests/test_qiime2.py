@@ -300,6 +300,66 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(ainfo[0].files, exp)
         self.assertEqual(ainfo[0].artifact_type, 'q2_visualization')
 
+    def test_sample_classifier_saplit_table(self):
+        # We care about the command running rather the successful creating an
+        # output. Additionally, we don't have enough samples in the test
+        # dataset to actually run any classifiers so we'll go for failure
+        params = {
+            'Evenly stratify training and test data among metadata categories.'
+            ' If True, all values in column must match at least two samples. '
+            '(stratify)': True,
+            'Feature table containing all features that should be used for '
+            'target prediction.': '8',
+            'Fraction of input samples to exclude from training set and use '
+            'for classifier testing. (test_size)': '0.2',
+            'How to handle missing samples in metadata. "error" will fail if '
+            'missing samples are detected. "ignore" will cause the feature '
+            'table and metadata to be filtered, so that only samples found '
+            'in both files are retained. (missing_samples)': 'ignore',
+            'Metadata column to use': 'taxon_id',
+            'Seed used by random number generator. (random_state)': '',
+            'qp-hide-method': 'split_table',
+            'qp-hide-paramEvenly stratify training and test data among '
+            'metadata categories. If True, all values in column must match '
+            'at least two samples. (stratify)': 'stratify',
+            'qp-hide-paramFeature table containing all features that should '
+            'be used for target prediction.': 'table',
+            'qp-hide-paramFraction of input samples to exclude from training '
+            'set and use for classifier testing. (test_size)': 'test_size',
+            'qp-hide-paramHow to handle missing samples in metadata. "error" '
+            'will fail if missing samples are detected. "ignore" will cause '
+            'the feature table and metadata to be filtered, so that only '
+            'samples found in both files are retained. '
+            '(missing_samples)': 'missing_samples',
+            'qp-hide-paramMetadata column to use': 'qp-hide-metadata-field',
+            'qp-hide-paramSeed used by random number generator. '
+            '(random_state)': 'random_state',
+            'qp-hide-plugin': 'sample-classifier'}
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'Split a feature table into training '
+             'and testing sets.'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        self.assertEqual(
+            msg, 'Error running: You have chosen to predict a metadata column '
+            'that contains one or more values that match only one sample. For '
+            'proper stratification of data into training and test sets, each '
+            'class (value) must contain at least two samples. This is a '
+            'requirement for classification problems, but stratification can '
+            'be disabled for regression by setting stratify=False. '
+            'Alternatively, remove all samples that bear a unique class '
+            'label for your chosen metadata column. Note that disabling '
+            'stratification can negatively impact predictive accuracy for '
+            'small data sets.')
+        self.assertFalse(success)
+        self.assertIsNone(ainfo)
+
     def test_metadata_field(self):
         # as we don't have a distance matrix, we will process one first
         params = {
