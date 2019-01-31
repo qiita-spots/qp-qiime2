@@ -53,7 +53,7 @@ script:
   - nosetests --with-doctest --with-coverage --cover-package=qp_qiime2
   - flake8 qp_qiime2 setup.py scripts
 addons:
-  postgresql: "9.3"
+  postgresql: "9.5"
 services:
   - redis-server
   - postgresql
