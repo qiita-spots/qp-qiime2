@@ -45,9 +45,10 @@ before_script:
   - sleep 20 # give enough time to the webserver to start
 script:
   - source activate qiime2
-  # Let's try registering the qtp-diversity types plugin manually:
-  - start_diversity_types https://localhost:21174 register ignored
+  # Let's try registering the qtp-diversity types plugin manually
+  - qiime info
   - start_diversity_types --help
+  - start_diversity_types https://localhost:21174 register ignored
   - start_visualization_types https://localhost:21174 register ignored
   # Remove the SubjectAltNameWarning from the output
   - export PYTHONWARNINGS="ignore:Certificate for localhost has no \`subjectAltName\`"
