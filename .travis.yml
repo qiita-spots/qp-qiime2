@@ -37,14 +37,14 @@ install:
   - pip install https://github.com/qiita-spots/qtp-visualization/archive/master.zip
   - configure_visualization_types --env-script "source activate qiime2" --server-cert $QIITA_SERVER_CERT
   - travis_retry pip install .
+  - configure_qiime2 --env-script "source activate qiime2" --server-cert $QIITA_SERVER_CERT
 before_script:
   - source activate qiita
   - qiita plugins update
   - qiita pet webserver --no-build-docs start --master &
-  - sleep 10 # give enough time to the webserver to start
+  - sleep 20 # give enough time to the webserver to start
 script:
   - source activate qiime2
-  - configure_qiime2 --env-script "source activate qiime2" --server-cert $QIITA_SERVER_CERT
   # Let's try registering the qtp-diversity types plugin manually:
   - start_diversity_types https://localhost:21174 register ignored
   - start_visualization_types https://localhost:21174 register ignored
