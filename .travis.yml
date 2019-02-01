@@ -48,6 +48,7 @@ script:
   # Let's try registering the qtp-diversity types plugin manually
   - qiime info
   - start_diversity_types --help
+  - python -c "from qtp_diversity import plugin; plugin('https://localhost:21174', 'register', 'ignored')"
   - start_diversity_types https://localhost:21174 register ignored
   - start_visualization_types https://localhost:21174 register ignored
   # Remove the SubjectAltNameWarning from the output
