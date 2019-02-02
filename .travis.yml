@@ -32,12 +32,14 @@ install:
   - pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
   # we are going to use the same qiime2 environment to install qtp-diversity
   - pip install https://github.com/qiita-spots/qtp-diversity/archive/master.zip
-  - configure_diversity_types --env-script "source activate qiime2" --server-cert $QIITA_SERVER_CERT
+  - ls ~/virtualenv/python2.7/bin/activate
+  - conda info --envs
+  - configure_diversity_types --env-script "source ~/virtualenv/python2.7/bin/activate && source activate qiime2" --server-cert $QIITA_SERVER_CERT
   # we are going to use the same qiime2 environment to install qtp-visualization
   - pip install https://github.com/qiita-spots/qtp-visualization/archive/master.zip
-  - configure_visualization_types --env-script "source activate qiime2" --server-cert $QIITA_SERVER_CERT
+  - configure_visualization_types --env-script "source ~/virtualenv/python2.7/bin/activate && source activate qiime2" --server-cert $QIITA_SERVER_CERT
   - travis_retry pip install .
-  - configure_qiime2 --env-script "source activate qiime2" --server-cert $QIITA_SERVER_CERT
+  - configure_qiime2 --env-script "source ~/virtualenv/python2.7/bin/activate && source activate qiime2" --server-cert $QIITA_SERVER_CERT
 before_script:
   - source activate qiita
   - qiita plugins update
@@ -46,8 +48,9 @@ before_script:
 script:
   - source activate qiime2
   # Let's try registering the qtp-diversity types plugin manually
+  - conda info --envs
   - start_diversity_types https://localhost:21174 register ignored
-  - bash -c 'source activate qiime2 && start_diversity_types "https://localhost:21174" "register" "ignored"'
+  - bash -c 'source ~/virtualenv/python2.7/bin/activate && source activate qiime2 && start_diversity_types "https://localhost:21174" "register" "ignored"'
   - start_visualization_types https://localhost:21174 register ignored
   # Remove the SubjectAltNameWarning from the output
   - export PYTHONWARNINGS="ignore:Certificate for localhost has no \`subjectAltName\`"
