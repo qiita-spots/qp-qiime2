@@ -45,6 +45,8 @@ before_script:
   - sleep 10 # give enough time to the webserver to start
 script:
   - source activate qiime2
+  - qiime info
+  - start_diversity_types --help
   # Let's try registering the qtp-diversity types plugin manually
   - start_diversity_types https://localhost:21174 register ignored
   - start_visualization_types https://localhost:21174 register ignored
