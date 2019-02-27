@@ -40,10 +40,10 @@ before_script:
   - source activate qiita
   - qiita plugins update
   - qiita pet webserver --no-build-docs start --master &
-  - sleep 10 # give enough time to the webserver to start
+  - sleep 30 # give enough time to the webserver to start
 script:
   - source activate qiime2
-  - configure_qiime2 --env-script "source activate qiime2" --server-cert $QIITA_SERVER_CERT
+  - configure_qiime2 --env-script "export PATH="/home/travis/miniconda3/bin:$PATH"; source activate qiime2" --server-cert $QIITA_SERVER_CERT
   - start_diversity_types https://localhost:21174 register ignored
   - start_visualization_types https://localhost:21174 register ignored
   - qiime info
