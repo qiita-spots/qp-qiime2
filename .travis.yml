@@ -18,9 +18,6 @@ install:
   # as we don't need redbiom we are going to use the default redis port
   - sed 's/PORT = 7777/PORT = 6379/g' $HOME/miniconda3/envs/qiita/lib/python3.6/site-packages/qiita_core/support_files/config_test.cfg > config_test.cfg
   - export QIITA_CONFIG_FP=${PWD}/config_test.cfg
-  - export QIITA_SERVER_CERT=$HOME/miniconda3/envs/qiita/lib/python3.6/site-packages/qiita_core/support_files/server.crt
-  - ls $QIITA_SERVER_CERT
-  - echo $QIITA_SERVER_CERT
   - qiita-env make --no-load-ontologies
   - source deactivate
   # installing this plugin
@@ -35,6 +32,9 @@ install:
   # we are going to use the same qiime2 environment to install qtp-visualization
   - pip install https://github.com/qiita-spots/qtp-visualization/archive/master.zip
   - travis_retry pip install .
+  - export QIITA_SERVER_CERT=$HOME/miniconda3/envs/qiita/lib/python3.6/site-packages/qiita_core/support_files/server.crt
+  - ls $QIITA_SERVER_CERT
+  - echo $QIITA_SERVER_CERT
   - configure_diversity_types --env-script "export PATH=$HOME/miniconda3/bin/:$PATH; . activate qiime2" --server-cert $QIITA_SERVER_CERT
   - configure_visualization_types --env-script "export PATH=$HOME/miniconda3/bin/:$PATH; . activate qiime2" --server-cert $QIITA_SERVER_CERT
   - configure_qiime2 --env-script "export PATH=$HOME/miniconda3/bin/:$PATH; . activate qiime2" --server-cert $QIITA_SERVER_CERT
