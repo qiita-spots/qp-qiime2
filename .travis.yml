@@ -45,6 +45,8 @@ before_script:
   - qiita plugins update
   - qiita pet webserver --no-build-docs start --master &
   - sleep 10 # give enough time to the webserver to start
+  - source activate qiita_client
+  - sleep 5
 script:
   - source activate qiime2
   # Let's try registering the qtp-diversity types plugin manually
