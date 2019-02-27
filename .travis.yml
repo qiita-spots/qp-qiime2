@@ -14,8 +14,7 @@ install:
   - travis_retry conda create -q --yes -n qiita python=3.6 pip libgfortran numpy
   - source activate qiita
   - pip install sphinx sphinx-bootstrap-theme coveralls
-  # - pip install https://github.com/biocore/qiita/archive/dev.zip --no-binary redbiom
-  - pip install https://github.com/antgonza/qiita/archive/cleanup.zip --no-binary redbiom
+  - pip install https://github.com/biocore/qiita/archive/dev.zip --no-binary redbiom
   # as we don't need redbiom we are going to use the default redis port
   - sed 's/PORT = 7777/PORT = 6379/g' $HOME/miniconda3/envs/qiita/lib/python3.6/site-packages/qiita_core/support_files/config_test.cfg > config_test.cfg
   - export QIITA_CONFIG_FP=${PWD}/config_test.cfg
@@ -31,12 +30,12 @@ install:
   - pip install https://github.com/antgonza/qiita_client/archive/warnings-onsleep.zip
   # we are going to use the same qiime2 environment to install qtp-diversity
   - pip install https://github.com/qiita-spots/qtp-diversity/archive/master.zip
-  - configure_diversity_types --env-script "source ~/virtualenv/python3.6/bin/activate; source activate qiime2" --server-cert $QIITA_SERVER_CERT
+  - configure_diversity_types --env-script "export PATH="/home/travis/miniconda3/bin:$PATH"; source activate qiime2" --server-cert $QIITA_SERVER_CERT
   # we are going to use the same qiime2 environment to install qtp-visualization
   - pip install https://github.com/qiita-spots/qtp-visualization/archive/master.zip
-  - configure_visualization_types --env-script "export PATH=/home/travis/miniconda3/bin:$PATH; source activate qiime2" --server-cert $QIITA_SERVER_CERT
+  - configure_visualization_types --env-script "export PATH="/home/travis/miniconda3/bin:$PATH";source activate qiime2" --server-cert $QIITA_SERVER_CERT
   - travis_retry pip install .
-  - configure_qiime2 --env-script "export PATH=/home/travis/miniconda3/bin:$PATH; source activate qiime2" --server-cert $QIITA_SERVER_CERT
+  - configure_qiime2 --env-script "export PATH="/home/travis/miniconda3/bin:$PATH"; source activate qiime2" --server-cert $QIITA_SERVER_CERT
 before_script:
   - source activate qiita
   - qiita plugins update
@@ -44,6 +43,9 @@ before_script:
   - sleep 10 # give enough time to the webserver to start
 script:
   - source activate qiime2
+  - configure_qiime2 --env-script "source activate qiime2" --server-cert $QIITA_SERVER_CERT
+  - start_diversity_types https://localhost:21174 register ignored
+  - start_visualization_types https://localhost:21174 register ignored
   - qiime info
   # Remove the SubjectAltNameWarning from the output
   - export PYTHONWARNINGS="ignore:Certificate for localhost has no \`subjectAltName\`"
