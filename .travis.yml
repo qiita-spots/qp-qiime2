@@ -14,7 +14,8 @@ install:
   - travis_retry conda create -q --yes -n qiita python=3.6 pip libgfortran numpy
   - source activate qiita
   - pip install sphinx sphinx-bootstrap-theme coveralls
-  - pip install https://github.com/biocore/qiita/archive/dev.zip --no-binary redbiom
+  # - pip install https://github.com/biocore/qiita/archive/dev.zip --no-binary redbiom
+  - pip install https://github.com/antgonza/qiita/archive/cleanup.zip --no-binary redbiom
   # as we don't need redbiom we are going to use the default redis port
   - sed 's/PORT = 7777/PORT = 6379/g' $HOME/miniconda3/envs/qiita/lib/python3.6/site-packages/qiita_core/support_files/config_test.cfg > config_test.cfg
   - export QIITA_CONFIG_FP=${PWD}/config_test.cfg
