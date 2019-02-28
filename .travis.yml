@@ -43,7 +43,9 @@ before_script:
   - qiita plugins update
   - qiita pet webserver --no-build-docs start --master &
   - sleep 40 # give enough time to the webserver to start
-  - bash -c 'export PATH=$HOME/miniconda3/bin/:$PATH; . activate qiime2; start_diversity_types "https://localhost:21174" "register" "ignored"'
+  - source deactivate
+  - source activate qiime2
+  - start_diversity_types "https://localhost:21174" "register" "ignored"
 script:
   - source activate qiime2
   - start_diversity_types https://localhost:21174 register ignored
