@@ -1,6 +1,6 @@
+dist: precise
 language: python
-sudo: required
-group: deprecated-2017Q4
+sudo: false
 env:
   - PYTHON_VERSION=3.6
 before_install:
