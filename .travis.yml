@@ -47,10 +47,10 @@ before_script:
   - source activate qiime2
     #- start_diversity_types "https://127.0.0.1:21174" "register" "ignored"
 script:
-    #- source activate qiime2
+  - source activate qiime2
     #- start_diversity_types https://127.0.0.1:21174 register ignored
-    #- start_visualization_types https://127.0.0.1:21174 register ignored
-    #- qiime info
+  - start_visualization_types https://127.0.0.1:21174 register ignored
+  - qiime info
   # Remove the SubjectAltNameWarning from the output
   #- export PYTHONWARNINGS="ignore:Certificate for localhost has no \`subjectAltName\`"
   #- nosetests --with-doctest --with-coverage --cover-package=qp_qiime2
