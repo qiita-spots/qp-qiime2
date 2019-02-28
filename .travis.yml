@@ -40,10 +40,10 @@ install:
   - configure_qiime2 --env-script "export PATH=$HOME/miniconda3/bin/:$PATH; . activate qiime2" --server-cert $QIITA_SERVER_CERT
 before_script:
   - source activate qiita
-  - bash -c 'export QIITA_SERVER_CERT=$HOME/miniconda3/envs/qiita/lib/python3.6/site-packages/qiita_core/support_files/server.crt; export PATH=$HOME/miniconda3/bin/:$PATH; source activate qiime2; start_diversity_types "https://localhost:21174" "register" "ignored"'
   - qiita plugins update
   - qiita pet webserver --no-build-docs start --master &
   - sleep 40 # give enough time to the webserver to start
+  - bash -c 'export PATH=$HOME/miniconda3/bin/:$PATH; . activate qiime2; start_diversity_types "https://localhost:21174" "register" "ignored"'
 script:
   - source activate qiime2
   - start_diversity_types https://localhost:21174 register ignored
