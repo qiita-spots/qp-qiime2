@@ -42,19 +42,19 @@ before_script:
   - source activate qiita
   - qiita plugins update
   - qiita pet webserver --no-build-docs start --master &
-  - sleep 40 # give enough time to the webserver to start
-  - source deactivate
-  - source activate qiime2
-  - start_diversity_types "https://127.0.0.1:21174" "register" "ignored"
+    #- sleep 40 # give enough time to the webserver to start
+    #- source deactivate
+    #- source activate qiime2
+    #- start_diversity_types "https://127.0.0.1:21174" "register" "ignored"
 script:
-  - source activate qiime2
-  - start_diversity_types https://127.0.0.1:21174 register ignored
-  - start_visualization_types https://127.0.0.1:21174 register ignored
-  - qiime info
+    #- source activate qiime2
+    #- start_diversity_types https://127.0.0.1:21174 register ignored
+    #- start_visualization_types https://127.0.0.1:21174 register ignored
+    #- qiime info
   # Remove the SubjectAltNameWarning from the output
-  - export PYTHONWARNINGS="ignore:Certificate for localhost has no \`subjectAltName\`"
-  - nosetests --with-doctest --with-coverage --cover-package=qp_qiime2
-  - flake8 qp_qiime2 setup.py scripts
+  #- export PYTHONWARNINGS="ignore:Certificate for localhost has no \`subjectAltName\`"
+  #- nosetests --with-doctest --with-coverage --cover-package=qp_qiime2
+  #- flake8 qp_qiime2 setup.py scripts
 addons:
   postgresql: "9.5"
 services:
