@@ -48,6 +48,7 @@ before_script:
   #- qiita pet webserver --no-build-docs start --master &
   - qiita pet webserver --no-build-docs start &
   - sleep 40 # give enough time to the webserver to start
+  - ps -A | grep webserver
   - source deactivate
   - source activate qiime2
     #- start_diversity_types "https://127.0.0.1:21174" "register" "ignored"
