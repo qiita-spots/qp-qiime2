@@ -46,9 +46,10 @@ before_script:
   # not starting because master should perform a test to verify qstat is
   # present; it won't be on a Travis CI build.
   #- qiita pet webserver --no-build-docs start --master &
-  - qiita pet webserver --no-build-docs start &
+  - qiita pet webserver --no-build-docs start >o 2>e &
   - sleep 40 # give enough time to the webserver to start
-  - ps -A | grep webserver
+  - cat o
+  - cat e
   - source deactivate
   - source activate qiime2
     #- start_diversity_types "https://127.0.0.1:21174" "register" "ignored"
