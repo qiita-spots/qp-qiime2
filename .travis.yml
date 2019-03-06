@@ -10,7 +10,7 @@ before_install:
   - export PATH=/home/travis/miniconda3/bin:$PATH
   - conda update --yes conda
 install:
-  # installing Qiita in its own python 3.6 environment
+  # installing Qiita in it's own environment python3.6
   - travis_retry conda create -q --yes -n qiita python=3.6 pip libgfortran numpy
   - source activate qiita
   - pip install sphinx sphinx-bootstrap-theme coveralls
@@ -41,14 +41,22 @@ install:
 before_script:
   - source activate qiita
   - qiita plugins update
-  - qiita pet webserver --no-build-docs start &
-  # give enough time to the webserver to start
-  - sleep 40
+  # prior tests confirm webserver is not starting, as connection is refused.
+  # 'master' flag is not used in qtp-target-gene plugin. Perhaps system is
+  # not starting because master should perform a test to verify qstat is
+  # present; it won't be on a Travis CI build.
+  #- qiita pet webserver --no-build-docs start --master &
+  - qiita pet webserver --no-build-docs start >o 2>e &
+  - sleep 40 # give enough time to the webserver to start
+  - cat o
+  - cat e
   - source deactivate
   - source activate qiime2
+    #- start_diversity_types "https://127.0.0.1:21174" "register" "ignored"
 script:
   - source activate qiime2
-  #- start_diversity_types https://localhost:21174 register ignored
+    #- start_diversity_types https://127.0.0.1:21174 register ignored
+    #- start_visualization_types https://127.0.0.1:21174 register ignored
   - start_visualization_types https://localhost:21174 register ignored
   - qiime info
   # Remove the SubjectAltNameWarning from the output
