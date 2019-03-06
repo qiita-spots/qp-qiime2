@@ -61,8 +61,8 @@ script:
   - start_diversity_types https://localhost:21174 register ignored
   - qiime info
   # Remove the SubjectAltNameWarning from the output
-  #- export PYTHONWARNINGS="ignore:Certificate for localhost has no \`subjectAltName\`"
-  #- nosetests --with-doctest --with-coverage --cover-package=qp_qiime2
+  - export PYTHONWARNINGS="ignore:Certificate for localhost has no \`subjectAltName\`"
+  - nosetests --with-doctest --with-coverage --cover-package=qp_qiime2
   - flake8 qp_qiime2 setup.py scripts
 addons:
   postgresql: "9.5"
