@@ -31,6 +31,8 @@ install:
   - pip install https://github.com/qiita-spots/qtp-diversity/archive/master.zip
   # we are going to use the same qiime2 environment to install qtp-visualization
   - pip install https://github.com/qiita-spots/qtp-visualization/archive/master.zip
+  # we are going to use qiita_files in this plugin
+  - pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
   - travis_retry pip install .
   - export QIITA_SERVER_CERT=$HOME/miniconda3/envs/qiita/lib/python3.6/site-packages/qiita_core/support_files/server.crt
   - ls $QIITA_SERVER_CERT
