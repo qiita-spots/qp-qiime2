@@ -28,6 +28,7 @@ from qp_qiime2.qp_qiime2 import (
 
 class qiime2Tests(PluginTestCase):
     def setUp(self):
+        PluginTestCase.setUpClass()
         # this will allow us to see the full errors
         self.maxDiff = None
 
