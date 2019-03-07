@@ -26,7 +26,7 @@ install:
   - rm qiime2-2019.1-py36-linux-conda.yml
   - source activate qiime2
   - pip install coveralls flake8
-  - pip install https://github.com/antgonza/qiita_client/archive/dev.zip
+  - pip install https://github.com/biocore/qiita/archive/dev.zip
   # we are going to use the same qiime2 environment to install qtp-diversity
   - pip install https://github.com/qiita-spots/qtp-diversity/archive/master.zip
   # we are going to use the same qiime2 environment to install qtp-visualization
@@ -35,8 +35,6 @@ install:
   - pip install https://github.com/qiita-spots/qiita-files/archive/master.zip
   - travis_retry pip install .
   - export QIITA_SERVER_CERT=$HOME/miniconda3/envs/qiita/lib/python3.6/site-packages/qiita_core/support_files/server.crt
-  - ls $QIITA_SERVER_CERT
-  - echo $QIITA_SERVER_CERT
   - configure_diversity_types --env-script "source ~/virtualenv/python2.7/bin/activate; export PATH=$HOME/miniconda3/bin/:$PATH; . activate qiime2" --server-cert $QIITA_SERVER_CERT
   - configure_visualization_types --env-script "source ~/virtualenv/python2.7/bin/activate; export PATH=$HOME/miniconda3/bin/:$PATH; . activate qiime2" --server-cert $QIITA_SERVER_CERT
   - configure_qiime2 --env-script "source ~/virtualenv/python2.7/bin/activate; export PATH=$HOME/miniconda3/bin/:$PATH; . activate qiime2" --server-cert $QIITA_SERVER_CERT
@@ -48,19 +46,12 @@ before_script:
   # not starting because master should perform a test to verify qstat is
   # present; it won't be on a Travis CI build.
   #- qiita pet webserver --no-build-docs start --master &
-  - qiita pet webserver --no-build-docs start >o 2>e &
-  - sleep 40 # give enough time to the webserver to start
-  - cat o
-  - cat e
-  - source deactivate
-  - source activate qiime2
-    #- start_diversity_types "https://127.0.0.1:21174" "register" "ignored"
+  - qiita pet webserver --no-build-docs start &
+  - sleep 20 # give enough time to the webserver to start
 script:
   - source activate qiime2
-    #- start_diversity_types https://127.0.0.1:21174 register ignored
-    #- start_visualization_types https://127.0.0.1:21174 register ignored
-  - start_visualization_types https://localhost:21174 register ignored
   - start_diversity_types https://localhost:21174 register ignored
+  - start_visualization_types https://localhost:21174 register ignored
   - qiime info
   # Remove the SubjectAltNameWarning from the output
   - export PYTHONWARNINGS="ignore:Certificate for localhost has no \`subjectAltName\`"
