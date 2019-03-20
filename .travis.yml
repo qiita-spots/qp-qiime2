@@ -1,8 +1,8 @@
+dist: precise
 language: python
-sudo: required
-group: deprecated-2017Q4
+sudo: false
 env:
-  - PYTHON_VERSION=3.5
+  - PYTHON_VERSION=3.6
 before_install:
   - wget http://repo.continuum.io/miniconda/Miniconda3-3.7.3-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
@@ -10,50 +10,56 @@ before_install:
   - export PATH=/home/travis/miniconda3/bin:$PATH
   - conda update --yes conda
 install:
-  # installing Qiita in it's own environment python2.7
-  - travis_retry conda create -q --yes -n qiita python=2.7 pip nose flake8
-    pyzmq networkx pyparsing natsort mock future libgfortran
-    'pandas>=0.18' 'scipy>0.13.0' 'numpy>=1.7' 'h5py>=2.3.1'
+  # installing Qiita in it's own environment python3.6
+  - travis_retry conda create -q --yes -n qiita python=3.6 pip libgfortran numpy nginx
   - source activate qiita
   - pip install sphinx sphinx-bootstrap-theme coveralls
-  - pip install https://github.com/biocore/qiita/archive/dev.zip --process-dependency-links
+  - pip install https://github.com/biocore/qiita/archive/dev.zip --no-binary redbiom
   # as we don't need redbiom we are going to use the default redis port
-  - sed 's/PORT = 7777/PORT = 6379/g' $HOME/miniconda3/envs/qiita/lib/python2.7/site-packages/qiita_core/support_files/config_test.cfg > config_test.cfg
+  - sed 's/PORT = 7777/PORT = 6379/g' $HOME/miniconda3/envs/qiita/lib/python3.6/site-packages/qiita_core/support_files/config_test.cfg > config_test.cfg
   - export QIITA_CONFIG_FP=${PWD}/config_test.cfg
-  - export QIITA_SERVER_CERT=$HOME/miniconda3/envs/qiita/lib/python2.7/site-packages/qiita_core/support_files/server.crt
+  # starting nginx
+  - mkdir /home/travis/miniconda3/envs/qiita/var/run/nginx/
+  - nginx -c ${PWD}/qiita_pet/nginx_example.conf
   - qiita-env make --no-load-ontologies
   - source deactivate
   # installing this plugin
-  - wget -q https://raw.githubusercontent.com/qiime2/environment-files/master/latest/staging/qiime2-latest-py35-linux-conda.yml
-  - travis_retry conda env create -q -n qiime2 --file qiime2-latest-py35-linux-conda.yml
-  - rm qiime2-latest-py35-linux-conda.yml
+  - wget -q https://data.qiime2.org/distro/core/qiime2-2019.1-py36-linux-conda.yml
+  - travis_retry conda env create -q -n qiime2 --file qiime2-2019.1-py36-linux-conda.yml
+  - rm qiime2-2019.1-py36-linux-conda.yml
   - source activate qiime2
   - pip install coveralls flake8
-  - pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
+  - pip install https://github.com/antgonza/qiita_client/archive/warnings-onsleep.zip
   # we are going to use the same qiime2 environment to install qtp-diversity
   - pip install https://github.com/qiita-spots/qtp-diversity/archive/master.zip
-  - configure_diversity_types --env-script "source activate qiime2" --server-cert $QIITA_SERVER_CERT
   # we are going to use the same qiime2 environment to install qtp-visualization
   - pip install https://github.com/qiita-spots/qtp-visualization/archive/master.zip
-  - configure_visualization_types --env-script "source activate qiime2" --server-cert $QIITA_SERVER_CERT
   - travis_retry pip install .
+  - export QIITA_SERVER_CERT=$HOME/miniconda3/envs/qiita/lib/python3.6/site-packages/qiita_core/support_files/server.crt
+  - ls $QIITA_SERVER_CERT
+  - echo $QIITA_SERVER_CERT
+  - configure_diversity_types --env-script "source ~/virtualenv/python2.7/bin/activate; export PATH=$HOME/miniconda3/bin/:$PATH; . activate qiime2" --server-cert $QIITA_SERVER_CERT
+  - configure_visualization_types --env-script "source ~/virtualenv/python2.7/bin/activate; export PATH=$HOME/miniconda3/bin/:$PATH; . activate qiime2" --server-cert $QIITA_SERVER_CERT
+  - configure_qiime2 --env-script "source ~/virtualenv/python2.7/bin/activate; export PATH=$HOME/miniconda3/bin/:$PATH; . activate qiime2" --server-cert $QIITA_SERVER_CERT
 before_script:
   - source activate qiita
   - qiita plugins update
   - qiita pet webserver --no-build-docs start --master &
-  - sleep 10 # give enough time to the webserver to start
+  - sleep 40 # give enough time to the webserver to start
+  - source deactivate
+  - source activate qiime2
+  - start_diversity_types "https://127.0.0.1:21174" "register" "ignored"
 script:
   - source activate qiime2
-  - configure_qiime2 --env-script "source activate qiime2" --server-cert $QIITA_SERVER_CERT
-  # Let's try registering the qtp-diversity types plugin manually:
-  - start_diversity_types https://localhost:21174 register ignored
-  - start_visualization_types https://localhost:21174 register ignored
+  - start_diversity_types https://127.0.0.1:21174 register ignored
+  - start_visualization_types https://127.0.0.1:21174 register ignored
+  - qiime info
   # Remove the SubjectAltNameWarning from the output
   - export PYTHONWARNINGS="ignore:Certificate for localhost has no \`subjectAltName\`"
   - nosetests --with-doctest --with-coverage --cover-package=qp_qiime2
   - flake8 qp_qiime2 setup.py scripts
 addons:
-  postgresql: "9.3"
+  postgresql: "9.5"
 services:
   - redis-server
   - postgresql
