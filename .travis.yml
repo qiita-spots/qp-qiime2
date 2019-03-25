@@ -20,7 +20,9 @@ install:
   - export QIITA_CONFIG_FP=${PWD}/config_test.cfg
   # starting nginx
   - mkdir /home/travis/miniconda3/envs/qiita/var/run/nginx/
-  - nginx -c ${PWD}/qiita_pet/nginx_example.conf
+  - wget https://github.com/biocore/qiita/archive/dev.zip -O qiita-dev.zip
+  - unzip qiita-dev.zip
+  - nginx -c ${PWD}/qiita-dev/qiita_pet/nginx_example.conf
   - qiita-env make --no-load-ontologies
   - source deactivate
   # installing this plugin
