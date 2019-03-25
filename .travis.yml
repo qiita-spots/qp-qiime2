@@ -46,6 +46,7 @@ install:
 before_script:
   - source activate qiita
   - qiita plugins update
+  - pip install https://github.com/Supervisor/supervisor/archive/master.zip
   - supervisord -c ${PWD}/qiita-dev/qiita_pet/supervisor_example.conf
   - sleep 20 # give enough time to the webserver to start
   - source deactivate
