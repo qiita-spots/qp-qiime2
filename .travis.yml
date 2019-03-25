@@ -2,7 +2,7 @@ dist: precise
 language: python
 sudo: false
 env:
-  - PYTHON_VERSION=3.6
+  - PYTHON_VERSION=3.6 QIITA_CLIENT_DEBUG_LEVEL=DEBUG
 before_install:
   - wget http://repo.continuum.io/miniconda/Miniconda3-3.7.3-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
@@ -51,11 +51,11 @@ before_script:
   - sleep 20 # give enough time to the webserver to start
   - source deactivate
   - source activate qiime2
-  - start_diversity_types "https://127.0.0.1:8383" "register" "ignored"
+  - start_diversity_types "https://localhost:8383" "register" "ignored"
 script:
   - source activate qiime2
-  - start_diversity_types https://127.0.0.1:8383 register ignored
-  - start_visualization_types https://127.0.0.1:8383 register ignored
+  - start_diversity_types https://localhost:8383 register ignored
+  - start_visualization_types https://localhost:8383 register ignored
   - qiime info
   # Remove the SubjectAltNameWarning from the output
   - export PYTHONWARNINGS="ignore:Certificate for localhost has no \`subjectAltName\`"
