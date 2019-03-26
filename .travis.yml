@@ -30,6 +30,7 @@ install:
   - travis_retry conda env create -q -n qiime2 --file qiime2-2019.1-py36-linux-conda.yml
   - rm qiime2-2019.1-py36-linux-conda.yml
   - source activate qiime2
+  - qiime info
   - pip install coveralls flake8
   - pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
   # we are going to use the same qiime2 environment to install qtp-diversity
@@ -38,24 +39,19 @@ install:
   - pip install https://github.com/qiita-spots/qtp-visualization/archive/master.zip
   - travis_retry pip install .
   - export QIITA_SERVER_CERT=$HOME/miniconda3/envs/qiita/lib/python3.6/site-packages/qiita_core/support_files/server.crt
-  - ls $QIITA_SERVER_CERT
-  - echo $QIITA_SERVER_CERT
   - configure_diversity_types --env-script "source ~/virtualenv/python2.7/bin/activate; export PATH=$HOME/miniconda3/bin/:$PATH; . activate qiime2" --server-cert $QIITA_SERVER_CERT
   - configure_visualization_types --env-script "source ~/virtualenv/python2.7/bin/activate; export PATH=$HOME/miniconda3/bin/:$PATH; . activate qiime2" --server-cert $QIITA_SERVER_CERT
   - configure_qiime2 --env-script "source ~/virtualenv/python2.7/bin/activate; export PATH=$HOME/miniconda3/bin/:$PATH; . activate qiime2" --server-cert $QIITA_SERVER_CERT
 before_script:
   - source activate qiita
   - qiita plugins update
-  - pip install https://github.com/Supervisor/supervisor/archive/master.zip
   - supervisord -c ${PWD}/qiita-dev/qiita_pet/supervisor_example.conf
-  - sleep 20 # give enough time to the webserver to start
+  - sleep 10 # give enough time to the webserver to start
   - cat /tmp/supervisord.log
 script:
   - source activate qiime2
   - start_diversity_types https://localhost:8383 register ignored
   - start_visualization_types https://localhost:8383 register ignored
-  - cat /tmp/supervisord.log
-  - qiime info
   # Remove the SubjectAltNameWarning from the output
   - export PYTHONWARNINGS="ignore:Certificate for localhost has no \`subjectAltName\`"
   - nosetests --with-doctest --with-coverage --cover-package=qp_qiime2
