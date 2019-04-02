@@ -31,7 +31,7 @@ class qiime2Tests(PluginTestCase):
         # this will allow us to see the full errors
         self.maxDiff = None
 
-        plugin("https://localhost:21174", 'register', 'ignored')
+        plugin("https://localhost:8383", 'register', 'ignored')
         self._clean_up_files = []
 
         self.data = {
