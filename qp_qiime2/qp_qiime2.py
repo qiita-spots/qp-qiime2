@@ -222,18 +222,21 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                                'artifact.' % val)
                         return False, None, msg
                     analysis_id = ainfo['analysis']
-                    # at this stage in qiita we only have 2 types of artifacts:
-                    # biom / plain_text
-                    dt = method_inputs[key].qiime_type
-                    if Q2_QIITA_SEMANTIC_TYPE[dt].startswith('BIOM'):
-                        fpath = ainfo['files']['biom'][0]
-                        # if it's a BIOM and there is a plain_text is the
-                        # result of the archive at this stage: a tree
-                        if 'plain_text' in ainfo['files']:
-                            tree_fp = ainfo['files']['plain_text'][0]
-                        biom_fp = fpath
+                    if 'qza' not in ainfo['files']:
+                        # at this stage in qiita we only have 2 types of
+                        # artifacts: biom / plain_text
+                        dt = method_inputs[key].qiime_type
+                        if Q2_QIITA_SEMANTIC_TYPE[dt].startswith('BIOM'):
+                            fpath = ainfo['files']['biom'][0]
+                            # if it's a BIOM and there is a plain_text is the
+                            # result of the archive at this stage: a tree
+                            if 'plain_text' in ainfo['files']:
+                                tree_fp = ainfo['files']['plain_text'][0]
+                            biom_fp = fpath
+                        else:
+                            fpath = ainfo['files']['plain_text'][0]
                     else:
-                        fpath = ainfo['files']['plain_text'][0]
+                        fpath = ainfo['files']['qza'][0]
 
                     artifact_method = method_inputs[key].qiime_type
                 q2inputs[key] = (fpath, artifact_method)
@@ -314,11 +317,14 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                                      'sure this artifact has taxonomy?')
             q2params['taxonomy'] = qza
         else:
-            try:
-                qza = qiime2.Artifact.import_data(dt, fpath)
-            except Exception as e:
-                return False, None, 'Error converting "%s": %s' % (
-                    str(dt), str(e))
+            if not fpath.endswith('.qza'):
+                try:
+                    qza = qiime2.Artifact.import_data(dt, fpath)
+                except Exception as e:
+                    return False, None, 'Error converting "%s": %s' % (
+                        str(dt), str(e))
+            else:
+                qza = qiime2.Artifact.load(fpath)
             q2params[k] = qza
 
     qclient.update_job_step(
@@ -337,6 +343,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             ainfo.append(
                 ArtifactInfo(aname, 'q2_visualization', [(qzv_fp, 'qzv')]))
         else:
+            qza_fp = q2artifact.save(aout + '.qza')
             q2artifact.export_data(output_dir=aout)
             files = listdir(aout)
             if len(files) != 1:
@@ -377,15 +384,18 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     copyfile(tree_fp, new_tree_fp)
                     ai = ArtifactInfo(aname, 'BIOM', [
                         (fp, 'biom'),
-                        (new_tree_fp, 'plain_text')])
+                        (new_tree_fp, 'plain_text'),
+                        (qza_fp, 'qza')])
                 else:
-                    ai = ArtifactInfo(aname, 'BIOM', [(fp, 'biom')])
+                    ai = ArtifactInfo(
+                        aname, 'BIOM', [(fp, 'biom'), (qza_fp, 'qza')])
 
             else:
                 atype = Q2_QIITA_SEMANTIC_TYPE[q2artifact.type]
                 if atype.startswith('phylogenetic_'):
                     atype = atype[len('phylogenetic_'):]
-                ai = ArtifactInfo(aname, atype, [(fp, 'plain_text')])
+                ai = ArtifactInfo(
+                    aname, atype, [(fp, 'plain_text'), (qza_fp, 'qza')])
             ainfo.append(ai)
 
     return True, ainfo, ""

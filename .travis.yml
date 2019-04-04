@@ -2,7 +2,7 @@ dist: precise
 language: python
 sudo: false
 env:
-  - PYTHON_VERSION=3.6 QIITA_CLIENT_DEBUG_LEVEL=DEBUG
+  - PYTHON_VERSION=3.6
 before_install:
   - wget http://repo.continuum.io/miniconda/Miniconda3-3.7.3-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
@@ -32,7 +32,6 @@ install:
   - source activate qiime2
   - qiime info
   - pip install coveralls flake8
-  - pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
   # we are going to use the same qiime2 environment to install qtp-diversity
   - pip install https://github.com/qiita-spots/qtp-diversity/archive/master.zip
   # we are going to use the same qiime2 environment to install qtp-visualization
