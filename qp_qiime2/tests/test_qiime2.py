@@ -105,7 +105,8 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(msg, '')
         obs_fp = join(out_dir, 'rarefy', 'rarefied_table',
                       'feature-table.biom')
-        self.assertEqual(ainfo[0].files, [(obs_fp, 'biom')])
+        obs_qza = join(out_dir, 'rarefy', 'rarefied_table.qza')
+        self.assertEqual(ainfo[0].files, [(obs_fp, 'biom'), (obs_qza, 'qza')])
         self.assertEqual(ainfo[0].artifact_type, 'BIOM')
         self.assertEqual(ainfo[0].output_name, 'rarefied_table')
 
@@ -180,9 +181,10 @@ class qiime2Tests(PluginTestCase):
         success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
         self.assertEqual(msg, '')
         self.assertTrue(success)
-        self.assertEqual(ainfo[0].files, [(
-            join(out_dir, 'beta', 'distance_matrix', 'distance-matrix.tsv'),
-            'plain_text')])
+        self.assertEqual(ainfo[0].files, [
+            (join(out_dir, 'beta', 'distance_matrix', 'distance-matrix.tsv'),
+             'plain_text'),
+            (join(out_dir, 'beta', 'distance_matrix.qza'), 'qza')])
         self.assertEqual(ainfo[0].artifact_type, 'distance_matrix')
         self.assertEqual(ainfo[0].output_name, 'distance_matrix')
 
@@ -245,9 +247,11 @@ class qiime2Tests(PluginTestCase):
         success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
         self.assertEqual(msg, '')
         self.assertTrue(success)
-        self.assertEqual(ainfo[0].files, [(
-            join(out_dir, 'beta_phylogenetic', 'distance_matrix',
-                 'distance-matrix.tsv'), 'plain_text')])
+        self.assertEqual(ainfo[0].files, [
+            (join(out_dir, 'beta_phylogenetic', 'distance_matrix',
+                  'distance-matrix.tsv'), 'plain_text'),
+            (join(out_dir, 'beta_phylogenetic', 'distance_matrix.qza'),
+             'qza')])
         self.assertEqual(ainfo[0].artifact_type, 'distance_matrix')
         self.assertEqual(ainfo[0].output_name, 'distance_matrix')
 
@@ -300,7 +304,7 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(ainfo[0].files, exp)
         self.assertEqual(ainfo[0].artifact_type, 'q2_visualization')
 
-    def test_sample_classifier_saplit_table(self):
+    def test_sample_classifier_split_table(self):
         # We care about the command running rather the successful creating an
         # output. Additionally, we don't have enough samples in the test
         # dataset to actually run any classifiers so we'll go for failure
@@ -562,9 +566,11 @@ class qiime2Tests(PluginTestCase):
         success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
         self.assertEqual(msg, '')
         self.assertTrue(success)
-        self.assertEqual(ainfo[0].files, [(
-            join(out_dir, 'beta_correlation', 'metadata_distance_matrix',
-                 'distance-matrix.tsv'), 'plain_text')])
+        self.assertEqual(ainfo[0].files, [
+            (join(out_dir, 'beta_correlation', 'metadata_distance_matrix',
+                  'distance-matrix.tsv'), 'plain_text'),
+            (join(out_dir, 'beta_correlation', 'metadata_distance_matrix.qza'),
+             'qza')])
         self.assertEqual(ainfo[0].artifact_type, 'distance_matrix')
         self.assertEqual(ainfo[0].output_name, 'metadata_distance_matrix')
         exp = [(join(out_dir, 'beta_correlation',
@@ -598,7 +604,9 @@ class qiime2Tests(PluginTestCase):
         self.assertTrue(success)
         exp_fp = join(out_dir, 'alpha', 'alpha_diversity',
                       'alpha-diversity.tsv')
-        self.assertEqual(ainfo[0].files, [(exp_fp, 'plain_text')])
+        exp_qza = join(out_dir, 'alpha', 'alpha_diversity.qza')
+        self.assertEqual(ainfo[0].files, [
+            (exp_fp, 'plain_text'), (exp_qza, 'qza')])
         self.assertEqual(ainfo[0].artifact_type, 'alpha_vector')
         self.assertEqual(ainfo[0].output_name, 'alpha_diversity')
 
@@ -633,9 +641,11 @@ class qiime2Tests(PluginTestCase):
         success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
         self.assertEqual(msg, '')
         self.assertTrue(success)
-        self.assertEqual(ainfo[0].files, [(
-            join(out_dir, 'alpha_phylogenetic', 'alpha_diversity',
-                 'alpha-diversity.tsv'), 'plain_text')])
+        self.assertEqual(ainfo[0].files, [
+            (join(out_dir, 'alpha_phylogenetic', 'alpha_diversity',
+                  'alpha-diversity.tsv'), 'plain_text'),
+            (join(out_dir, 'alpha_phylogenetic', 'alpha_diversity.qza'),
+             'qza')])
         self.assertEqual(ainfo[0].artifact_type, 'alpha_vector')
         self.assertEqual(ainfo[0].output_name, 'alpha_diversity')
 
@@ -784,9 +794,10 @@ class qiime2Tests(PluginTestCase):
         success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
         self.assertEqual(msg, '')
         self.assertTrue(success)
-        self.assertEqual(ainfo[0].files, [(
-            join(out_dir, 'filter_samples', 'filtered_table',
-                 'feature-table.biom'), 'biom')])
+        self.assertEqual(ainfo[0].files, [
+            (join(out_dir, 'filter_samples', 'filtered_table',
+                  'feature-table.biom'), 'biom'),
+            (join(out_dir, 'filter_samples', 'filtered_table.qza'), 'qza')])
         self.assertEqual(ainfo[0].artifact_type, 'BIOM')
         self.assertEqual(ainfo[0].output_name, 'filtered_table')
 
@@ -1053,9 +1064,10 @@ class qiime2Tests(PluginTestCase):
         success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
         self.assertEqual(msg, '')
         self.assertTrue(success)
-        self.assertEqual(ainfo[0].files, [(
-            join(out_dir, 'filter_features', 'filtered_table',
-                 'feature-table.biom'), 'biom')])
+        self.assertEqual(ainfo[0].files, [
+            (join(out_dir, 'filter_features', 'filtered_table',
+                  'feature-table.biom'), 'biom'),
+            (join(out_dir, 'filter_features', 'filtered_table.qza'), 'qza')])
         self.assertEqual(ainfo[0].artifact_type, 'BIOM')
         self.assertEqual(ainfo[0].output_name, 'filtered_table')
 
