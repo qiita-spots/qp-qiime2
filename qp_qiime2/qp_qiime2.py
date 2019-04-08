@@ -210,6 +210,10 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                         tree_fp_check = True
                     fpath = val
                     artifact_method = QIITA_Q2_SEMANTIC_TYPE[key]
+                elif key == 'classifier':
+                    fpath = val
+                    artifact_method = None
+                    k = key
                 else:
                     # this is going to be an artifact so let's collect the
                     # filepath here, this will also allow us to collect the
@@ -327,6 +331,31 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                 qza = qiime2.Artifact.load(fpath)
             q2params[k] = qza
 
+    # if feature_classifier and classify_sklearn we need to transform the
+    # input data to sequences
+    if q2plugin == 'feature-classifier' and q2method == 'classify_sklearn':
+        ainfo = qclient.get("/qiita_db/artifacts/%s/" %
+                            parameters['The feature data to be classified.'])
+        biom_fp = ainfo['files']['biom'][0]
+        plain_text_fp = None
+        if 'plain_text' in ainfo['files']:
+            plain_text_fp = ainfo['files']['plain_text'][0]
+        biom_table = load_table(biom_fp)
+        fna_fp = join(out_dir, 'sequences.fna')
+        with open(fna_fp, 'w') as f:
+            for _id in biom_table.ids(axis='observation'):
+                f.write('>{0}\n{0}\n'.format(_id))
+        try:
+            q2params['reads'] = qiime2.Artifact.import_data(
+                'FeatureData[Sequence]', fna_fp)
+        except ValueError as e:
+            msg = str(e)
+            if 'Invalid characters in sequence' in msg:
+                msg = ('Table IDs are not sequences, please confirm that this '
+                       'is not a close reference table?')
+            return False, None, 'Error converting "%s": %s' % (
+                'Input Table', msg)
+
     qclient.update_job_step(
         job_id, "Step 3 of 4: Running '%s %s'" % (q2plugin, q2method))
     try:
@@ -336,6 +365,27 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
 
     qclient.update_job_step(job_id, "Step 4 of 4: Processing results")
     ainfo = []
+
+    # if feature_classifier and classify_sklearn we need to add the taxonomy
+    # to the original table and generate the new artifact
+    if q2plugin == 'feature-classifier' and q2method == 'classify_sklearn':
+        new_biom = join(out_dir, 'feature-table-with-taxonomy.biom')
+        new_qza = join(out_dir, 'feature-table-with-taxonomy.qza')
+        df = results[0].view(pd.DataFrame)
+        df.rename(columns={'Taxon': 'taxonomy'}, inplace=True)
+        df['taxonomy'] = [[y.strip() for y in x]
+                          for x in df['taxonomy'].str.split(';')]
+        biom_table.add_metadata(df.to_dict(orient='index'), axis='observation')
+        with biom_open(new_biom, 'w') as bf:
+            biom_table.to_hdf5(bf, 'Generated in Qiita')
+
+        qza = qiime2.Artifact.import_data(
+            'FeatureTable[Frequency]', new_biom, 'BIOMV210Format')
+        qza.save(new_qza)
+        ainfo.append(ArtifactInfo('Feature table with Taxonomy', 'BIOM', [
+            (new_biom, 'biom'), (plain_text_fp, 'plain_text'),
+            (new_qza, 'qza')]))
+
     for aname, q2artifact in zip(results._fields, results):
         aout = join(out_dir, aname)
         if isinstance(q2artifact, qiime2.Visualization):

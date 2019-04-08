@@ -8,11 +8,12 @@
 
 from unittest import main
 from os import remove, stat
-from shutil import rmtree
+from shutil import rmtree, copyfile
 from tempfile import mkdtemp
 from json import dumps
 from os.path import exists, isdir, join, realpath, dirname
 from biom import load_table
+from functools import partial
 
 from qiita_client.testing import PluginTestCase
 
@@ -75,6 +76,113 @@ class qiime2Tests(PluginTestCase):
         success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
         self.assertFalse(success)
         self.assertEqual(msg, 'Artifact "5" is not an analysis artifact.')
+
+    def test_feature_classifier(self):
+        original_params = {
+            'qp-hide-method': 'classify_sklearn',
+            'qp-hide-plugin': 'feature-classifier',
+            'The feature data to be classified.': '8',
+            'qp-hide-paramDirection of reads with respect to reference '
+            'sequences. same will cause reads to be classified unchanged; '
+            'reverse-complement will cause reads to be reversed and '
+            'complemented prior to classification. Default is to autodetect '
+            'based on the confidence estimates for the first 100 reads. '
+            '(read_orientation)': 'read_orientation',
+            'Direction of reads with respect to reference sequences. same '
+            'will cause reads to be classified unchanged; reverse-complement '
+            'will cause reads to be reversed and complemented prior to '
+            'classification. Default is to autodetect based on the confidence '
+            'estimates for the first 100 reads. (read_orientation)':
+            'reverse-complement', 'qp-hide-paramConfidence threshold for '
+            'limiting taxonomic depth. Provide -1 to disable confidence '
+            'calculation, or 0 to calculate confidence but not apply it to '
+            'limit the taxonomic depth of the assignments. (confidence)':
+            'confidence', 'Confidence threshold for limiting taxonomic depth. '
+            'Provide -1 to disable confidence calculation, or 0 to calculate '
+            'confidence but not apply it to limit the taxonomic depth of the '
+            'assignments. (confidence)': '0.7', 'qp-hide-param"all" or '
+            'expression, as in "3*n_jobs". The number of batches (of tasks) '
+            'to be pre-dispatched. (pre_dispatch)': 'pre_dispatch', '"all" or '
+            'expression, as in "3*n_jobs". The number of batches (of tasks) '
+            'to be pre-dispatched. (pre_dispatch)': '2*n_jobs',
+            'qp-hide-paramThe maximum number of concurrently worker '
+            'processes. If -1 all CPUs are used. If 1 is given, no parallel '
+            'computing code is used at all, which is useful for debugging. '
+            'For n_jobs below -1, (n_cpus + 1 + n_jobs) are used. Thus for '
+            'n_jobs = -2, all CPUs but one are used. (n_jobs)': 'n_jobs',
+            'The maximum number of concurrently worker processes. If -1 all '
+            'CPUs are used. If 1 is given, no parallel computing code is '
+            'used at all, which is useful for debugging. For n_jobs below -1, '
+            '(n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all CPUs '
+            'but one are used. (n_jobs)': '1', 'qp-hide-paramNumber of reads '
+            'to process in each batch. If 0, this parameter is autoscaled to '
+            'the number of query sequences / n_jobs. (reads_per_batch)':
+            'reads_per_batch', 'Number of reads to process in each batch. If '
+            '0, this parameter is autoscaled to the number of query sequences '
+            '/ n_jobs. (reads_per_batch)': '0', 'qp-hide-paramThe taxonomic '
+            'classifier for classifying the reads. (classifier)': 'classifier',
+            'The taxonomic classifier for classifying the reads. '
+            '(classifier)': '/Users/antoniog/svn_programs/qp-qiime2/databases'
+            '/gg-13-8-99-515-806-nb-classifier.qza'}
+        params = original_params.copy()
+
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'Pre-fitted sklearn-based taxonomy '
+             'classifier'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        # first attempt should fail as the Qiita table is close reference
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        self.assertFalse(success)
+        self.assertIn('Table IDs are not sequences', msg)
+
+        # now let's replace the Qiita table with a table with sequences
+        ainfo = self.qclient.get("/qiita_db/artifacts/8/")
+        biom_fp_old = ainfo['files']['biom'][0]
+        biom_fp_old_bk = biom_fp_old + '.bk'
+        biom_fp_new = join(
+            dirname(realpath(__file__)), 'support_files', 'deblur.biom')
+        copyfile(biom_fp_old, biom_fp_old_bk)
+        copyfile(biom_fp_new, biom_fp_old)
+
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'Pre-fitted sklearn-based taxonomy '
+             'classifier'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        # first attempt should fail as the Qiita table is close reference
+        success, ainfo, msg = call_qiime2(
+            self.qclient, jid, original_params, out_dir)
+
+        # returning original biom
+        copyfile(biom_fp_old_bk, biom_fp_old)
+
+        obs_files = [ai.files for ai in ainfo]
+        obs_artifact_types = [ai.artifact_type for ai in ainfo]
+        obs_output_names = [ai.output_name for ai in ainfo]
+
+        self.assertEqual(msg, '')
+        self.assertTrue(success)
+        od = partial(join, out_dir, 'classify_sklearn')
+        self.assertCountEqual(obs_files, [
+            [(od('feature-table-with-taxonomy.biom'), 'biom'),
+             (None, 'plain_text'),
+             (od('feature-table-with-taxonomy.qza'), 'qza')],
+            [(od('classification', 'taxonomy.tsv'), 'plain_text'),
+             (od('classification.qza'), 'qza')]])
+        self.assertCountEqual(obs_artifact_types, ['BIOM', 'taxonomy'])
+        self.assertCountEqual(obs_output_names, [
+            'Feature table with Taxonomy', 'classification'])
 
     def test_rarefy(self):
         params = {
