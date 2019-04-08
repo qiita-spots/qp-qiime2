@@ -180,9 +180,10 @@ class qiime2Tests(PluginTestCase):
              (od('feature-table-with-taxonomy.qza'), 'qza')],
             [(od('classification', 'taxonomy.tsv'), 'plain_text'),
              (od('classification.qza'), 'qza')]])
-        self.assertCountEqual(obs_artifact_types, ['BIOM', 'taxonomy'])
+        self.assertCountEqual(
+            obs_artifact_types, ['BIOM', 'FeatureData[Taxonomy]'])
         self.assertCountEqual(obs_output_names, [
-            'Feature table with Taxonomy', 'classification'])
+            'Feature Table with Classification', 'classification'])
 
     def test_rarefy(self):
         params = {

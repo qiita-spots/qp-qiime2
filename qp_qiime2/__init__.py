@@ -279,7 +279,7 @@ for pname, element in m.signature.outputs.items():
     eqt = str(element.qiime_type)
     if eqt == 'FeatureData[Taxonomy]':
         outputs_params[pname] = eqt
-        outputs_params[pname + ' BIOM'] = 'BIOM'
+        outputs_params['Feature Table with Classification'] = 'BIOM'
     else:
         raise ValueError('Found non expected output: "%s", in '
                          'feature-classifier classify_sklearn' % eqt)

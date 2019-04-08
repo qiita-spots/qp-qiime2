@@ -37,7 +37,8 @@ QIITA_Q2_SEMANTIC_TYPE = {
     'phylogenetic_alpha_vector': qiime2.sdk.util.parse_type(
         "SampleData[AlphaDiversity] % Properties(['phylogenetic'])"),
     'phylogeny': qiime2.sdk.util.parse_type('Phylogeny[Rooted]'),
-    'taxonomy': qiime2.sdk.util.parse_type('FeatureData[Taxonomy]')
+    'FeatureData[Taxonomy]': qiime2.sdk.util.parse_type(
+        'FeatureData[Taxonomy]')
 }
 
 # for simplicity we are going to invert QIITA_Q2_SEMANTIC_TYPE so we can
@@ -382,9 +383,10 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
         qza = qiime2.Artifact.import_data(
             'FeatureTable[Frequency]', new_biom, 'BIOMV210Format')
         qza.save(new_qza)
-        ainfo.append(ArtifactInfo('Feature table with Taxonomy', 'BIOM', [
-            (new_biom, 'biom'), (plain_text_fp, 'plain_text'),
-            (new_qza, 'qza')]))
+        ainfo.append(ArtifactInfo(
+            'Feature Table with Classification', 'BIOM', [
+                (new_biom, 'biom'), (plain_text_fp, 'plain_text'),
+                (new_qza, 'qza')]))
 
     for aname, q2artifact in zip(results._fields, results):
         aout = join(out_dir, aname)
