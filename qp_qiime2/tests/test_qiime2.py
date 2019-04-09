@@ -41,6 +41,8 @@ class qiime2Tests(PluginTestCase):
             'status': 'running',
             'parameters': None}
 
+        self.basedir = dirname(realpath(__file__))
+
     def tearDown(self):
         for fp in self._clean_up_files:
             if exists(fp):
@@ -78,6 +80,8 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(msg, 'Artifact "5" is not an analysis artifact.')
 
     def test_feature_classifier(self):
+        dbpath = join(self.basedir, '..', '..', 'databases',
+                      'gg-13-8-99-515-806-nb-classifier.qza')
         original_params = {
             'qp-hide-method': 'classify_sklearn',
             'qp-hide-plugin': 'feature-classifier',
@@ -122,8 +126,7 @@ class qiime2Tests(PluginTestCase):
             '/ n_jobs. (reads_per_batch)': '0', 'qp-hide-paramThe taxonomic '
             'classifier for classifying the reads. (classifier)': 'classifier',
             'The taxonomic classifier for classifying the reads. '
-            '(classifier)': '/Users/antoniog/svn_programs/qp-qiime2/databases'
-            '/gg-13-8-99-515-806-nb-classifier.qza'}
+            '(classifier)': dbpath}
         params = original_params.copy()
 
         self.data['command'] = dumps(
@@ -145,8 +148,7 @@ class qiime2Tests(PluginTestCase):
         ainfo = self.qclient.get("/qiita_db/artifacts/8/")
         biom_fp_old = ainfo['files']['biom'][0]
         biom_fp_old_bk = biom_fp_old + '.bk'
-        biom_fp_new = join(
-            dirname(realpath(__file__)), 'support_files', 'deblur.biom')
+        biom_fp_new = join(self.basedir, 'support_files', 'deblur.biom')
         copyfile(biom_fp_old, biom_fp_old_bk)
         copyfile(biom_fp_new, biom_fp_old)
 
@@ -308,8 +310,7 @@ class qiime2Tests(PluginTestCase):
             'Bioinformatics 2011. Weights distances based on the proportion '
             'of the relative abundance represented between the samples at a '
             'given node under evaluation. (variance_adjusted)': True,
-            'Phylogenetic tree': join(
-                dirname(realpath(__file__)), 'prune_97_gg_13_8.tre'),
+            'Phylogenetic tree': join(self.basedir, 'prune_97_gg_13_8.tre'),
             'The beta diversity metric to be computed. '
             '(metric)': 'Unweighted UniFrac',
             'The feature table containing the samples over which beta '
@@ -367,8 +368,7 @@ class qiime2Tests(PluginTestCase):
     def test_alpha_rarefaction(self):
         params = {
             'Feature table to compute rarefaction curves from.': '8',
-            'Phylogenetic tree': join(
-                dirname(realpath(__file__)), 'prune_97_gg_13_8.tre'),
+            'Phylogenetic tree': join(self.basedir, 'prune_97_gg_13_8.tre'),
             'The maximum rarefaction depth. Must be greater than min_depth. '
             '(max_depth)': '1000',
             'The metrics to be measured. By default computes observed_otus, '
@@ -725,8 +725,7 @@ class qiime2Tests(PluginTestCase):
 
     def test_alpha_phylogenetic(self):
         params = {
-            'Phylogenetic tree': join(
-                dirname(realpath(__file__)), 'prune_97_gg_13_8.tre'),
+            'Phylogenetic tree': join(self.basedir, 'prune_97_gg_13_8.tre'),
             'The alpha diversity metric to be '
             'computed. (metric)': "Faith's Phylogenetic Diversity",
             'The feature table containing the samples for which alpha '
@@ -818,13 +817,13 @@ class qiime2Tests(PluginTestCase):
 
     def test_taxa_barplot(self):
         params = {
+            'qp-hide-plugin': 'taxa',
+            'qp-hide-method': 'barplot',
             'Feature table to visualize at various taxonomic levels.': '8',
             'qp-hide-metadata': 'metadata',
-            'qp-hide-method': 'barplot',
+            'qp-hide-FeatureData[Taxonomy]': 'FeatureData[Taxonomy]',
             'qp-hide-paramFeature table to visualize at various taxonomic '
-            'levels.': 'table',
-            'qp-hide-plugin': 'taxa',
-            'qp-hide-taxonomy': 'taxonomy'}
+            'levels.': 'table'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version,
              'Visualize taxonomy with an interactive bar plot'])

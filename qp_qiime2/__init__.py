@@ -61,9 +61,9 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
         if q2plugin.name not in Q2_ALLOWED_PLUGINS:
             # This currently filters (which are processing commands):
             # feature-classifier
+            # fragment-insertion
             # quality-control
             # vsearch
-            # fragment-insertion
             continue
 
         for m in methods:
@@ -91,7 +91,7 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
                         'choice:["None", "Artifact tree, if exists"]', 'None')
                     # deleting so we don't count it as part of the inputs
                     del inputs[pname]
-                elif etype == 'taxonomy':
+                elif etype == 'FeatureData[Taxonomy]':
                     ename = 'qp-hide-%s' % etype
                     req_params[ename] = ('string', etype)
                     # deleting so we don't count it as part of the inputs
@@ -123,41 +123,37 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
 
             if len(inputs) != 1 or not add_method:
                 # This is currently filtering out:
-                # emperor procrustes_plot
-                # diversity procrustes_analysis
-                # diversity pcoa_biplot
+                # composition add_pseudocount
                 # diversity mantel
-                # longitudinal first_distances
-                # sample-classifier classify_samples_from_dist
                 # diversity pcoa_biplot
-                # gneiss gradient_clustering
-                # feature-table summarize
-                # feature-table presence_absence
-                # longitudinal plot_feature_volatility
-                # longitudinal first_differences
-                # gneiss ilr_phylogenetic
-                # gneiss correlation_clustering
-                # gneiss assign_ids
-                # gneiss gradient_clustering
-                # gneiss dendrogram_heatmap
-                # gneiss balance_taxonomy
-                # gneiss ilr_hierarchical
+                # diversity procrustes_analysis
+                # emperor procrustes_plot
                 # feature-table filter_seqs
-                # feature-table summarize
                 # feature-table presence_absence
-                # longitudinal maturity_index
+                # feature-table summarize
+                # gneiss assign_ids
+                # gneiss balance_taxonomy
+                # gneiss correlation_clustering
+                # gneiss dendrogram_heatmap
+                # gneiss gradient_clustering
+                # gneiss ilr_hierarchical
+                # gneiss ilr_phylogenetic
                 # longitudinal feature_volatility
+                # longitudinal first_differences
+                # longitudinal first_distances
+                # longitudinal maturity_index
+                # longitudinal plot_feature_volatility
                 # phylogeny filter_table
                 # sample-classifier classify_samples
-                # sample-classifier predict_regression
-                # sample-classifier fit_regressor
-                # sample-classifier fit_classifier
-                # sample-classifier regress_samples_ncv
-                # sample-classifier regress_samples
+                # sample-classifier classify_samples_from_dist
                 # sample-classifier classify_samples_ncv
+                # sample-classifier fit_classifier
+                # sample-classifier fit_regressor
                 # sample-classifier predict_classification
-                # composition add_pseudocount
-                # feature-table summarize
+                # sample-classifier predict_regression
+                # sample-classifier regress_samples
+                # sample-classifier regress_samples_ncv
+                # taxa filter_seqs
                 continue
 
             opt_params = {}

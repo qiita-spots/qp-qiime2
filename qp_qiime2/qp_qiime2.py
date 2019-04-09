@@ -274,7 +274,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                 if mkey.view_type is set:
                     val = {val}
                 q2params[key] = val
-        elif k in ('qp-hide-metadata', 'qp-hide-taxonomy'):
+        elif k in ('qp-hide-metadata', 'qp-hide-FeatureData[Taxonomy]'):
             # remember, if we need metadata, we will always have
             # qp-hide-metadata and optionaly we will have
             # qp-hide-metadata-field
@@ -313,7 +313,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                 q2params[k] = q2Metadata.get_column(fpath)
             else:
                 q2params[k] = q2Metadata
-        elif k == 'taxonomy':
+        elif k == 'FeatureData[Taxonomy]':
             try:
                 qza = qiime2.Artifact.import_data(
                     'FeatureData[Taxonomy]', biom_fp, 'BIOMV210Format')
