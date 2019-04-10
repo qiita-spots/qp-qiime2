@@ -33,7 +33,7 @@ if qp_qiime2_dbs is None:
 qp_qiime2_dbs = glob(join(qp_qiime2_dbs, '*.qza'))
 if len(qp_qiime2_dbs) < 1:
     raise ValueError(
-        "ENV QP_QIIME2_DBS points to a folder without qza's, please set.")
+        "ENV QP_QIIME2_DBS points to a folder without QZA files, please set.")
 
 # PLEASE READ:
 # There are 2 main steps:
@@ -269,7 +269,7 @@ for pname, element in m.signature.inputs.items():
         req_params[ename] = ('choice:[%s]' % qp_qiime2_dbs, default)
         req_params['qp-hide-param' + ename] = ('string', pname)
     else:
-        raise ValueError('Found non expected input: "%s", in '
+        raise ValueError('Found unexpected input: "%s", in '
                          'feature-classifier classify_sklearn' % eqt)
 for pname, element in m.signature.outputs.items():
     eqt = str(element.qiime_type)
