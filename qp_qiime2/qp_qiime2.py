@@ -383,10 +383,11 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
         qza = qiime2.Artifact.import_data(
             'FeatureTable[Frequency]', new_biom, 'BIOMV210Format')
         qza.save(new_qza)
+        ftc_fps = [(new_biom, 'biom'), (new_qza, 'qza')]
+        if plain_text_fp is not None:
+            ftc_fps.append((plain_text_fp, 'plain_text'))
         ainfo.append(ArtifactInfo(
-            'Feature Table with Classification', 'BIOM', [
-                (new_biom, 'biom'), (plain_text_fp, 'plain_text'),
-                (new_qza, 'qza')]))
+            'Feature Table with Classification', 'BIOM', ftc_fps))
 
     for aname, q2artifact in zip(results._fields, results):
         aout = join(out_dir, aname)
