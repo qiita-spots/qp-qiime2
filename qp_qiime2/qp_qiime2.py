@@ -242,6 +242,8 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                             fpath = ainfo['files']['plain_text'][0]
                     else:
                         fpath = ainfo['files']['qza'][0]
+                    if biom_fp is None and 'biom' in ainfo['files']:
+                        biom_fp = ainfo['files']['biom'][0]
 
                     artifact_method = method_inputs[key].qiime_type
                 q2inputs[key] = (fpath, artifact_method)
@@ -408,9 +410,12 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             # permissions for nginx
             chmod(fp, 0o664)
 
-            if q2artifact.type.name == 'FeatureTable':
-                # Let's read the observation metadata if exists in the input
-                if biom_fp is not None:
+            if (q2artifact.type.name == 'FeatureTable'):
+                # Re-add the observation metadata if exists in the input and if
+                # not one of the plugin/methods that actually changes that
+                # information
+                if biom_fp is not None and (q2plugin, q2method) not in [
+                        ('taxa', 'collapse')]:
                     fin = load_table(biom_fp)
                     fout = load_table(fp)
 

@@ -178,7 +178,6 @@ class qiime2Tests(PluginTestCase):
         od = partial(join, out_dir, 'classify_sklearn')
         self.assertCountEqual(obs_files, [
             [(od('feature-table-with-taxonomy.biom'), 'biom'),
-             (None, 'plain_text'),
              (od('feature-table-with-taxonomy.qza'), 'qza')],
             [(od('classification', 'taxonomy.tsv'), 'plain_text'),
              (od('classification.qza'), 'qza')]])
@@ -756,6 +755,43 @@ class qiime2Tests(PluginTestCase):
              'qza')])
         self.assertEqual(ainfo[0].artifact_type, 'alpha_vector')
         self.assertEqual(ainfo[0].output_name, 'alpha_diversity')
+
+    def test_collapse_taxa(self):
+        params = {
+            'qp-hide-method': 'collapse',
+            'qp-hide-plugin': 'taxa',
+            'Feature table to be collapsed.': '8',
+            'qp-hide-paramThe taxonomic level at which the features should be '
+            'collapsed. All ouput features will have exactly this many levels '
+            'of taxonomic annotation. (level)': 'level',
+            'The taxonomic level at which the features should be collapsed. '
+            'All ouput features will have exactly this many levels of '
+            'taxonomic annotation. (level)': '3',
+            'qp-hide-FeatureData[Taxonomy]': 'FeatureData[Taxonomy]',
+            'qp-hide-paramFeature table to be collapsed.': 'table'
+        }
+
+        self.data['command'] = dumps(['qiime2', qiime2_version, 'Collapse '
+                                      'features by their taxonomy at the '
+                                      'specified level'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        self.assertEqual(msg, '')
+        self.assertTrue(success)
+        self.assertEqual(ainfo[0].files, [
+            (join(out_dir, 'collapse', 'collapsed_table',
+                  'feature-table.biom'), 'biom'),
+            (join(out_dir, 'collapse', 'collapsed_table.qza'),
+             'qza')])
+
+        self.assertEqual(ainfo[0].artifact_type, 'BIOM')
+        self.assertEqual(ainfo[0].output_name, 'collapsed_table')
 
     def test_alpha_correlation(self):
         # as we don't have an alpha vector available, we will calculate
