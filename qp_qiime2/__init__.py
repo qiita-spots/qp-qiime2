@@ -76,6 +76,8 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
             # while calling call_qiime2
             req_params = {'qp-hide-plugin': ('string', q2plugin.name),
                           'qp-hide-method': ('string', m.id)}
+            outputs_params = {}
+            opt_params = {}
             for pname, element in inputs.items():
                 if element.qiime_type not in Q2_QIITA_SEMANTIC_TYPE:
                     add_method = False
@@ -106,7 +108,6 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
                 # can retrieve later
                 req_params['qp-hide-param' + ename] = ('string', pname)
 
-            outputs_params = {}
             for pname, element in outputs.items():
                 if element.qiime_type not in Q2_QIITA_SEMANTIC_TYPE:
                     add_method = False
@@ -156,7 +157,6 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
                 # taxa filter_seqs
                 continue
 
-            opt_params = {}
             for pname, element in parameters.items():
                 tqt = type(element.qiime_type)
                 # there is a new primitive and we should raise an error
@@ -238,9 +238,10 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
                         # can retrieve later
                         req_params['qp-hide-param' + ename] = ('string', pname)
 
-            qiime_cmd = QiitaCommand(
-                m.name, m.description, call_qiime2, req_params, opt_params,
-                outputs_params, {'Defaut': {}}, analysis_only=True)
+            qiime_cmd = QiitaCommand("%s [%s]" % (m.name, m.id), m.description,
+                                     call_qiime2, req_params, opt_params,
+                                     outputs_params, {'Defaut': {}},
+                                     analysis_only=True)
 
             plugin.register_command(qiime_cmd)
 
@@ -307,7 +308,7 @@ for pname, element in m.signature.parameters.items():
         # can retrieve later
         req_params['qp-hide-param' + ename] = ('string', pname)
 
-qiime_cmd = QiitaCommand(
-    m.name, m.description, call_qiime2, req_params, opt_params,
-    outputs_params, {'Defaut': {}}, analysis_only=True)
+qiime_cmd = QiitaCommand("%s [%s]" % (m.name, m.id), m.description,
+                         call_qiime2, req_params, opt_params,
+                         outputs_params, {'Defaut': {}}, analysis_only=True)
 plugin.register_command(qiime_cmd)
