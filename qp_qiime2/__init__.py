@@ -240,7 +240,7 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
 
             qiime_cmd = QiitaCommand("%s [%s]" % (m.name, m.id), m.description,
                                      call_qiime2, req_params, opt_params,
-                                     outputs_params, {'Defaut': {}},
+                                     outputs_params, {'Default': {}},
                                      analysis_only=True)
 
             plugin.register_command(qiime_cmd)
@@ -310,5 +310,5 @@ for pname, element in m.signature.parameters.items():
 
 qiime_cmd = QiitaCommand("%s [%s]" % (m.name, m.id), m.description,
                          call_qiime2, req_params, opt_params,
-                         outputs_params, {'Defaut': {}}, analysis_only=True)
+                         outputs_params, {'Default': {}}, analysis_only=True)
 plugin.register_command(qiime_cmd)
