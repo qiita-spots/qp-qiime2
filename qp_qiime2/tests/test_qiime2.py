@@ -8,11 +8,12 @@
 
 from unittest import main
 from os import remove, stat
-from shutil import rmtree
+from shutil import rmtree, copyfile
 from tempfile import mkdtemp
 from json import dumps
 from os.path import exists, isdir, join, realpath, dirname
 from biom import load_table
+from functools import partial
 
 from qiita_client.testing import PluginTestCase
 
@@ -40,6 +41,8 @@ class qiime2Tests(PluginTestCase):
             'status': 'running',
             'parameters': None}
 
+        self.basedir = dirname(realpath(__file__))
+
     def tearDown(self):
         for fp in self._clean_up_files:
             if exists(fp):
@@ -64,7 +67,7 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-paramThe feature table to be rarefied.': 'table',
             'qp-hide-plugin': 'feature-table'}
         self.data['command'] = dumps(
-            ['qiime2', qiime2_version, 'Rarefy table'])
+            ['qiime2', qiime2_version, 'Rarefy table [rarefy]'])
         self.data['parameters'] = dumps(params)
 
         jid = self.qclient.post(
@@ -75,6 +78,113 @@ class qiime2Tests(PluginTestCase):
         success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
         self.assertFalse(success)
         self.assertEqual(msg, 'Artifact "5" is not an analysis artifact.')
+
+    def test_feature_classifier(self):
+        dbpath = join(self.basedir, '..', '..', 'databases',
+                      'gg-13-8-99-515-806-nb-classifier.qza')
+        original_params = {
+            'qp-hide-method': 'classify_sklearn',
+            'qp-hide-plugin': 'feature-classifier',
+            'The feature data to be classified.': '8',
+            'qp-hide-paramDirection of reads with respect to reference '
+            'sequences. same will cause reads to be classified unchanged; '
+            'reverse-complement will cause reads to be reversed and '
+            'complemented prior to classification. Default is to autodetect '
+            'based on the confidence estimates for the first 100 reads. '
+            '(read_orientation)': 'read_orientation',
+            'Direction of reads with respect to reference sequences. same '
+            'will cause reads to be classified unchanged; reverse-complement '
+            'will cause reads to be reversed and complemented prior to '
+            'classification. Default is to autodetect based on the confidence '
+            'estimates for the first 100 reads. (read_orientation)':
+            'reverse-complement', 'qp-hide-paramConfidence threshold for '
+            'limiting taxonomic depth. Provide -1 to disable confidence '
+            'calculation, or 0 to calculate confidence but not apply it to '
+            'limit the taxonomic depth of the assignments. (confidence)':
+            'confidence', 'Confidence threshold for limiting taxonomic depth. '
+            'Provide -1 to disable confidence calculation, or 0 to calculate '
+            'confidence but not apply it to limit the taxonomic depth of the '
+            'assignments. (confidence)': '0.7', 'qp-hide-param"all" or '
+            'expression, as in "3*n_jobs". The number of batches (of tasks) '
+            'to be pre-dispatched. (pre_dispatch)': 'pre_dispatch', '"all" or '
+            'expression, as in "3*n_jobs". The number of batches (of tasks) '
+            'to be pre-dispatched. (pre_dispatch)': '2*n_jobs',
+            'qp-hide-paramThe maximum number of concurrently worker '
+            'processes. If -1 all CPUs are used. If 1 is given, no parallel '
+            'computing code is used at all, which is useful for debugging. '
+            'For n_jobs below -1, (n_cpus + 1 + n_jobs) are used. Thus for '
+            'n_jobs = -2, all CPUs but one are used. (n_jobs)': 'n_jobs',
+            'The maximum number of concurrently worker processes. If -1 all '
+            'CPUs are used. If 1 is given, no parallel computing code is '
+            'used at all, which is useful for debugging. For n_jobs below -1, '
+            '(n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all CPUs '
+            'but one are used. (n_jobs)': '1', 'qp-hide-paramNumber of reads '
+            'to process in each batch. If 0, this parameter is autoscaled to '
+            'the number of query sequences / n_jobs. (reads_per_batch)':
+            'reads_per_batch', 'Number of reads to process in each batch. If '
+            '0, this parameter is autoscaled to the number of query sequences '
+            '/ n_jobs. (reads_per_batch)': '0', 'qp-hide-paramThe taxonomic '
+            'classifier for classifying the reads. (classifier)': 'classifier',
+            'The taxonomic classifier for classifying the reads. '
+            '(classifier)': dbpath}
+        params = original_params.copy()
+
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'Pre-fitted sklearn-based taxonomy '
+             'classifier [classify_sklearn]'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        # first attempt should fail as the Qiita table is close reference
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        self.assertFalse(success)
+        self.assertIn('Table IDs are not sequences', msg)
+
+        # now let's replace the Qiita table with a table with sequences
+        ainfo = self.qclient.get("/qiita_db/artifacts/8/")
+        biom_fp_old = ainfo['files']['biom'][0]
+        biom_fp_old_bk = biom_fp_old + '.bk'
+        biom_fp_new = join(self.basedir, 'support_files', 'deblur.biom')
+        copyfile(biom_fp_old, biom_fp_old_bk)
+        copyfile(biom_fp_new, biom_fp_old)
+
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'Pre-fitted sklearn-based taxonomy '
+             'classifier [classify_sklearn]'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        # first attempt should fail as the Qiita table is close reference
+        success, ainfo, msg = call_qiime2(
+            self.qclient, jid, original_params, out_dir)
+
+        # returning original biom
+        copyfile(biom_fp_old_bk, biom_fp_old)
+
+        obs_files = [ai.files for ai in ainfo]
+        obs_artifact_types = [ai.artifact_type for ai in ainfo]
+        obs_output_names = [ai.output_name for ai in ainfo]
+
+        self.assertEqual(msg, '')
+        self.assertTrue(success)
+        od = partial(join, out_dir, 'classify_sklearn')
+        self.assertCountEqual(obs_files, [
+            [(od('feature-table-with-taxonomy.biom'), 'biom'),
+             (od('feature-table-with-taxonomy.qza'), 'qza')],
+            [(od('classification', 'taxonomy.tsv'), 'plain_text'),
+             (od('classification.qza'), 'qza')]])
+        self.assertCountEqual(
+            obs_artifact_types, ['BIOM', 'FeatureData[Taxonomy]'])
+        self.assertCountEqual(obs_output_names, [
+            'Feature Table with Classification', 'classification'])
 
     def test_rarefy(self):
         params = {
@@ -92,7 +202,7 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-paramThe feature table to be rarefied.': 'table',
             'qp-hide-plugin': 'feature-table'}
         self.data['command'] = dumps(
-            ['qiime2', qiime2_version, 'Rarefy table'])
+            ['qiime2', qiime2_version, 'Rarefy table [rarefy]'])
         self.data['parameters'] = dumps(params)
 
         jid = self.qclient.post(
@@ -135,7 +245,7 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-paramThe feature table to be rarefied.': 'table',
             'qp-hide-plugin': 'feature-table'}
         self.data['command'] = dumps(
-            ['qiime2', qiime2_version, 'Rarefy table'])
+            ['qiime2', qiime2_version, 'Rarefy table [rarefy]'])
         self.data['parameters'] = dumps(params)
 
         jid = self.qclient.post(
@@ -170,7 +280,7 @@ class qiime2Tests(PluginTestCase):
             'metrics.  This is ignored for other metrics. '
             '(pseudocount)': 'pseudocount'}
         self.data['command'] = dumps(
-            ['qiime2', qiime2_version, 'Beta diversity'])
+            ['qiime2', qiime2_version, 'Beta diversity [beta]'])
         self.data['parameters'] = dumps(params)
 
         jid = self.qclient.post(
@@ -199,8 +309,7 @@ class qiime2Tests(PluginTestCase):
             'Bioinformatics 2011. Weights distances based on the proportion '
             'of the relative abundance represented between the samples at a '
             'given node under evaluation. (variance_adjusted)': True,
-            'Phylogenetic tree': join(
-                dirname(realpath(__file__)), 'prune_97_gg_13_8.tre'),
+            'Phylogenetic tree': join(self.basedir, 'prune_97_gg_13_8.tre'),
             'The beta diversity metric to be computed. '
             '(metric)': 'Unweighted UniFrac',
             'The feature table containing the samples over which beta '
@@ -236,7 +345,8 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-plugin': 'diversity'
         }
         self.data['command'] = dumps(
-            ['qiime2', qiime2_version, 'Beta diversity (phylogenetic)'])
+            ['qiime2', qiime2_version,
+             'Beta diversity (phylogenetic) [beta_phylogenetic]'])
         self.data['parameters'] = dumps(params)
 
         jid = self.qclient.post(
@@ -258,8 +368,7 @@ class qiime2Tests(PluginTestCase):
     def test_alpha_rarefaction(self):
         params = {
             'Feature table to compute rarefaction curves from.': '8',
-            'Phylogenetic tree': join(
-                dirname(realpath(__file__)), 'prune_97_gg_13_8.tre'),
+            'Phylogenetic tree': join(self.basedir, 'prune_97_gg_13_8.tre'),
             'The maximum rarefaction depth. Must be greater than min_depth. '
             '(max_depth)': '1000',
             'The metrics to be measured. By default computes observed_otus, '
@@ -288,7 +397,8 @@ class qiime2Tests(PluginTestCase):
             'at each step. (iterations)': 'iterations',
             'qp-hide-plugin': 'diversity'}
         self.data['command'] = dumps(
-            ['qiime2', qiime2_version, 'Alpha rarefaction curves'])
+            ['qiime2', qiime2_version,
+             'Alpha rarefaction curves [alpha_rarefaction]'])
         self.data['parameters'] = dumps(params)
 
         jid = self.qclient.post(
@@ -341,7 +451,7 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-plugin': 'sample-classifier'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version, 'Split a feature table into training '
-             'and testing sets.'])
+             'and testing sets. [split_table]'])
         self.data['parameters'] = dumps(params)
 
         jid = self.qclient.post(
@@ -399,7 +509,7 @@ class qiime2Tests(PluginTestCase):
             'used. (Description from '
             'sklearn.metrics.pairwise_distances) (n_jobs)': 'n_jobs'}
         self.data['command'] = dumps(
-            ['qiime2', qiime2_version, 'Beta diversity'])
+            ['qiime2', qiime2_version, 'Beta diversity [beta]'])
         self.data['parameters'] = dumps(params)
 
         jid = self.qclient.post(
@@ -453,7 +563,8 @@ class qiime2Tests(PluginTestCase):
             'are not desired). (permutations)': 'permutations',
             'qp-hide-plugin': 'diversity'}
         self.data['command'] = dumps(
-            ['qiime2', qiime2_version, 'Beta diversity correlation'])
+            ['qiime2', qiime2_version,
+             'Beta diversity correlation [beta_correlation]'])
         self.data['parameters'] = dumps(params)
 
         jid = self.qclient.post(
@@ -501,7 +612,7 @@ class qiime2Tests(PluginTestCase):
             'used. (Description from '
             'sklearn.metrics.pairwise_distances) (n_jobs)': 'n_jobs'}
         self.data['command'] = dumps(
-            ['qiime2', qiime2_version, 'Beta diversity'])
+            ['qiime2', qiime2_version, 'Beta diversity [beta]'])
         self.data['parameters'] = dumps(params)
 
         jid = self.qclient.post(
@@ -555,7 +666,8 @@ class qiime2Tests(PluginTestCase):
             'are not desired). (permutations)': 'permutations',
             'qp-hide-plugin': 'diversity'}
         self.data['command'] = dumps(
-            ['qiime2', qiime2_version, 'Beta diversity correlation'])
+            ['qiime2', qiime2_version,
+             'Beta diversity correlation [beta_correlation]'])
         self.data['parameters'] = dumps(params)
 
         jid = self.qclient.post(
@@ -591,7 +703,7 @@ class qiime2Tests(PluginTestCase):
             'which alpha diversity should be computed.': 'table',
             'qp-hide-plugin': 'diversity'}
         self.data['command'] = dumps(
-            ['qiime2', qiime2_version, 'Alpha diversity'])
+            ['qiime2', qiime2_version, 'Alpha diversity [alpha]'])
         self.data['parameters'] = dumps(params)
 
         jid = self.qclient.post(
@@ -616,8 +728,7 @@ class qiime2Tests(PluginTestCase):
 
     def test_alpha_phylogenetic(self):
         params = {
-            'Phylogenetic tree': join(
-                dirname(realpath(__file__)), 'prune_97_gg_13_8.tre'),
+            'Phylogenetic tree': join(self.basedir, 'prune_97_gg_13_8.tre'),
             'The alpha diversity metric to be '
             'computed. (metric)': "Faith's Phylogenetic Diversity",
             'The feature table containing the samples for which alpha '
@@ -630,7 +741,8 @@ class qiime2Tests(PluginTestCase):
             'which alpha diversity should be computed.': 'table',
             'qp-hide-plugin': 'diversity'}
         self.data['command'] = dumps(
-            ['qiime2', qiime2_version, 'Alpha diversity (phylogenetic)'])
+            ['qiime2', qiime2_version,
+             'Alpha diversity (phylogenetic) [alpha_phylogenetic]'])
         self.data['parameters'] = dumps(params)
 
         jid = self.qclient.post(
@@ -649,6 +761,43 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(ainfo[0].artifact_type, 'alpha_vector')
         self.assertEqual(ainfo[0].output_name, 'alpha_diversity')
 
+    def test_collapse_taxa(self):
+        params = {
+            'qp-hide-method': 'collapse',
+            'qp-hide-plugin': 'taxa',
+            'Feature table to be collapsed.': '8',
+            'qp-hide-paramThe taxonomic level at which the features should be '
+            'collapsed. All ouput features will have exactly this many levels '
+            'of taxonomic annotation. (level)': 'level',
+            'The taxonomic level at which the features should be collapsed. '
+            'All ouput features will have exactly this many levels of '
+            'taxonomic annotation. (level)': '3',
+            'qp-hide-FeatureData[Taxonomy]': 'FeatureData[Taxonomy]',
+            'qp-hide-paramFeature table to be collapsed.': 'table'
+        }
+
+        self.data['command'] = dumps(['qiime2', qiime2_version, 'Collapse '
+                                      'features by their taxonomy at the '
+                                      'specified level [collapse]'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        self.assertEqual(msg, '')
+        self.assertTrue(success)
+        self.assertEqual(ainfo[0].files, [
+            (join(out_dir, 'collapse', 'collapsed_table',
+                  'feature-table.biom'), 'biom'),
+            (join(out_dir, 'collapse', 'collapsed_table.qza'),
+             'qza')])
+
+        self.assertEqual(ainfo[0].artifact_type, 'BIOM')
+        self.assertEqual(ainfo[0].output_name, 'collapsed_table')
+
     def test_alpha_correlation(self):
         # as we don't have an alpha vector available, we will calculate
         # one using a non phylogenetic metric
@@ -664,7 +813,7 @@ class qiime2Tests(PluginTestCase):
             'which alpha diversity should be computed.': 'table',
             'qp-hide-plugin': 'diversity'}
         self.data['command'] = dumps(
-            ['qiime2', qiime2_version, 'Alpha diversity'])
+            ['qiime2', qiime2_version, 'Alpha diversity [alpha]'])
         self.data['parameters'] = dumps(params)
 
         jid = self.qclient.post(
@@ -690,7 +839,8 @@ class qiime2Tests(PluginTestCase):
             'sample.': 'alpha_diversity',
             'qp-hide-plugin': 'diversity'}
         self.data['command'] = dumps(
-            ['qiime2', qiime2_version, 'Alpha diversity correlation'])
+            ['qiime2', qiime2_version,
+             'Alpha diversity correlation [alpha_correlation]'])
         self.data['parameters'] = dumps(params)
 
         jid = self.qclient.post(
@@ -709,16 +859,16 @@ class qiime2Tests(PluginTestCase):
 
     def test_taxa_barplot(self):
         params = {
+            'qp-hide-plugin': 'taxa',
+            'qp-hide-method': 'barplot',
             'Feature table to visualize at various taxonomic levels.': '8',
             'qp-hide-metadata': 'metadata',
-            'qp-hide-method': 'barplot',
+            'qp-hide-FeatureData[Taxonomy]': 'FeatureData[Taxonomy]',
             'qp-hide-paramFeature table to visualize at various taxonomic '
-            'levels.': 'table',
-            'qp-hide-plugin': 'taxa',
-            'qp-hide-taxonomy': 'taxonomy'}
+            'levels.': 'table'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version,
-             'Visualize taxonomy with an interactive bar plot'])
+             'Visualize taxonomy with an interactive bar plot [barplot]'])
         self.data['parameters'] = dumps(params)
         jid = self.qclient.post(
             '/apitest/processing_job/', data=self.data)['job']
@@ -783,7 +933,8 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-paramThe minimum total frequency that a sample must '
             'have to be retained. (min_frequency)': 'min_frequency'}
         self.data['command'] = dumps(
-            ['qiime2', qiime2_version, 'Filter samples from table'])
+            ['qiime2', qiime2_version,
+             'Filter samples from table [filter_samples]'])
         self.data['parameters'] = dumps(params)
 
         jid = self.qclient.post(
@@ -837,7 +988,7 @@ class qiime2Tests(PluginTestCase):
             'used. (Description from '
             'sklearn.metrics.pairwise_distances) (n_jobs)': 'n_jobs'}
         self.data['command'] = dumps(
-            ['qiime2', qiime2_version, 'Beta diversity'])
+            ['qiime2', qiime2_version, 'Beta diversity [beta]'])
         self.data['parameters'] = dumps(params)
 
         jid = self.qclient.post(
@@ -871,7 +1022,7 @@ class qiime2Tests(PluginTestCase):
             'computed.': 'distance_matrix',
             'qp-hide-plugin': 'diversity'}
         self.data['command'] = dumps(
-            ['qiime2', qiime2_version, 'Principal Coordinate Analysis'])
+            ['qiime2', qiime2_version, 'Principal Coordinate Analysis [pcoa]'])
         self.data['parameters'] = dumps(params)
 
         jid = self.qclient.post(
@@ -900,7 +1051,7 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-plugin': 'emperor'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version, 'Visualize and Interact with '
-             'Principal Coordinates Analysis Plots'])
+             'Principal Coordinates Analysis Plots [plot]'])
         self.data['parameters'] = dumps(params)
 
         jid = self.qclient.post(
@@ -951,7 +1102,7 @@ class qiime2Tests(PluginTestCase):
             'used. (Description from '
             'sklearn.metrics.pairwise_distances) (n_jobs)': 'n_jobs'}
         self.data['command'] = dumps(
-            ['qiime2', qiime2_version, 'Beta diversity'])
+            ['qiime2', qiime2_version, 'Beta diversity [beta]'])
         self.data['parameters'] = dumps(params)
 
         jid = self.qclient.post(
@@ -967,29 +1118,31 @@ class qiime2Tests(PluginTestCase):
         aid = reply['artifact']
 
         params = {
-            'Matrix of distances between pairs of samples.': str(aid),
-            'Perform pairwise tests between all pairs of groups in addition '
-            'to the test across all groups. This can be very slow if there '
-            'are a lot of groups in the metadata column. (pairwise)': True,
-            'The group significance test to be applied. (method)': 'PERMANOVA',
-            'The number of permutations to be run when computing '
-            'p-values. (permutations)': '10',
-            'Metadata column to use': 'description_duplicate',
-            'qp-hide-paramMetadata column to use': 'qp-hide-metadata-field',
-            'qp-hide-method': 'beta_group_significance',
-            'qp-hide-paramMatrix of distances between pairs of '
-            'samples.': 'distance_matrix',
             'qp-hide-plugin': 'diversity',
+            'qp-hide-method': 'beta_group_significance',
+            'Matrix of distances between pairs of samples.': str(aid),
+            'qp-hide-paramThe number of permutations to be run when computing '
+            'p-values. (permutations)': 'permutations',
+            'The number of permutations to be run when computing p-values. '
+            '(permutations)': '999',
             'qp-hide-paramPerform pairwise tests between all pairs of groups '
             'in addition to the test across all groups. This can be very slow '
             'if there are a lot of groups in the metadata column. '
             '(pairwise)': 'pairwise',
-            'qp-hide-paramThe group significance test to be '
-            'applied. (method)': 'method',
-            'qp-hide-paramThe number of permutations to be run when '
-            'computing p-values. (permutations)': 'permutations'}
+            'Perform pairwise tests between all pairs of groups in addition '
+            'to the test across all groups. This can be very slow if there '
+            'are a lot of groups in the metadata column. (pairwise)': False,
+            'qp-hide-paramThe group significance test to be applied. '
+            '(method)': 'method',
+            'The group significance test to be applied. (method)': 'PERMDISP',
+            'qp-hide-paramMetadata column to use': 'qp-hide-metadata-field',
+            'Metadata column to use': 'description_duplicate',
+            'qp-hide-paramMatrix of distances between pairs of '
+            'samples.': 'distance_matrix'}
+
         self.data['command'] = dumps(
-            ['qiime2', qiime2_version, 'Beta diversity group significance'])
+            ['qiime2', qiime2_version,
+             'Beta diversity group significance [beta_group_significance]'])
         self.data['parameters'] = dumps(params)
 
         jid = self.qclient.post(
@@ -998,12 +1151,13 @@ class qiime2Tests(PluginTestCase):
         self._clean_up_files.append(out_dir)
 
         success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
-        self.assertFalse(success)
-        self.assertEqual(
-            msg, "Error running: All values in the grouping vector are "
-            "unique. This method cannot operate on a grouping vector with "
-            "only unique values (e.g., there are no 'within' distances "
-            "because each group of objects contains only a single object).")
+        self.assertEqual(msg, '')
+        self.assertTrue(success)
+        self.assertEqual(ainfo[0].files, [(
+            join(out_dir, 'beta_group_significance', 'visualization.qzv'),
+            'qzv')])
+        self.assertEqual(ainfo[0].artifact_type, 'q2_visualization')
+        self.assertEqual(ainfo[0].output_name, 'visualization')
 
     def test_filter_features(self):
         params = {
@@ -1053,7 +1207,8 @@ class qiime2Tests(PluginTestCase):
             'have to be retained. (min_frequency)': 'min_frequency',
             'qp-hide-plugin': 'feature-table'}
         self.data['command'] = dumps(
-            ['qiime2', qiime2_version, 'Filter features from table'])
+            ['qiime2', qiime2_version,
+             'Filter features from table [filter_features]'])
         self.data['parameters'] = dumps(params)
 
         jid = self.qclient.post(
@@ -1119,7 +1274,8 @@ class qiime2Tests(PluginTestCase):
             'have to be retained. (min_frequency)': 'min_frequency',
             'qp-hide-plugin': 'feature-table'}
         self.data['command'] = dumps(
-            ['qiime2', qiime2_version, 'Filter features from table'])
+            ['qiime2', qiime2_version,
+             'Filter features from table [filter_features]'])
         self.data['parameters'] = dumps(params)
 
         jid = self.qclient.post(

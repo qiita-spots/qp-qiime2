@@ -7,6 +7,9 @@
 # -----------------------------------------------------------------------------
 
 from json import dumps
+from os import environ
+from os.path import join
+from glob import glob
 
 from qiita_client import QiitaPlugin, QiitaCommand
 
@@ -15,24 +18,40 @@ from .qp_qiime2 import (
     PRIMITIVE_TYPES, call_qiime2, RENAME_COMMANDS)
 from qiime2 import __version__ as qiime2_version
 from qiime2.sdk.util import actions_by_input_type
+from qiime2.sdk import PluginManager
 
 
 # Initialize the qiita_plugin
 plugin = QiitaPlugin('qiime2', qiime2_version, 'QIIME 2')
 
+# The extra commands require a folder where all the pre-calculated databases
+# exist, which is set up via a ENV variable, if not present we should raise
+# an error
+qp_qiime2_dbs = environ.get('QP_QIIME2_DBS')
+if qp_qiime2_dbs is None:
+    raise ValueError("Missing ENV var QP_QIIME2_DBS, please set.")
+qp_qiime2_dbs = glob(join(qp_qiime2_dbs, '*.qza'))
+if len(qp_qiime2_dbs) < 1:
+    raise ValueError(
+        "ENV QP_QIIME2_DBS points to a folder without QZA files, please set.")
+
 # PLEASE READ:
-# We are going loop over QIITA_Q2_SEMANTIC_TYPE (lookup table)
-# so we can retrieve the q2plugin and their methods that work with that
-# given Q2/Qiita semantic type. Then we will ignore any plugin not in
-# Q2_ALLOWED_PLUGINS so we avoid adding plugins that we don't want; like
-# deblur or dada2. Finally, we are going to loop over the different inputs,
-# outputs and parameters from Q2 and convert them to QIITA's req_params,
-# opt_params and outputs.
-# Also, note that Qiita users like to have descriptions of the paramters
+# There are 2 main steps:
+# 1. We are going loop over QIITA_Q2_SEMANTIC_TYPE (lookup table) so we can
+# retrieve the q2plugin and their methods that work with that given Q2/Qiita
+# semantic type. Then we will ignore any plugin not in Q2_ALLOWED_PLUGINS so
+# we avoid adding plugins that we don't want; like deblur or dada2. Finally,
+# we are going to loop over the different inputs, outputs and parameters from
+# Q2 and convert them to QIITA's req_params, opt_params and outputs.
+# 2. We are going to "force" add commands that are not added in the previous
+# loop based on user demand
+#
+# Note that Qiita users like to have descriptions of the paramters
 # (q2-description) vs. the parameter itself (q2-parameter) so to allow this
 # we are going to store each parameter twice: one in the
 # opt_params[q2-description]: value; and
 # req_params['qp-hide-param' + q2-description]: q2-parameter
+
 for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
     for q2plugin, methods in actions_by_input_type(str(q2_artifact)):
         # note that the qiita_artifact are strings not objects
@@ -42,9 +61,9 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
         if q2plugin.name not in Q2_ALLOWED_PLUGINS:
             # This currently filters (which are processing commands):
             # feature-classifier
+            # fragment-insertion
             # quality-control
             # vsearch
-            # fragment-insertion
             continue
 
         for m in methods:
@@ -57,6 +76,8 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
             # while calling call_qiime2
             req_params = {'qp-hide-plugin': ('string', q2plugin.name),
                           'qp-hide-method': ('string', m.id)}
+            outputs_params = {}
+            opt_params = {}
             for pname, element in inputs.items():
                 if element.qiime_type not in Q2_QIITA_SEMANTIC_TYPE:
                     add_method = False
@@ -72,7 +93,7 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
                         'choice:["None", "Artifact tree, if exists"]', 'None')
                     # deleting so we don't count it as part of the inputs
                     del inputs[pname]
-                elif etype == 'taxonomy':
+                elif etype == 'FeatureData[Taxonomy]':
                     ename = 'qp-hide-%s' % etype
                     req_params[ename] = ('string', etype)
                     # deleting so we don't count it as part of the inputs
@@ -87,7 +108,6 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
                 # can retrieve later
                 req_params['qp-hide-param' + ename] = ('string', pname)
 
-            outputs_params = {}
             for pname, element in outputs.items():
                 if element.qiime_type not in Q2_QIITA_SEMANTIC_TYPE:
                     add_method = False
@@ -104,44 +124,39 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
 
             if len(inputs) != 1 or not add_method:
                 # This is currently filtering out:
-                # emperor procrustes_plot
-                # diversity procrustes_analysis
-                # diversity pcoa_biplot
+                # composition add_pseudocount
                 # diversity mantel
-                # longitudinal first_distances
-                # sample-classifier classify_samples_from_dist
                 # diversity pcoa_biplot
-                # gneiss gradient_clustering
-                # feature-table summarize
-                # feature-table presence_absence
-                # longitudinal plot_feature_volatility
-                # longitudinal first_differences
-                # gneiss ilr_phylogenetic
-                # gneiss correlation_clustering
-                # gneiss assign_ids
-                # gneiss gradient_clustering
-                # gneiss dendrogram_heatmap
-                # gneiss balance_taxonomy
-                # gneiss ilr_hierarchical
+                # diversity procrustes_analysis
+                # emperor procrustes_plot
                 # feature-table filter_seqs
-                # feature-table summarize
                 # feature-table presence_absence
-                # longitudinal maturity_index
+                # feature-table summarize
+                # gneiss assign_ids
+                # gneiss balance_taxonomy
+                # gneiss correlation_clustering
+                # gneiss dendrogram_heatmap
+                # gneiss gradient_clustering
+                # gneiss ilr_hierarchical
+                # gneiss ilr_phylogenetic
                 # longitudinal feature_volatility
+                # longitudinal first_differences
+                # longitudinal first_distances
+                # longitudinal maturity_index
+                # longitudinal plot_feature_volatility
                 # phylogeny filter_table
                 # sample-classifier classify_samples
-                # sample-classifier predict_regression
-                # sample-classifier fit_regressor
-                # sample-classifier fit_classifier
-                # sample-classifier regress_samples_ncv
-                # sample-classifier regress_samples
+                # sample-classifier classify_samples_from_dist
                 # sample-classifier classify_samples_ncv
+                # sample-classifier fit_classifier
+                # sample-classifier fit_regressor
                 # sample-classifier predict_classification
-                # composition add_pseudocount
-                # feature-table summarize
+                # sample-classifier predict_regression
+                # sample-classifier regress_samples
+                # sample-classifier regress_samples_ncv
+                # taxa filter_seqs
                 continue
 
-            opt_params = {}
             for pname, element in parameters.items():
                 tqt = type(element.qiime_type)
                 # there is a new primitive and we should raise an error
@@ -223,8 +238,77 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
                         # can retrieve later
                         req_params['qp-hide-param' + ename] = ('string', pname)
 
-            qiime_cmd = QiitaCommand(
-                m.name, m.description, call_qiime2, req_params, opt_params,
-                outputs_params, {'Defaut': {}}, analysis_only=True)
+            qiime_cmd = QiitaCommand("%s [%s]" % (m.name, m.id), m.description,
+                                     call_qiime2, req_params, opt_params,
+                                     outputs_params, {'Default': {}},
+                                     analysis_only=True)
 
             plugin.register_command(qiime_cmd)
+
+# 2. force adding extra commands
+pm = PluginManager()
+
+# 2.1 adding assign taxonomy
+q2plugin = pm.plugins['feature-classifier']
+m = q2plugin.methods['classify_sklearn']
+qname = q2plugin.name
+mid = m.id
+
+req_params = {'qp-hide-plugin': ('string', q2plugin.name),
+              'qp-hide-method': ('string', m.id)}
+outputs_params = {}
+opt_params = {}
+for pname, element in m.signature.inputs.items():
+    eqt = str(element.qiime_type)
+    if eqt == 'FeatureData[Sequence]':
+        req_params[element.description] = ('artifact', ['BIOM'])
+    elif eqt == 'TaxonomicClassifier':
+        default = qp_qiime2_dbs[0]
+        qp_qiime2_dbs = ', '.join('"%s"' % db for db in qp_qiime2_dbs)
+
+        ename = '%s (%s)' % (element.description, pname)
+        req_params[ename] = ('choice:[%s]' % qp_qiime2_dbs, default)
+        req_params['qp-hide-param' + ename] = ('string', pname)
+    else:
+        raise ValueError('Found unexpected input: "%s", in '
+                         'feature-classifier classify_sklearn' % eqt)
+for pname, element in m.signature.outputs.items():
+    eqt = str(element.qiime_type)
+    if eqt == 'FeatureData[Taxonomy]':
+        outputs_params[pname] = eqt
+        outputs_params['Feature Table with Classification'] = 'BIOM'
+    else:
+        raise ValueError('Found non expected output: "%s", in '
+                         'feature-classifier classify_sklearn' % eqt)
+for pname, element in m.signature.parameters.items():
+    tqt = type(element.qiime_type)
+    if tqt not in PRIMITIVE_TYPES:
+        raise ValueError(
+            'There is a new type: %s' % element.qiime_type)
+    predicate = element.qiime_type.predicate
+    data_type = PRIMITIVE_TYPES[tqt]
+    default = element.default
+    if (predicate is not None and PRIMITIVE_TYPES[tqt] not in (
+                                  'float', 'integer')):
+        vals = list(predicate.iter_boundaries())
+        data_type = 'choice:%s' % dumps(vals)
+        default = vals[0]
+
+    ename = '%s (%s)' % (element.description, pname)
+    if element.has_default():
+        opt_params[ename] = (data_type, default)
+        # we need to add the actual name of the parameter so we
+        # can retrieve later
+        opt_params['qp-hide-param' + ename] = ('string', pname)
+    else:
+        default = (default if default is not element.NOVALUE
+                   else 'None')
+        req_params[ename] = (data_type, default)
+        # we need to add the actual name of the parameter so we
+        # can retrieve later
+        req_params['qp-hide-param' + ename] = ('string', pname)
+
+qiime_cmd = QiitaCommand("%s [%s]" % (m.name, m.id), m.description,
+                         call_qiime2, req_params, opt_params,
+                         outputs_params, {'Default': {}}, analysis_only=True)
+plugin.register_command(qiime_cmd)
