@@ -233,10 +233,10 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
                     else:
                         default = (default if default is not element.NOVALUE
                                    else 'None')
-                        req_params[ename] = (data_type, default)
+                        opt_params[ename] = (data_type, default)
                         # we need to add the actual name of the parameter so we
                         # can retrieve later
-                        req_params['qp-hide-param' + ename] = ('string', pname)
+                        opt_params['qp-hide-param' + ename] = ('string', pname)
 
             qiime_cmd = QiitaCommand("%s [%s]" % (m.name, m.id), m.description,
                                      call_qiime2, req_params, opt_params,
@@ -303,10 +303,10 @@ for pname, element in m.signature.parameters.items():
     else:
         default = (default if default is not element.NOVALUE
                    else 'None')
-        req_params[ename] = (data_type, default)
+        opt_params[ename] = (data_type, default)
         # we need to add the actual name of the parameter so we
         # can retrieve later
-        req_params['qp-hide-param' + ename] = ('string', pname)
+        opt_params['qp-hide-param' + ename] = ('string', pname)
 
 qiime_cmd = QiitaCommand("%s [%s]" % (m.name, m.id), m.description,
                          call_qiime2, req_params, opt_params,
