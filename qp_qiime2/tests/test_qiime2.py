@@ -96,19 +96,20 @@ class qiime2Tests(PluginTestCase):
             'will cause reads to be classified unchanged; reverse-complement '
             'will cause reads to be reversed and complemented prior to '
             'classification. Default is to autodetect based on the confidence '
-            'estimates for the first 100 reads. (read_orientation)':
-            'reverse-complement', 'qp-hide-paramConfidence threshold for '
-            'limiting taxonomic depth. Provide -1 to disable confidence '
-            'calculation, or 0 to calculate confidence but not apply it to '
-            'limit the taxonomic depth of the assignments. (confidence)':
-            'confidence', 'Confidence threshold for limiting taxonomic depth. '
+            'estimates for the first 100 reads. (read_orientation)': 'same',
+            'qp-hide-paramConfidence threshold for limiting taxonomic depth. '
             'Provide -1 to disable confidence calculation, or 0 to calculate '
             'confidence but not apply it to limit the taxonomic depth of the '
-            'assignments. (confidence)': '0.7', 'qp-hide-param"all" or '
-            'expression, as in "3*n_jobs". The number of batches (of tasks) '
-            'to be pre-dispatched. (pre_dispatch)': 'pre_dispatch', '"all" or '
-            'expression, as in "3*n_jobs". The number of batches (of tasks) '
-            'to be pre-dispatched. (pre_dispatch)': '2*n_jobs',
+            'assignments. (confidence)': 'confidence',
+            'Confidence threshold for limiting taxonomic depth. Provide -1 to '
+            'disable confidence calculation, or 0 to calculate confidence but '
+            'not apply it to limit the taxonomic depth of the assignments. '
+            '(confidence)': '0.7',
+            'qp-hide-param"all" or expression, as in "3*n_jobs". The number '
+            'of batches (of tasks) to be pre-dispatched. '
+            '(pre_dispatch)': 'pre_dispatch',
+            '"all" or expression, as in "3*n_jobs". The number of batches '
+            '(of tasks) to be pre-dispatched. (pre_dispatch)': '2*n_jobs',
             'qp-hide-paramThe maximum number of concurrently worker '
             'processes. If -1 all CPUs are used. If 1 is given, no parallel '
             'computing code is used at all, which is useful for debugging. '
@@ -116,15 +117,17 @@ class qiime2Tests(PluginTestCase):
             'n_jobs = -2, all CPUs but one are used. (n_jobs)': 'n_jobs',
             'The maximum number of concurrently worker processes. If -1 all '
             'CPUs are used. If 1 is given, no parallel computing code is '
-            'used at all, which is useful for debugging. For n_jobs below -1, '
-            '(n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all CPUs '
-            'but one are used. (n_jobs)': '1', 'qp-hide-paramNumber of reads '
-            'to process in each batch. If 0, this parameter is autoscaled to '
-            'the number of query sequences / n_jobs. (reads_per_batch)':
-            'reads_per_batch', 'Number of reads to process in each batch. If '
-            '0, this parameter is autoscaled to the number of query sequences '
-            '/ n_jobs. (reads_per_batch)': '0', 'qp-hide-paramThe taxonomic '
-            'classifier for classifying the reads. (classifier)': 'classifier',
+            'used at all, which is useful for debugging. For n_jobs below '
+            '-1, (n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all '
+            'CPUs but one are used. (n_jobs)': '1',
+            'qp-hide-paramNumber of reads to process in each batch. If 0, '
+            'this parameter is autoscaled to min( number of query sequences '
+            '/ n_jobs, 20000). (reads_per_batch)': 'reads_per_batch',
+            'Number of reads to process in each batch. If 0, this parameter '
+            'is autoscaled to min( number of query sequences / n_jobs, '
+            '20000). (reads_per_batch)': '0',
+            'qp-hide-paramThe taxonomic classifier for classifying the '
+            'reads. (classifier)': 'classifier',
             'The taxonomic classifier for classifying the reads. '
             '(classifier)': dbpath}
         params = original_params.copy()
@@ -1291,46 +1294,45 @@ class qiime2Tests(PluginTestCase):
     def test_metrics(self):
         pm = PluginManager()
         actions = pm.plugins['diversity'].actions
-
         # Test alpha diversity metrics
         q2_metrics = actions['alpha'].signature.parameters[
-            'metric'].qiime_type.predicate.choices
-        qp_metrics = set(ALPHA_DIVERSITY_METRICS.values())
-        self.assertEqual(q2_metrics, qp_metrics)
+            'metric'].qiime_type.predicate.to_ast()['choices']
+        qp_metrics = ALPHA_DIVERSITY_METRICS.values()
+        self.assertCountEqual(q2_metrics, qp_metrics)
 
         # Test beta diversity metrics
         q2_metrics = actions['beta'].signature.parameters[
-            'metric'].qiime_type.predicate.choices
-        qp_metrics = set(BETA_DIVERSITY_METRICS.values())
-        self.assertEqual(q2_metrics, qp_metrics)
+            'metric'].qiime_type.predicate.to_ast()['choices']
+        qp_metrics = BETA_DIVERSITY_METRICS.values()
+        self.assertCountEqual(q2_metrics, qp_metrics)
 
         q2_metrics = actions['alpha_phylogenetic'].signature.parameters[
-            'metric'].qiime_type.predicate.choices
-        qp_metrics = set(ALPHA_DIVERSITY_METRICS_PHYLOGENETIC.values())
-        self.assertEqual(q2_metrics, qp_metrics)
+            'metric'].qiime_type.predicate.to_ast()['choices']
+        qp_metrics = ALPHA_DIVERSITY_METRICS_PHYLOGENETIC.values()
+        self.assertCountEqual(q2_metrics, qp_metrics)
 
         q2_metrics = actions['beta_phylogenetic'].signature.parameters[
-            'metric'].qiime_type.predicate.choices
-        qp_metrics = set(BETA_DIVERSITY_METRICS_PHYLOGENETIC.values())
-        self.assertEqual(q2_metrics, qp_metrics)
+            'metric'].qiime_type.predicate.to_ast()['choices']
+        qp_metrics = BETA_DIVERSITY_METRICS_PHYLOGENETIC.values()
+        self.assertCountEqual(q2_metrics, qp_metrics)
 
         # Alpha correlation methods
         q2_metrics = actions['alpha_correlation'].signature.parameters[
-            'method'].qiime_type.predicate.choices
-        qp_metrics = set(CORRELATION_METHODS.values())
-        self.assertEqual(q2_metrics, qp_metrics)
+            'method'].qiime_type.predicate.to_ast()['choices']
+        qp_metrics = CORRELATION_METHODS.values()
+        self.assertCountEqual(q2_metrics, qp_metrics)
 
         # Beta correlation methods
         q2_metrics = actions['beta_correlation'].signature.parameters[
-            'method'].qiime_type.predicate.choices
-        qp_metrics = set(CORRELATION_METHODS.values())
-        self.assertEqual(q2_metrics, qp_metrics)
+            'method'].qiime_type.predicate.to_ast()['choices']
+        qp_metrics = CORRELATION_METHODS.values()
+        self.assertCountEqual(q2_metrics, qp_metrics)
 
         # Beta group significance method
         q2_metrics = actions['beta_group_significance'].signature.parameters[
-            'method'].qiime_type.predicate.choices
-        qp_metrics = set(BETA_GROUP_SIG_METHODS.values())
-        self.assertEqual(q2_metrics, qp_metrics)
+            'method'].qiime_type.predicate.to_ast()['choices']
+        qp_metrics = BETA_GROUP_SIG_METHODS.values()
+        self.assertCountEqual(q2_metrics, qp_metrics)
 
 
 if __name__ == '__main__':

@@ -52,8 +52,15 @@ if len(qp_qiime2_dbs) < 1:
 # opt_params[q2-description]: value; and
 # req_params['qp-hide-param' + q2-description]: q2-parameter
 
-for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
-    for q2plugin, methods in actions_by_input_type(str(q2_artifact)):
+for qiita_artifact, q2_artifacts in QIITA_Q2_SEMANTIC_TYPE.items():
+    if q2_artifacts['expression']:
+        actions = [a for e in q2_artifacts['expression']
+                   for a in actions_by_input_type('%s[%s]' % (
+                       q2_artifacts['name'], e))]
+    else:
+        actions = actions_by_input_type(q2_artifacts['name'])
+
+    for q2plugin, methods in actions:
         # note that the qiita_artifact are strings not objects
         if qiita_artifact.startswith('BIOM'):
             qiita_artifact = 'BIOM'
@@ -78,26 +85,23 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
                           'qp-hide-method': ('string', m.id)}
             outputs_params = {}
             opt_params = {}
+            to_delete = []
             for pname, element in inputs.items():
-                if element.qiime_type not in Q2_QIITA_SEMANTIC_TYPE:
+                qt_name = element.qiime_type.to_ast()['name']
+                if qt_name not in Q2_QIITA_SEMANTIC_TYPE:
                     add_method = False
                     break
-                etype = Q2_QIITA_SEMANTIC_TYPE[element.qiime_type]
-                if etype.startswith('BIOM'):
-                    etype = 'BIOM'
-
+                etype = Q2_QIITA_SEMANTIC_TYPE[qt_name]
                 # these are special types as we can retrive internally
                 if etype == 'phylogeny':
                     ename = 'Phylogenetic tree'
                     req_params[ename] = (
                         'choice:["None", "Artifact tree, if exists"]', 'None')
-                    # deleting so we don't count it as part of the inputs
-                    del inputs[pname]
+                    to_delete.append(pname)
                 elif etype == 'FeatureData[Taxonomy]':
                     ename = 'qp-hide-%s' % etype
                     req_params[ename] = ('string', etype)
-                    # deleting so we don't count it as part of the inputs
-                    del inputs[pname]
+                    to_delete.append(pname)
                     # we are going to continue so we don't add this element
                     # twice
                     continue
@@ -108,61 +112,54 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
                 # can retrieve later
                 req_params['qp-hide-param' + ename] = ('string', pname)
 
+            for td in to_delete:
+                del inputs[td]
+
             for pname, element in outputs.items():
-                if element.qiime_type not in Q2_QIITA_SEMANTIC_TYPE:
+                qt_name = element.qiime_type.to_ast()['name']
+                if qt_name not in Q2_QIITA_SEMANTIC_TYPE:
                     add_method = False
                     break
                 else:
-                    etype = Q2_QIITA_SEMANTIC_TYPE[element.qiime_type]
-                    if etype.startswith('BIOM'):
-                        etype = 'BIOM'
-                    # this one is to "fix" the templates for phylogenetic
-                    # methods, like phylogenetic_distance_matrix
-                    elif etype.startswith('phylogenetic_'):
-                        etype = etype[len('phylogenetic_'):]
+                    etype = Q2_QIITA_SEMANTIC_TYPE[qt_name]
                     outputs_params[pname] = etype
 
             if len(inputs) != 1 or not add_method:
                 # This is currently filtering out:
-                # composition add_pseudocount
                 # diversity mantel
+                # diversity pcoa_biplot
                 # diversity pcoa_biplot
                 # diversity procrustes_analysis
                 # emperor procrustes_plot
-                # feature-table filter_seqs
-                # feature-table presence_absence
-                # feature-table summarize
                 # gneiss assign_ids
+                # gneiss assign_ids
+                # gneiss balance_taxonomy
                 # gneiss balance_taxonomy
                 # gneiss correlation_clustering
                 # gneiss dendrogram_heatmap
                 # gneiss gradient_clustering
+                # gneiss gradient_clustering
                 # gneiss ilr_hierarchical
                 # gneiss ilr_phylogenetic
+                # gneiss ilr_phylogenetic
                 # longitudinal feature_volatility
-                # longitudinal first_differences
-                # longitudinal first_distances
                 # longitudinal maturity_index
-                # longitudinal plot_feature_volatility
-                # phylogeny filter_table
                 # sample-classifier classify_samples
-                # sample-classifier classify_samples_from_dist
-                # sample-classifier classify_samples_ncv
                 # sample-classifier fit_classifier
                 # sample-classifier fit_regressor
                 # sample-classifier predict_classification
                 # sample-classifier predict_regression
                 # sample-classifier regress_samples
-                # sample-classifier regress_samples_ncv
                 # taxa filter_seqs
                 continue
 
             for pname, element in parameters.items():
-                tqt = type(element.qiime_type)
+                tqt = element.qiime_type.to_ast()['name']
                 # there is a new primitive and we should raise an error
                 if tqt not in PRIMITIVE_TYPES:
                     raise ValueError(
-                        'There is a new type: %s' % element.qiime_type)
+                        'There is a new type: %s, in %s %s (%s)' % (
+                            tqt, q2plugin.name, m.id, pname))
 
                 # predicate are the options for each parameter, note that it
                 # can be a Choice/List or a Range (for Int/Floats). We ignore
@@ -176,7 +173,7 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
                 default = element.default
                 if (predicate is not None and PRIMITIVE_TYPES[tqt] not in (
                                               'float', 'integer')):
-                    vals = list(predicate.iter_boundaries())
+                    vals = predicate.to_ast()['choices']
                     data_type = 'choice:%s' % dumps(vals)
                     default = vals[0]
 
@@ -207,22 +204,13 @@ for qiita_artifact, q2_artifact in QIITA_Q2_SEMANTIC_TYPE.items():
                                 qname, mid, pname, element.description))
                         raise ValueError(error_msg)
 
-                if pname == 'metadata':
-                    # Q2 does some CLI magic when dealing with mapping
-                    # files, if the method requires a column, the CLI will
-                    # request the filepath, parse it and then pass as metadata
-                    # column. For fun, both cases full/column metadata are
-                    # called metadata. However, for Qiita we will need to make
-                    # this difference more obvious.
-                    if data_type == 'string':
-                        # as this one needs input from the user, we will create
-                        # as any other opt_params
-                        name = "Metadata column to use"
-                        opt_params[name] = ('string', '')
-                        name = 'qp-hide-param' + name
-                        opt_params[name] = ('string', 'qp-hide-metadata-field')
-                    else:
-                        opt_params['qp-hide-metadata'] = ('string', pname)
+                if tqt == 'Metadata':
+                    opt_params['qp-hide-metadata'] = ('string', pname)
+                elif tqt == 'MetadataColumn':
+                    name = "Metadata column to use"
+                    opt_params[name] = ('string', '')
+                    name = 'qp-hide-param' + name
+                    opt_params[name] = ('string', 'qp-hide-metadata-field')
                 else:
                     ename = '%s (%s)' % (element.description, pname)
                     if element.has_default():
@@ -281,16 +269,17 @@ for pname, element in m.signature.outputs.items():
         raise ValueError('Found non expected output: "%s", in '
                          'feature-classifier classify_sklearn' % eqt)
 for pname, element in m.signature.parameters.items():
-    tqt = type(element.qiime_type)
+    tqt = element.qiime_type.to_ast()['name']
     if tqt not in PRIMITIVE_TYPES:
         raise ValueError(
-            'There is a new type: %s' % element.qiime_type)
+            'There is a new type: %s, in %s %s (%s)' % (
+                tqt, q2plugin.name, m.id, pname))
     predicate = element.qiime_type.predicate
     data_type = PRIMITIVE_TYPES[tqt]
     default = element.default
     if (predicate is not None and PRIMITIVE_TYPES[tqt] not in (
                                   'float', 'integer')):
-        vals = list(predicate.iter_boundaries())
+        vals = predicate.to_ast()['choices']
         data_type = 'choice:%s' % dumps(vals)
         default = vals[0]
 

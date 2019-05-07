@@ -25,36 +25,44 @@ Q2_ALLOWED_PLUGINS = [
 ]
 
 QIITA_Q2_SEMANTIC_TYPE = {
-    'BIOM-F': qiime2.sdk.util.parse_type('FeatureTable[Frequency]'),
-    'BIOM-RF': qiime2.sdk.util.parse_type('FeatureTable[RelativeFrequency]'),
-    'BIOM-PA': qiime2.sdk.util.parse_type('FeatureTable[PresenceAbsence]'),
-    'distance_matrix': qiime2.sdk.util.parse_type('DistanceMatrix'),
-    'ordination_results': qiime2.sdk.util.parse_type('PCoAResults'),
-    'q2_visualization': qiime2.sdk.util.parse_type('Visualization'),
-    'alpha_vector': qiime2.sdk.util.parse_type('SampleData[AlphaDiversity]'),
-    'phylogenetic_distance_matrix': qiime2.sdk.util.parse_type(
-        "DistanceMatrix % Properties(['phylogenetic'])"),
-    'phylogenetic_alpha_vector': qiime2.sdk.util.parse_type(
-        "SampleData[AlphaDiversity] % Properties(['phylogenetic'])"),
-    'phylogeny': qiime2.sdk.util.parse_type('Phylogeny[Rooted]'),
-    'FeatureData[Taxonomy]': qiime2.sdk.util.parse_type(
-        'FeatureData[Taxonomy]')
+    'BIOM': {
+        'name': 'FeatureTable',
+        'expression': ['Frequency', 'RelativeFrequency', 'PresenceAbsence']},
+    'distance_matrix': {
+        'name': 'DistanceMatrix',
+        'expression': []},
+    'ordination_results': {
+        'name': 'PCoAResults',
+        'expression': []},
+    'q2_visualization': {
+        'name': 'Visualization',
+        'expression': []},
+    'alpha_vector': {
+        'name': 'SampleData',
+        'expression': ['AlphaDiversity']},
+    'phylogeny': {
+        'name': 'Phylogeny',
+        'expression': ['Rooted']},
+    'FeatureData[Taxonomy]':  {
+        'name': 'FeatureData',
+        'expression': ['Taxonomy']},
 }
 
 # for simplicity we are going to invert QIITA_Q2_SEMANTIC_TYPE so we can
 # search by key or value without having to do this operation several times
-Q2_QIITA_SEMANTIC_TYPE = {y: x for x, y in QIITA_Q2_SEMANTIC_TYPE.items()}
+Q2_QIITA_SEMANTIC_TYPE = {
+    y['name']: x for x, y in QIITA_Q2_SEMANTIC_TYPE.items()}
 
 PRIMITIVE_TYPES = {
-    qiime2.core.type.primitive._Int: 'integer',
-    qiime2.core.type.primitive._Bool: 'boolean',
-    qiime2.core.type.primitive._Float: 'float',
-    qiime2.core.type.primitive._Str: 'string',
-    qiime2.core.type.collection._CollectionPrimitive: 'choice',
-    # this is a mapping file
-    qiime2.core.type.primitive._Metadata: 'mapping',
-    # this is a column in the mapping file
-    qiime2.core.type.primitive._MetadataColumnExpression: 'string',
+    'Int': 'integer',
+    'Str': 'string',
+    'Choices': 'choice',
+    'Set': 'choice',
+    'List': 'choice',
+    'Metadata': 'string',
+    'MetadataColumn': 'string',
+    'Float': 'float',
+    'Bool': 'boolean',
 }
 
 ALPHA_DIVERSITY_METRICS_PHYLOGENETIC = {
@@ -210,7 +218,12 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     if val == 'Artifact tree, if exists':
                         tree_fp_check = True
                     fpath = val
-                    artifact_method = QIITA_Q2_SEMANTIC_TYPE[key]
+                    qiita_name = QIITA_Q2_SEMANTIC_TYPE[key]
+                    if qiita_name['expression']:
+                        # for these cases we need an expresion so for
+                        # simplicity using the first one [0]
+                        artifact_method = '%s[%s]' % (
+                            qiita_name['name'], qiita_name['expression'][0])
                 elif key == 'classifier':
                     fpath = val
                     artifact_method = None
@@ -230,8 +243,8 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     if 'qza' not in ainfo['files']:
                         # at this stage in qiita we only have 2 types of
                         # artifacts: biom / plain_text
-                        dt = method_inputs[key].qiime_type
-                        if Q2_QIITA_SEMANTIC_TYPE[dt].startswith('BIOM'):
+                        dt = method_inputs[key].qiime_type.to_ast()['name']
+                        if Q2_QIITA_SEMANTIC_TYPE[dt] == 'BIOM':
                             fpath = ainfo['files']['biom'][0]
                             # if it's a BIOM and there is a plain_text is the
                             # result of the archive at this stage: a tree
@@ -245,7 +258,17 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     if biom_fp is None and 'biom' in ainfo['files']:
                         biom_fp = ainfo['files']['biom'][0]
 
-                    artifact_method = method_inputs[key].qiime_type
+                    q2artifact_name = Q2_QIITA_SEMANTIC_TYPE[
+                        method_inputs[key].qiime_type.to_ast()['name']]
+                    qiita_name = QIITA_Q2_SEMANTIC_TYPE[q2artifact_name]
+                    if qiita_name['expression']:
+                        # for these cases we need an expresion so for
+                        # simplicity using the first one [0]
+                        artifact_method = '%s[%s]' % (
+                            qiita_name['name'], qiita_name['expression'][0])
+                    else:
+                        artifact_method = qiita_name['name']
+
                 q2inputs[key] = (fpath, artifact_method)
             elif key == 'qp-hide-metadata-field':
                 if val == '':
@@ -449,9 +472,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                         aname, 'BIOM', [(fp, 'biom'), (qza_fp, 'qza')])
 
             else:
-                atype = Q2_QIITA_SEMANTIC_TYPE[q2artifact.type]
-                if atype.startswith('phylogenetic_'):
-                    atype = atype[len('phylogenetic_'):]
+                atype = Q2_QIITA_SEMANTIC_TYPE[q2artifact.type.name]
                 ai = ArtifactInfo(
                     aname, atype, [(fp, 'plain_text'), (qza_fp, 'qza')])
             ainfo.append(ai)
