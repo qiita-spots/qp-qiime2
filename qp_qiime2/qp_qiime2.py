@@ -242,21 +242,22 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                                'artifact.' % val)
                         return False, None, msg
                     analysis_id = ainfo['analysis']
+                    dt = method_inputs[key].qiime_type.to_ast()['name']
                     if 'qza' not in ainfo['files']:
                         # at this stage in qiita we only have 2 types of
                         # artifacts: biom / plain_text
-                        dt = method_inputs[key].qiime_type.to_ast()['name']
                         if Q2_QIITA_SEMANTIC_TYPE[dt] == 'BIOM':
                             fpath = ainfo['files']['biom'][0]
-                            # if it's a BIOM and there is a plain_text is the
-                            # result of the archive at this stage: a tree
-                            if 'plain_text' in ainfo['files']:
-                                tree_fp = ainfo['files']['plain_text'][0]
                             biom_fp = fpath
                         else:
                             fpath = ainfo['files']['plain_text'][0]
                     else:
                         fpath = ainfo['files']['qza'][0]
+                    # if it's a BIOM and there is a plain_text is the
+                    # result of the archive at this stage: a tree
+                    if Q2_QIITA_SEMANTIC_TYPE[dt] == 'BIOM':
+                        if 'plain_text' in ainfo['files']:
+                            tree_fp = ainfo['files']['plain_text'][0]
                     if biom_fp is None and 'biom' in ainfo['files']:
                         biom_fp = ainfo['files']['biom'][0]
 
