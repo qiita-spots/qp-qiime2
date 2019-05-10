@@ -210,7 +210,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             key = parameters.pop(k)
             val = parameters.pop(k[label_len:])
             if key in method_inputs.keys():
-                if key == 'phylogeny':
+                if key == 'phylogeny' and val != '':
                     # there is a chance that we parse/loop over the phylogeny
                     # option before the artifact so tree_fp will still be
                     # None; thus we will need to check this after we are done

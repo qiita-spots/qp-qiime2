@@ -74,6 +74,11 @@ for qiita_artifact, q2_artifacts in QIITA_Q2_SEMANTIC_TYPE.items():
             continue
 
         for m in methods:
+            # after review of qiime2-2019.4 we decided to not add these methods
+            if (q2plugin.name, m.id) in [('feature-table', 'group'),
+                                         ('feature-table', 'filter_seqs')]:
+                continue
+
             inputs = m.signature.inputs.copy()
             outputs = m.signature.outputs.copy()
             parameters = m.signature.parameters.copy()
