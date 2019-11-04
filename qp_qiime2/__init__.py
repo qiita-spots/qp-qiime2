@@ -92,7 +92,7 @@ for qiita_artifact, q2_artifacts in QIITA_Q2_SEMANTIC_TYPE.items():
             opt_params = {}
             to_delete = []
             for pname, element in inputs.items():
-                qt_name = element.qiime_type.to_ast()['name']
+                qt_name = element.qiime_type.to_ast()['members'][0]['name']
                 if qt_name not in Q2_QIITA_SEMANTIC_TYPE:
                     add_method = False
                     break
@@ -121,7 +121,7 @@ for qiita_artifact, q2_artifacts in QIITA_Q2_SEMANTIC_TYPE.items():
                 del inputs[td]
 
             for pname, element in outputs.items():
-                qt_name = element.qiime_type.to_ast()['name']
+                qt_name = element.qiime_type.to_ast()['members'][0]['name']
                 if qt_name not in Q2_QIITA_SEMANTIC_TYPE:
                     add_method = False
                     break
@@ -159,7 +159,7 @@ for qiita_artifact, q2_artifacts in QIITA_Q2_SEMANTIC_TYPE.items():
                 continue
 
             for pname, element in parameters.items():
-                tqt = element.qiime_type.to_ast()['name']
+                tqt = element.qiime_type.to_ast()['members'][0]['name']
                 # there is a new primitive and we should raise an error
                 if tqt not in PRIMITIVE_TYPES:
                     raise ValueError(
@@ -274,7 +274,7 @@ for pname, element in m.signature.outputs.items():
         raise ValueError('Found non expected output: "%s", in '
                          'feature-classifier classify_sklearn' % eqt)
 for pname, element in m.signature.parameters.items():
-    tqt = element.qiime_type.to_ast()['name']
+    tqt = element.qiime_type.to_ast()['members'][0]['name']
     if tqt not in PRIMITIVE_TYPES:
         raise ValueError(
             'There is a new type: %s, in %s %s (%s)' % (
