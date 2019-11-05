@@ -7,7 +7,7 @@
 # -----------------------------------------------------------------------------
 
 
-def _get_qiime2_type_name_and_predicate(element):
+def get_qiime2_type_name_and_predicate(element):
     """helper method to get the qiime2 type name and predicate
 
     Parameters

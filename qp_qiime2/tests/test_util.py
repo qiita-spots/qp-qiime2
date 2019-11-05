@@ -10,7 +10,7 @@ from unittest import TestCase, main
 
 from qiime2.sdk import PluginManager
 
-from qp_qiime2.util import _get_qiime2_type_name_and_predicate
+from qp_qiime2.util import get_qiime2_type_name_and_predicate
 
 
 class UtilTests(TestCase):
@@ -21,13 +21,13 @@ class UtilTests(TestCase):
 
         # testing regular parameters
         exp = ('Int', None)
-        obs = _get_qiime2_type_name_and_predicate(parameters['n_jobs'])
+        obs = get_qiime2_type_name_and_predicate(parameters['n_jobs'])
         self.assertEqual(exp, obs)
 
         # testing union paramters
         exp = ('Float', {'type': 'predicate', 'name': 'Range',
                          'range': [0, 1], 'inclusive': [True, True]})
-        obs = _get_qiime2_type_name_and_predicate(parameters['confidence'])
+        obs = get_qiime2_type_name_and_predicate(parameters['confidence'])
         self.assertEqual(exp, obs)
 
 

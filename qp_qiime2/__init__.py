@@ -16,7 +16,7 @@ from qiita_client import QiitaPlugin, QiitaCommand
 from .qp_qiime2 import (
     QIITA_Q2_SEMANTIC_TYPE, Q2_QIITA_SEMANTIC_TYPE, Q2_ALLOWED_PLUGINS,
     PRIMITIVE_TYPES, call_qiime2, RENAME_COMMANDS)
-from .util import _get_qiime2_type_name_and_predicate
+from .util import get_qiime2_type_name_and_predicate
 from qiime2 import __version__ as qiime2_version
 from qiime2.sdk.util import actions_by_input_type
 from qiime2.sdk import PluginManager
@@ -93,7 +93,7 @@ for qiita_artifact, q2_artifacts in QIITA_Q2_SEMANTIC_TYPE.items():
             opt_params = {}
             to_delete = []
             for pname, element in inputs.items():
-                qt_name, predicate = _get_qiime2_type_name_and_predicate(
+                qt_name, predicate = get_qiime2_type_name_and_predicate(
                     element)
                 if qt_name not in Q2_QIITA_SEMANTIC_TYPE:
                     add_method = False
@@ -123,7 +123,7 @@ for qiita_artifact, q2_artifacts in QIITA_Q2_SEMANTIC_TYPE.items():
                 del inputs[td]
 
             for pname, element in outputs.items():
-                qt_name, predicate = _get_qiime2_type_name_and_predicate(
+                qt_name, predicate = get_qiime2_type_name_and_predicate(
                     element)
                 if qt_name not in Q2_QIITA_SEMANTIC_TYPE:
                     add_method = False
@@ -162,7 +162,7 @@ for qiita_artifact, q2_artifacts in QIITA_Q2_SEMANTIC_TYPE.items():
                 continue
 
             for pname, element in parameters.items():
-                tqt, predicate = _get_qiime2_type_name_and_predicate(element)
+                tqt, predicate = get_qiime2_type_name_and_predicate(element)
                 # there is a new primitive and we should raise an error
                 if tqt not in PRIMITIVE_TYPES:
                     raise ValueError(
@@ -276,7 +276,7 @@ for pname, element in m.signature.outputs.items():
         raise ValueError('Found non expected output: "%s", in '
                          'feature-classifier classify_sklearn' % eqt)
 for pname, element in m.signature.parameters.items():
-    tqt, predicate = _get_qiime2_type_name_and_predicate(element)
+    tqt, predicate = get_qiime2_type_name_and_predicate(element)
     if tqt not in PRIMITIVE_TYPES:
         raise ValueError(
             'There is a new type: %s, in %s %s (%s)' % (
