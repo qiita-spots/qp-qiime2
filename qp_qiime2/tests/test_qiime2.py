@@ -89,22 +89,19 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-paramDirection of reads with respect to reference '
             'sequences. same will cause reads to be classified unchanged; '
             'reverse-complement will cause reads to be reversed and '
-            'complemented prior to classification. Default is to autodetect '
-            'based on the confidence estimates for the first 100 reads. '
-            '(read_orientation)': 'read_orientation',
+            'complemented prior to classification. "auto" will autodetect '
+            'orientation based on the confidence estimates for the first 100 '
+            'reads. (read_orientation)': 'read_orientation',
             'Direction of reads with respect to reference sequences. same '
             'will cause reads to be classified unchanged; reverse-complement '
             'will cause reads to be reversed and complemented prior to '
-            'classification. Default is to autodetect based on the confidence '
-            'estimates for the first 100 reads. (read_orientation)': 'same',
-            'qp-hide-paramConfidence threshold for limiting taxonomic depth. '
-            'Provide -1 to disable confidence calculation, or 0 to calculate '
+            'classification. "auto" will autodetect orientation based on the '
+            'confidence estimates for the first 100 reads. (read_orientation)':
+            'same',
+            'Confidence threshold for limiting taxonomic depth. Set to '
+            '"disable" to disable confidence calculation, or 0 to calculate '
             'confidence but not apply it to limit the taxonomic depth of the '
-            'assignments. (confidence)': 'confidence',
-            'Confidence threshold for limiting taxonomic depth. Provide -1 to '
-            'disable confidence calculation, or 0 to calculate confidence but '
-            'not apply it to limit the taxonomic depth of the assignments. '
-            '(confidence)': '0.7',
+            'assignments. (confidence)': '0.7',
             'qp-hide-param"all" or expression, as in "3*n_jobs". The number '
             'of batches (of tasks) to be pre-dispatched. '
             '(pre_dispatch)': 'pre_dispatch',
@@ -120,12 +117,6 @@ class qiime2Tests(PluginTestCase):
             'used at all, which is useful for debugging. For n_jobs below '
             '-1, (n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all '
             'CPUs but one are used. (n_jobs)': '1',
-            'qp-hide-paramNumber of reads to process in each batch. If 0, '
-            'this parameter is autoscaled to min( number of query sequences '
-            '/ n_jobs, 20000). (reads_per_batch)': 'reads_per_batch',
-            'Number of reads to process in each batch. If 0, this parameter '
-            'is autoscaled to min( number of query sequences / n_jobs, '
-            '20000). (reads_per_batch)': '0',
             'qp-hide-paramThe taxonomic classifier for classifying the '
             'reads. (classifier)': 'classifier',
             'The taxonomic classifier for classifying the reads. '

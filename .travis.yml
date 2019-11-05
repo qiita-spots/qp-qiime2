@@ -41,7 +41,7 @@ install:
   - configure_diversity_types --env-script "source ~/virtualenv/python2.7/bin/activate; export PATH=$HOME/miniconda3/bin/:$PATH; . activate qiime2" --server-cert $QIITA_SERVER_CERT
   - configure_visualization_types --env-script "source ~/virtualenv/python2.7/bin/activate; export PATH=$HOME/miniconda3/bin/:$PATH; . activate qiime2" --server-cert $QIITA_SERVER_CERT
   - mkdir databases
-  - wget -O "databases/gg-13-8-99-515-806-nb-classifier.qza" "https://data.qiime2.org/2019.1/common/gg-13-8-99-515-806-nb-classifier.qza"
+  - wget -O "databases/gg-13-8-99-515-806-nb-classifier.qza" "https://data.qiime2.org/2019.10/common/gg-13-8-99-515-806-nb-classifier.qza"
   - export QP_QIIME2_DBS=${PWD}/databases
   - configure_qiime2 --env-script "export QP_QIIME2_DBS=${PWD}/databases;source ~/virtualenv/python2.7/bin/activate; export PATH=$HOME/miniconda3/bin/:$PATH; . activate qiime2" --server-cert $QIITA_SERVER_CERT
 before_script:
