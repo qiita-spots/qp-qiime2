@@ -21,6 +21,20 @@ from qiime2.sdk.util import actions_by_input_type
 from qiime2.sdk import PluginManager
 
 
+def _get_qiime2_type_name_and_predicate(element):
+    "helper method to get the qiime2 type name and predicate"
+    to_ast = element.qiime_type.to_ast()
+    if to_ast['type'] == 'union':
+        to_ast = [x for x in to_ast['members']
+                  if x['predicate']['name'] != 'Choices'][0]
+        predicate = to_ast['predicate']
+    else:
+        predicate = element.qiime_type.predicate
+    name = to_ast['name']
+
+    return name, predicate
+
+
 # Initialize the qiita_plugin
 plugin = QiitaPlugin('qiime2', qiime2_version, 'QIIME 2')
 
@@ -92,7 +106,8 @@ for qiita_artifact, q2_artifacts in QIITA_Q2_SEMANTIC_TYPE.items():
             opt_params = {}
             to_delete = []
             for pname, element in inputs.items():
-                qt_name = element.qiime_type.to_ast()['members'][0]['name']
+                qt_name, predicate = _get_qiime2_type_name_and_predicate(
+                    element)
                 if qt_name not in Q2_QIITA_SEMANTIC_TYPE:
                     add_method = False
                     break
@@ -121,7 +136,8 @@ for qiita_artifact, q2_artifacts in QIITA_Q2_SEMANTIC_TYPE.items():
                 del inputs[td]
 
             for pname, element in outputs.items():
-                qt_name = element.qiime_type.to_ast()['members'][0]['name']
+                qt_name, predicate = _get_qiime2_type_name_and_predicate(
+                    element)
                 if qt_name not in Q2_QIITA_SEMANTIC_TYPE:
                     add_method = False
                     break
@@ -159,7 +175,7 @@ for qiita_artifact, q2_artifacts in QIITA_Q2_SEMANTIC_TYPE.items():
                 continue
 
             for pname, element in parameters.items():
-                tqt = element.qiime_type.to_ast()['members'][0]['name']
+                tqt, predicate = _get_qiime2_type_name_and_predicate(element)
                 # there is a new primitive and we should raise an error
                 if tqt not in PRIMITIVE_TYPES:
                     raise ValueError(
@@ -173,7 +189,6 @@ for qiita_artifact, q2_artifacts in QIITA_Q2_SEMANTIC_TYPE.items():
                 # Note, the correct way to retrieve the latter is:
                 # p.start, p.end, p.inclusive_start, p.inclusive_end
                 # but for simplicity we will only retrive the
-                predicate = element.qiime_type.predicate
                 data_type = PRIMITIVE_TYPES[tqt]
                 default = element.default
                 if (predicate is not None and PRIMITIVE_TYPES[tqt] not in (
@@ -274,12 +289,11 @@ for pname, element in m.signature.outputs.items():
         raise ValueError('Found non expected output: "%s", in '
                          'feature-classifier classify_sklearn' % eqt)
 for pname, element in m.signature.parameters.items():
-    tqt = element.qiime_type.to_ast()['members'][0]['name']
+    tqt, predicate = _get_qiime2_type_name_and_predicate(element)
     if tqt not in PRIMITIVE_TYPES:
         raise ValueError(
             'There is a new type: %s, in %s %s (%s)' % (
                 tqt, q2plugin.name, m.id, pname))
-    predicate = element.qiime_type.predicate
     data_type = PRIMITIVE_TYPES[tqt]
     default = element.default
     if (predicate is not None and PRIMITIVE_TYPES[tqt] not in (
