@@ -381,7 +381,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             msg = str(e)
             if 'Invalid characters on line' in msg:
                 msg = ('Table IDs are not sequences, please confirm that this '
-                       'is not a close reference table?')
+                       'is not a closed reference table?')
             return False, None, 'Error converting "%s": %s' % (
                 'Input Table', msg)
 

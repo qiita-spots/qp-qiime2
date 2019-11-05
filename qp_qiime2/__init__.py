@@ -16,23 +16,10 @@ from qiita_client import QiitaPlugin, QiitaCommand
 from .qp_qiime2 import (
     QIITA_Q2_SEMANTIC_TYPE, Q2_QIITA_SEMANTIC_TYPE, Q2_ALLOWED_PLUGINS,
     PRIMITIVE_TYPES, call_qiime2, RENAME_COMMANDS)
+from .util import _get_qiime2_type_name_and_predicate
 from qiime2 import __version__ as qiime2_version
 from qiime2.sdk.util import actions_by_input_type
 from qiime2.sdk import PluginManager
-
-
-def _get_qiime2_type_name_and_predicate(element):
-    "helper method to get the qiime2 type name and predicate"
-    to_ast = element.qiime_type.to_ast()
-    if to_ast['type'] == 'union':
-        to_ast = [x for x in to_ast['members']
-                  if x['predicate']['name'] != 'Choices'][0]
-        predicate = to_ast['predicate']
-    else:
-        predicate = element.qiime_type.predicate
-    name = to_ast['name']
-
-    return name, predicate
 
 
 # Initialize the qiita_plugin
