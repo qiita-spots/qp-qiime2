@@ -377,11 +377,11 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
         try:
             q2params['reads'] = qiime2.Artifact.import_data(
                 'FeatureData[Sequence]', fna_fp)
-        except ValueError as e:
+        except (ValueError, qiime2.core.exceptions.ValidationError) as e:
             msg = str(e)
-            if 'Invalid characters in sequence' in msg:
+            if 'Invalid characters on line' in msg:
                 msg = ('Table IDs are not sequences, please confirm that this '
-                       'is not a close reference table?')
+                       'is not a closed reference table?')
             return False, None, 'Error converting "%s": %s' % (
                 'Input Table', msg)
 
