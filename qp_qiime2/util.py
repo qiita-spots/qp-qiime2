@@ -17,13 +17,13 @@ def get_qiime2_type_name_and_predicate(element):
 
     Returns
     -------
-    name, predicate
-        The name and the predite of the signature passed
+    str, dict
+        The name and the predicate of the inputed signature
     """
     to_ast = element.qiime_type.to_ast()
     if to_ast['type'] == 'union':
-        # union types allow to give choises to another type of paramter; for
-        # example for a range(1, 10) give the choise `ignore`. These are not
+        # union types allow to give choices to another type of paramter; for
+        # example for a range(1, 10) give the choice `ignore`. These are not
         # necessary in Qiita as they are simply ignored if unchanged. Thus,
         # we loop over the members of the union and ingore `Choices`.
         to_ast = [x for x in to_ast['members']
