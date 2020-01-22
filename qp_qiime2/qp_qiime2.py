@@ -413,7 +413,13 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
         qza.save(new_qza)
         ftc_fps = [(new_biom, 'biom'), (new_qza, 'qza')]
         if plain_text_fp is not None:
-            ftc_fps.append((plain_text_fp, 'plain_text'))
+            # if we enter here, it means that the input artifact had a tree
+            # (saved as plain_text); thus, we need to make sure we make a copy
+            # so we don't move the original file
+            bn = basename(plain_text_fp)
+            new_tree_fp = join(out_dir, bn)
+            copyfile(ainfo['files']['plain_text'][0], new_tree_fp)
+            ftc_fps.append((new_tree_fp, 'plain_text'))
         ainfo.append(ArtifactInfo(
             'Feature Table with Classification', 'BIOM', ftc_fps))
 
