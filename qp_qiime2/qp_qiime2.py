@@ -393,7 +393,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
         return False, None, 'Error running: %s' % str(e)
 
     qclient.update_job_step(job_id, "Step 4 of 4: Processing results")
-    ainfo = []
+    out_info = []
 
     # if feature_classifier and classify_sklearn we need to add the taxonomy
     # to the original table and generate the new artifact
@@ -420,14 +420,14 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             new_tree_fp = join(out_dir, bn)
             copyfile(ainfo['files']['plain_text'][0], new_tree_fp)
             ftc_fps.append((new_tree_fp, 'plain_text'))
-        ainfo.append(ArtifactInfo(
+        out_info.append(ArtifactInfo(
             'Feature Table with Classification', 'BIOM', ftc_fps))
 
     for aname, q2artifact in zip(results._fields, results):
         aout = join(out_dir, aname)
         if isinstance(q2artifact, qiime2.Visualization):
             qzv_fp = q2artifact.save(aout)
-            ainfo.append(
+            out_info.append(
                 ArtifactInfo(aname, 'q2_visualization', [(qzv_fp, 'qzv')]))
         else:
             qza_fp = q2artifact.save(aout + '.qza')
@@ -484,6 +484,6 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                 atype = Q2_QIITA_SEMANTIC_TYPE[q2artifact.type.name]
                 ai = ArtifactInfo(
                     aname, atype, [(fp, 'plain_text'), (qza_fp, 'qza')])
-            ainfo.append(ai)
+            out_info.append(ai)
 
-    return True, ainfo, ""
+    return True, out_info, ""
