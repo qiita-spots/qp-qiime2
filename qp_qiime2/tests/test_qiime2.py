@@ -160,15 +160,15 @@ class qiime2Tests(PluginTestCase):
         success, ainfo, msg = call_qiime2(
             self.qclient, jid, original_params, out_dir)
 
+        self.assertEqual(msg, '')
+        self.assertTrue(success)
+
         # returning original biom
         copyfile(biom_fp_old_bk, biom_fp_old)
-
         obs_files = [ai.files for ai in ainfo]
         obs_artifact_types = [ai.artifact_type for ai in ainfo]
         obs_output_names = [ai.output_name for ai in ainfo]
 
-        self.assertEqual(msg, '')
-        self.assertTrue(success)
         od = partial(join, out_dir, 'classify_sklearn')
         self.assertCountEqual(obs_files, [
             [(od('feature-table-with-taxonomy.biom'), 'biom'),
@@ -365,9 +365,9 @@ class qiime2Tests(PluginTestCase):
             'Phylogenetic tree': join(self.basedir, 'prune_97_gg_13_8.tre'),
             'The maximum rarefaction depth. Must be greater than min_depth. '
             '(max_depth)': '1000',
-            'The metrics to be measured. By default computes observed_otus, '
-            'shannon, and if phylogeny is provided, faith_pd. '
-            '(metrics)': "Faith's Phylogenetic Diversity",
+            'The metrics to be measured. By default computes '
+            'observed_features, shannon, and if phylogeny is provided, '
+            'faith_pd. (metrics)': "Faith's Phylogenetic Diversity",
             'The minimum rarefaction depth. (min_depth)': u'1',
             'The number of rarefaction depths to include between min_depth '
             'and max_depth. (steps)': '10',
@@ -381,8 +381,8 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-paramThe maximum rarefaction depth. Must be greater '
             'than min_depth. (max_depth)': 'max_depth',
             'qp-hide-paramThe metrics to be measured. By default computes '
-            'observed_otus, shannon, and if phylogeny is provided, faith_pd. '
-            '(metrics)': u'metrics',
+            'observed_features, shannon, and if phylogeny is provided, '
+            'faith_pd. (metrics)': u'metrics',
             'qp-hide-paramThe minimum rarefaction depth. '
             '(min_depth)': 'min_depth',
             'qp-hide-paramThe number of rarefaction depths to include '

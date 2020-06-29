@@ -126,6 +126,7 @@ BETA_DIVERSITY_METRICS = {
     "Species-by-species Euclidean": "seuclidean",
     "Squared Euclidean": "sqeuclidean",
     "Weighted Minkowski metric": "wminkowski",
+    "Jensen-Shannon metric": "jensenshannon",
     "Yule index": "yule"}
 
 BETA_DIVERSITY_METRICS_PHYLOGENETIC = {
