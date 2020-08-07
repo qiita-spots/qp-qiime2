@@ -285,23 +285,14 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     continue
 
                 mkey = method_params[key]
-                # users can only select one value so if the view_type is set
-                # we will not convert
-                if mkey.view_type not in (set, str):
-                    if mkey.view_type is not mkey.NOVALUE:
-                        val = mkey.view_type(val)
-                    elif val not in mkey.qiime_type:
-                        val = mkey.qiime_type.decode(val)
+                val = qiime2.sdk.util.parse_primitive(
+                    mkey.qiime_type.to_ast(), val)
 
                 # let's bring back the original name of these parameters
                 value_pair = (q2method, key)
                 if (q2plugin == 'diversity' and value_pair in RENAME_COMMANDS):
                     val = RENAME_COMMANDS[value_pair][val]
 
-                # if the view_type is set we need to convert to an actual
-                # set
-                if mkey.view_type is set:
-                    val = {val}
                 q2params[key] = val
         elif k in ('qp-hide-metadata', 'qp-hide-FeatureData[Taxonomy]'):
             # remember, if we need metadata, we will always have

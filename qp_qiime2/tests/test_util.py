@@ -24,7 +24,7 @@ class UtilTests(TestCase):
         obs = get_qiime2_type_name_and_predicate(parameters['n_jobs'])
         self.assertEqual(exp, obs)
 
-        # testing union paramters
+        # testing union parameters
         exp = ('Float', {'type': 'predicate', 'name': 'Range',
                          'range': [0, 1], 'inclusive': [True, True]})
         obs = get_qiime2_type_name_and_predicate(parameters['confidence'])
