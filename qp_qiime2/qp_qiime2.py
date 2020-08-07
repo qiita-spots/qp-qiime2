@@ -291,6 +291,9 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                 # let's bring back the original name of these parameters
                 value_pair = (q2method, key)
                 if (q2plugin == 'diversity' and value_pair in RENAME_COMMANDS):
+                    # get the value from the set vs. trying to hash it
+                    if mkey.view_type is set:
+                        val = val.pop()
                     val = RENAME_COMMANDS[value_pair][val]
 
                 q2params[key] = val

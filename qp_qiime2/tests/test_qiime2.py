@@ -1282,7 +1282,6 @@ class qiime2Tests(PluginTestCase):
             msg, 'The resulting table is empty, please review your parameters')
         self.assertFalse(success)
 
-
     def test_core_diversity(self):
         params = {
             'The feature table containing the samples over which diversity '
