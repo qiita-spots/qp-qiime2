@@ -288,6 +288,9 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                 value_pair = (q2method, key)
                 if (q2plugin == 'diversity' and value_pair in RENAME_COMMANDS):
                     val = RENAME_COMMANDS[value_pair][val]
+                    # if the view_type is set convert to set
+                    if mkey.view_type is set:
+                        val = set(val)
                 else:
                     mkey = method_params[key]
                     val = qiime2.sdk.util.parse_primitive(
