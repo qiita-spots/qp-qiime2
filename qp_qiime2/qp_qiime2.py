@@ -284,17 +284,14 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                 if val in ('', 'None'):
                     continue
 
-                mkey = method_params[key]
-                val = qiime2.sdk.util.parse_primitive(
-                    mkey.qiime_type.to_ast(), val)
-
                 # let's bring back the original name of these parameters
                 value_pair = (q2method, key)
                 if (q2plugin == 'diversity' and value_pair in RENAME_COMMANDS):
-                    # get the value from the set vs. trying to hash it
-                    if mkey.view_type is set:
-                        val = val.pop()
                     val = RENAME_COMMANDS[value_pair][val]
+                else:
+                    mkey = method_params[key]
+                    val = qiime2.sdk.util.parse_primitive(
+                        mkey.qiime_type.to_ast(), val)
 
                 q2params[key] = val
         elif k in ('qp-hide-metadata', 'qp-hide-FeatureData[Taxonomy]'):
