@@ -291,7 +291,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     val = RENAME_COMMANDS[value_pair][val]
                     # if the view_type is set convert to set
                     if mkey.view_type is set:
-                        val = set(val)
+                        val = {val}
                 else:
                     val = qiime2.sdk.util.parse_primitive(
                         mkey.qiime_type.to_ast(), val)
