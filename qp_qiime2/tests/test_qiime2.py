@@ -1282,6 +1282,53 @@ class qiime2Tests(PluginTestCase):
             msg, 'The resulting table is empty, please review your parameters')
         self.assertFalse(success)
 
+    def test_core_diversity(self):
+        params = {
+            'The feature table containing the samples over which diversity '
+            'metrics should be computed.': '8',
+            "qp-hide-param[beta methods only] - The number of concurrent jobs "
+            "to use in performing this calculation. May not exceed the number "
+            "of available physical cores. If n_jobs = 'auto', one job will "
+            "be launched for each identified CPU core on the host. "
+            "(n_jobs)": 'n_jobs',
+            "[beta methods only] - The number of concurrent jobs to use in "
+            "performing this calculation. May not exceed the number of "
+            "available physical cores. If n_jobs = 'auto', one job will be "
+            "launched for each identified CPU core on the host. (n_jobs)": '1',
+            'qp-hide-paramRarefy with replacement by sampling from the '
+            'multinomial distribution instead of rarefying without '
+            'replacement. (with_replacement)': 'with_replacement',
+            'Rarefy with replacement by sampling from the multinomial '
+            'distribution instead of rarefying without replacement. '
+            '(with_replacement)': False,
+            'qp-hide-metadata': 'metadata',
+            'qp-hide-paramThe total frequency that each sample should be '
+            'rarefied to prior to computing diversity metrics. '
+            '(sampling_depth)': 'sampling_depth',
+            'The total frequency that each sample should be rarefied to prior '
+            'to computing diversity metrics. (sampling_depth)': '2',
+            'qp-hide-paramThe feature table containing the samples over which '
+            'diversity metrics should be computed.': 'table',
+            'qp-hide-method': 'core_metrics',
+            'qp-hide-plugin': 'diversity'}
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'Core diversity metrics '
+             '(non-phylogenetic) [core_metrics]'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        self.assertTrue(success)
+        self.assertEqual(msg, '')
+        # for simplicity let's just check the number of artifacts; this
+        # should be fine as we test independent commands and their artifacts
+        # in other tests
+        self.assertEqual(len(ainfo), 10)
+
     def test_metrics(self):
         pm = PluginManager()
         actions = pm.plugins['diversity'].actions
