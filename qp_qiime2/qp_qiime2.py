@@ -84,7 +84,6 @@ ALPHA_DIVERSITY_METRICS = {
     "Good's coverage of counts": "goods_coverage",
     "Heip's evenness measure": "heip_e",
     "Kempton-Taylor Q index": "kempton_taylor_q",
-    "Lladser's confidence interval": "lladser_ci",
     "Lladser's point estimate": "lladser_pe",
     "Margalef's richness index": "margalef",
     "McIntosh dominance index D": "mcintosh_d",
@@ -92,7 +91,7 @@ ALPHA_DIVERSITY_METRICS = {
     "Menhinick's richness index": "menhinick",
     "Michaelis-Menten fit to rarefaction curve of obeserved OTUs":
         "michaelis_menten_fit",
-    "Number of distinct features": "observed_otus",
+    "Number of distinct features": "observed_features",
     "Number of double occurrences": "doubles",
     "Number of single occurrences": "singles",
     "Number of observed features, including singles and doubles": "osd",
