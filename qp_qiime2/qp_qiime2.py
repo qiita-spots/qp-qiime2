@@ -116,7 +116,6 @@ BETA_DIVERSITY_METRICS = {
     "Hamming distance": "hamming",
     "Jaccard similarity index": "jaccard",
     "Kulczynski dissimilarity index": "kulsinski",
-    "Mahalanobis distance": "mahalanobis",
     "Matching components": "matching",
     "Rogers-Tanimoto distance": "rogerstanimoto",
     "Russell-Rao coefficients": "russellrao",
@@ -124,7 +123,7 @@ BETA_DIVERSITY_METRICS = {
     "Sokal-Sneath index": "sokalsneath",
     "Species-by-species Euclidean": "seuclidean",
     "Squared Euclidean": "sqeuclidean",
-    "Weighted Minkowski metric": "wminkowski",
+    "Minkowski metric": "minkowski",
     "Jensen-Shannon metric": "jensenshannon",
     "Yule index": "yule"}
 
