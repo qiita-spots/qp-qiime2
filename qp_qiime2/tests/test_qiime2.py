@@ -308,7 +308,10 @@ class qiime2Tests(PluginTestCase):
             '(metric)': 'Unweighted UniFrac',
             'The feature table containing the samples over which beta '
             'diversity should be computed.': '8',
-            'The number of workers to use. (n_jobs)': '1',
+            "The number of CPU threads to use in performing this calculation. "
+            "May not exceed the number of available physical cores. If "
+            "threads = 'auto', one thread will be created for each identified "
+            "CPU core on the host. (threads)": '1',
             'This parameter is only used when the choice of metric is '
             'generalized_unifrac. The value of alpha controls importance of '
             'sample proportions. 1.0 is weighted normalized UniFrac. 0.0 is '
@@ -330,7 +333,10 @@ class qiime2Tests(PluginTestCase):
             '(metric)': 'metric',
             'qp-hide-paramThe feature table containing the samples over which '
             'beta diversity should be computed.': 'table',
-            'qp-hide-paramThe number of workers to use. (n_jobs)': 'n_jobs',
+            "qp-hide-paramThe number of CPU threads to use in performing this "
+            "calculation. May not exceed the number of available physical "
+            "cores. If threads = 'auto', one thread will be created for each "
+            "identified CPU core on the host. (threads)": 'threads',
             'qp-hide-paramThis parameter is only used when the choice of '
             'metric is generalized_unifrac. The value of alpha controls '
             'importance of sample proportions. 1.0 is weighted normalized '
