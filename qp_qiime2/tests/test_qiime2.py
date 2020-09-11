@@ -308,7 +308,10 @@ class qiime2Tests(PluginTestCase):
             '(metric)': 'Unweighted UniFrac',
             'The feature table containing the samples over which beta '
             'diversity should be computed.': '8',
-            'The number of workers to use. (n_jobs)': '1',
+            "The number of CPU threads to use in performing this calculation. "
+            "May not exceed the number of available physical cores. If "
+            "threads = 'auto', one thread will be created for each identified "
+            "CPU core on the host. (threads)": '1',
             'This parameter is only used when the choice of metric is '
             'generalized_unifrac. The value of alpha controls importance of '
             'sample proportions. 1.0 is weighted normalized UniFrac. 0.0 is '
@@ -330,7 +333,10 @@ class qiime2Tests(PluginTestCase):
             '(metric)': 'metric',
             'qp-hide-paramThe feature table containing the samples over which '
             'beta diversity should be computed.': 'table',
-            'qp-hide-paramThe number of workers to use. (n_jobs)': 'n_jobs',
+            "qp-hide-paramThe number of CPU threads to use in performing this "
+            "calculation. May not exceed the number of available physical "
+            "cores. If threads = 'auto', one thread will be created for each "
+            "identified CPU core on the host. (threads)": 'threads',
             'qp-hide-paramThis parameter is only used when the choice of '
             'metric is generalized_unifrac. The value of alpha controls '
             'importance of sample proportions. 1.0 is weighted normalized '
@@ -477,14 +483,10 @@ class qiime2Tests(PluginTestCase):
             'computed. (metric)': "Rogers-Tanimoto distance",
             'The feature table containing the samples over which beta '
             'diversity should be computed.': '8',
-            'The number of jobs to use for the computation. This works '
-            'by breaking down the pairwise matrix into n_jobs even slices '
-            'and computing them in parallel. If -1 all CPUs are used. If '
-            '1 is given, no parallel computing code is used at all, which '
-            'is useful for debugging. For n_jobs below -1, (n_cpus + 1 + '
-            'n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are '
-            'used. (Description from sklearn.metrics.pairwise_distances) '
-            '(n_jobs)': '1',
+            "The number of concurrent jobs to use in performing this "
+            "calculation. May not exceed the number of available physical "
+            "cores. If n_jobs = 'auto', one job will be launched for each "
+            "identified CPU core on the host. (n_jobs)": '1',
             'qp-hide-method': 'beta',
             'qp-hide-paramThe beta diversity metric to be computed. '
             '(metric)': 'metric',
@@ -494,14 +496,10 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-paramA pseudocount to handle zeros for compositional '
             'metrics.  This is ignored for other metrics. '
             '(pseudocount)': 'pseudocount',
-            'qp-hide-paramThe number of jobs to use for the computation. '
-            'This works by breaking down the pairwise matrix into n_jobs even '
-            'slices and computing them in parallel. If -1 all CPUs are used. '
-            'If 1 is given, no parallel computing code is used at all, which '
-            'is useful for debugging. For n_jobs below -1, (n_cpus + 1 + '
-            'n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are '
-            'used. (Description from '
-            'sklearn.metrics.pairwise_distances) (n_jobs)': 'n_jobs'}
+            "qp-hide-paramThe number of concurrent jobs to use in performing "
+            "this calculation. May not exceed the number of available "
+            "physical cores. If n_jobs = 'auto', one job will be launched for "
+            "each identified CPU core on the host. (n_jobs)": 'n_jobs'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version, 'Beta diversity [beta]'])
         self.data['parameters'] = dumps(params)
@@ -580,14 +578,10 @@ class qiime2Tests(PluginTestCase):
             'computed. (metric)': "Rogers-Tanimoto distance",
             'The feature table containing the samples over which beta '
             'diversity should be computed.': '8',
-            'The number of jobs to use for the computation. This works '
-            'by breaking down the pairwise matrix into n_jobs even slices '
-            'and computing them in parallel. If -1 all CPUs are used. If '
-            '1 is given, no parallel computing code is used at all, which '
-            'is useful for debugging. For n_jobs below -1, (n_cpus + 1 + '
-            'n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are '
-            'used. (Description from sklearn.metrics.pairwise_distances) '
-            '(n_jobs)': '1',
+            "The number of concurrent jobs to use in performing this "
+            "calculation. May not exceed the number of available physical "
+            "cores. If n_jobs = 'auto', one job will be launched for each "
+            "identified CPU core on the host. (n_jobs)": '1',
             'qp-hide-method': 'beta',
             'qp-hide-paramThe beta diversity metric to be computed. '
             '(metric)': 'metric',
@@ -597,14 +591,10 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-paramA pseudocount to handle zeros for compositional '
             'metrics.  This is ignored for other metrics. '
             '(pseudocount)': 'pseudocount',
-            'qp-hide-paramThe number of jobs to use for the computation. '
-            'This works by breaking down the pairwise matrix into n_jobs even '
-            'slices and computing them in parallel. If -1 all CPUs are used. '
-            'If 1 is given, no parallel computing code is used at all, which '
-            'is useful for debugging. For n_jobs below -1, (n_cpus + 1 + '
-            'n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are '
-            'used. (Description from '
-            'sklearn.metrics.pairwise_distances) (n_jobs)': 'n_jobs'}
+            "qp-hide-paramThe number of concurrent jobs to use in performing "
+            "this calculation. May not exceed the number of available "
+            "physical cores. If n_jobs = 'auto', one job will be launched for "
+            "each identified CPU core on the host. (n_jobs)": 'n_jobs'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version, 'Beta diversity [beta]'])
         self.data['parameters'] = dumps(params)
@@ -956,14 +946,10 @@ class qiime2Tests(PluginTestCase):
             'computed. (metric)': "Rogers-Tanimoto distance",
             'The feature table containing the samples over which beta '
             'diversity should be computed.': '8',
-            'The number of jobs to use for the computation. This works '
-            'by breaking down the pairwise matrix into n_jobs even slices '
-            'and computing them in parallel. If -1 all CPUs are used. If '
-            '1 is given, no parallel computing code is used at all, which '
-            'is useful for debugging. For n_jobs below -1, (n_cpus + 1 + '
-            'n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are '
-            'used. (Description from sklearn.metrics.pairwise_distances) '
-            '(n_jobs)': '1',
+            "The number of concurrent jobs to use in performing this "
+            "calculation. May not exceed the number of available physical "
+            "cores. If n_jobs = 'auto', one job will be launched for each "
+            "identified CPU core on the host. (n_jobs)": '1',
             'qp-hide-method': 'beta',
             'qp-hide-paramThe beta diversity metric to be computed. '
             '(metric)': 'metric',
@@ -973,14 +959,10 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-paramA pseudocount to handle zeros for compositional '
             'metrics.  This is ignored for other metrics. '
             '(pseudocount)': 'pseudocount',
-            'qp-hide-paramThe number of jobs to use for the computation. '
-            'This works by breaking down the pairwise matrix into n_jobs even '
-            'slices and computing them in parallel. If -1 all CPUs are used. '
-            'If 1 is given, no parallel computing code is used at all, which '
-            'is useful for debugging. For n_jobs below -1, (n_cpus + 1 + '
-            'n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are '
-            'used. (Description from '
-            'sklearn.metrics.pairwise_distances) (n_jobs)': 'n_jobs'}
+            "qp-hide-paramThe number of concurrent jobs to use in performing "
+            "this calculation. May not exceed the number of available "
+            "physical cores. If n_jobs = 'auto', one job will be launched for "
+            "each identified CPU core on the host. (n_jobs)": 'n_jobs'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version, 'Beta diversity [beta]'])
         self.data['parameters'] = dumps(params)
@@ -1070,14 +1052,10 @@ class qiime2Tests(PluginTestCase):
             'computed. (metric)': "Rogers-Tanimoto distance",
             'The feature table containing the samples over which beta '
             'diversity should be computed.': '8',
-            'The number of jobs to use for the computation. This works '
-            'by breaking down the pairwise matrix into n_jobs even slices '
-            'and computing them in parallel. If -1 all CPUs are used. If '
-            '1 is given, no parallel computing code is used at all, which '
-            'is useful for debugging. For n_jobs below -1, (n_cpus + 1 + '
-            'n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are '
-            'used. (Description from sklearn.metrics.pairwise_distances) '
-            '(n_jobs)': '1',
+            "The number of concurrent jobs to use in performing this "
+            "calculation. May not exceed the number of available physical "
+            "cores. If n_jobs = 'auto', one job will be launched for each "
+            "identified CPU core on the host. (n_jobs)": '1',
             'qp-hide-method': 'beta',
             'qp-hide-paramThe beta diversity metric to be computed. '
             '(metric)': 'metric',
@@ -1087,14 +1065,10 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-paramA pseudocount to handle zeros for compositional '
             'metrics.  This is ignored for other metrics. '
             '(pseudocount)': 'pseudocount',
-            'qp-hide-paramThe number of jobs to use for the computation. '
-            'This works by breaking down the pairwise matrix into n_jobs even '
-            'slices and computing them in parallel. If -1 all CPUs are used. '
-            'If 1 is given, no parallel computing code is used at all, which '
-            'is useful for debugging. For n_jobs below -1, (n_cpus + 1 + '
-            'n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are '
-            'used. (Description from '
-            'sklearn.metrics.pairwise_distances) (n_jobs)': 'n_jobs'}
+            "qp-hide-paramThe number of concurrent jobs to use in performing "
+            "this calculation. May not exceed the number of available "
+            "physical cores. If n_jobs = 'auto', one job will be launched for "
+            "each identified CPU core on the host. (n_jobs)": 'n_jobs'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version, 'Beta diversity [beta]'])
         self.data['parameters'] = dumps(params)
