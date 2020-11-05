@@ -257,6 +257,10 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     if Q2_QIITA_SEMANTIC_TYPE[dt] == 'BIOM':
                         if 'plain_text' in ainfo['files']:
                             tree_fp = ainfo['files']['plain_text'][0]
+                            # making sure that the tree exists, if not ignoring
+                            if not exists(tree_fp):
+                                tree_fp = None
+                                tree_fp_check = False
                     if biom_fp is None and 'biom' in ainfo['files']:
                         biom_fp = ainfo['files']['biom'][0]
 
