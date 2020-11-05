@@ -343,13 +343,13 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                                      'sure this artifact has taxonomy?')
             q2params['taxonomy'] = qza
         else:
-            if not fpath.endswith('.qza'):
+            if fpath is not None and not fpath.endswith('.qza'):
                 try:
                     qza = qiime2.Artifact.import_data(dt, fpath)
                 except Exception as e:
                     return False, None, 'Error converting "%s": %s' % (
                         str(dt), str(e))
-            elif fpath is not None and exists(fpath):
+            elif exists(fpath):
                 qza = qiime2.Artifact.load(fpath)
             q2params[k] = qza
 
