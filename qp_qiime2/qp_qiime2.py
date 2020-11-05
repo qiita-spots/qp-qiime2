@@ -342,8 +342,8 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                 return False, None, ('Error generating taxonomy. Are you '
                                      'sure this artifact has taxonomy?')
             q2params['taxonomy'] = qza
-        else:
-            if fpath is not None and not fpath.endswith('.qza'):
+        elif fpath is not None:
+            if not fpath.endswith('.qza'):
                 try:
                     qza = qiime2.Artifact.import_data(dt, fpath)
                 except Exception as e:
