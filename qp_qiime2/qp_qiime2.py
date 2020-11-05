@@ -257,10 +257,6 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     if Q2_QIITA_SEMANTIC_TYPE[dt] == 'BIOM':
                         if 'plain_text' in ainfo['files']:
                             tree_fp = ainfo['files']['plain_text'][0]
-                            # making sure that the tree exists, if not ignoring
-                            if not exists(tree_fp):
-                                tree_fp = None
-                                tree_fp_check = False
                     if biom_fp is None and 'biom' in ainfo['files']:
                         biom_fp = ainfo['files']['biom'][0]
 
@@ -316,8 +312,9 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                                         not q2params['where']))):
         q2inputs.pop('metadata')
 
-    # if we are here, we need to use the internal tree from the artifact
-    if tree_fp_check:
+    # if we are here, we need to use the internal tree from the artifact but
+    # only if the tree exists, if not ignoring
+    if tree_fp_check and exists(tree_fp):
         q2inputs['phylogeny'] = (tree_fp, q2inputs['phylogeny'][1])
 
     # let's process/import inputs
