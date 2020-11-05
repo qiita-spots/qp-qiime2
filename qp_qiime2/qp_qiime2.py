@@ -349,7 +349,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                 except Exception as e:
                     return False, None, 'Error converting "%s": %s' % (
                         str(dt), str(e))
-            elif tree_fp is not None and exists(tree_fp):
+            elif fpath is not None and exists(fpath):
                 qza = qiime2.Artifact.load(fpath)
             q2params[k] = qza
 
