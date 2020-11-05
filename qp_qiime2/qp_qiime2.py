@@ -312,9 +312,8 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                                         not q2params['where']))):
         q2inputs.pop('metadata')
 
-    # if we are here, we need to use the internal tree from the artifact but
-    # only if the tree exists, if not ignoring
-    if tree_fp_check and exists(tree_fp):
+    # if we are here, we need to use the internal tree from the artifact
+    if tree_fp_check:
         q2inputs['phylogeny'] = (tree_fp, q2inputs['phylogeny'][1])
 
     # let's process/import inputs
@@ -350,7 +349,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                 except Exception as e:
                     return False, None, 'Error converting "%s": %s' % (
                         str(dt), str(e))
-            else:
+            elif tree_fp is not None and exists(tree_fp):
                 qza = qiime2.Artifact.load(fpath)
             q2params[k] = qza
 
