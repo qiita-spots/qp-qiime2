@@ -352,6 +352,15 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             elif exists(fpath):
                 qza = qiime2.Artifact.load(fpath)
             q2params[k] = qza
+        else:
+            # adding an else for completeness: if we get here then we should
+            # ignore that parameter/input passed. By design, this should only
+            # happen in one scenario: the user selected an artifact, in
+            # specific a tree, that doesn't exist. This was added while solving
+            # https://github.com/biocore/qiita/issues/3039. However, in the
+            # future in might be useful to always ignore anything that doesn't
+            # exits.
+            pass
 
     # if feature_classifier and classify_sklearn we need to transform the
     # input data to sequences
