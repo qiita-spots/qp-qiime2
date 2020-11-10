@@ -18,6 +18,10 @@ from qiita_client import ArtifactInfo
 import qiime2
 import pandas as pd
 
+# avoid some alpha metrics within the alpha_rarefaction method
+from q2_diversity._alpha import (
+    alpha_rarefaction_unsupported_metrics)
+
 
 Q2_ALLOWED_PLUGINS = [
     'taxa', 'sample-classifier', 'composition', 'phylogeny', 'feature-table',
@@ -148,8 +152,13 @@ RENAME_COMMANDS = {
     ('beta', 'metric'): BETA_DIVERSITY_METRICS,
     ('alpha_phylogenetic', 'metric'): ALPHA_DIVERSITY_METRICS_PHYLOGENETIC,
     ('beta_phylogenetic', 'metric'): BETA_DIVERSITY_METRICS_PHYLOGENETIC,
+    # alpha rarefaction has some "forbidden" metrics and we need to be sure to
+    # not add them here
     ('alpha_rarefaction', 'metrics'): {
-        **ALPHA_DIVERSITY_METRICS, **ALPHA_DIVERSITY_METRICS_PHYLOGENETIC},
+        name: metric for name, metric in
+        {**ALPHA_DIVERSITY_METRICS,
+         **ALPHA_DIVERSITY_METRICS_PHYLOGENETIC}.items()
+        if metric not in alpha_rarefaction_unsupported_metrics},
     ('beta_rarefaction', 'metric'): {
         **BETA_DIVERSITY_METRICS, **BETA_DIVERSITY_METRICS_PHYLOGENETIC},
     ('beta_rarefaction', 'correlation_method'): CORRELATION_METHODS,
