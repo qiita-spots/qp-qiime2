@@ -358,7 +358,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             # happen in one scenario: the user selected an artifact, in
             # specific a tree, that doesn't exist. This was added while solving
             # https://github.com/biocore/qiita/issues/3039. However, in the
-            # future in might be useful to always ignore anything that doesn't
+            # future it might be useful to always ignore anything that doesn't
             # exits.
             pass
 
