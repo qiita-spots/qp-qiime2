@@ -414,6 +414,55 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(ainfo[0].files, exp)
         self.assertEqual(ainfo[0].artifact_type, 'q2_visualization')
 
+    def test_alpha_rarefaction_non_phylogenetic_with_tree(self):
+        params = {
+            'Feature table to compute rarefaction curves from.': '8',
+            'Phylogenetic tree': 'Artifact tree, if exists',
+            'The maximum rarefaction depth. Must be greater than min_depth. '
+            '(max_depth)': '1000',
+            'The metrics to be measured. By default computes '
+            'observed_features, shannon, and if phylogeny is provided, '
+            'faith_pd. (metrics)': "Number of distinct features",
+            'The minimum rarefaction depth. (min_depth)': u'1',
+            'The number of rarefaction depths to include between min_depth '
+            'and max_depth. (steps)': '10',
+            'The number of rarefied feature tables to compute at each step. '
+            '(iterations)': '10',
+            'qp-hide-metadata': 'metadata',
+            'qp-hide-method': 'alpha_rarefaction',
+            'qp-hide-paramFeature table to compute rarefaction curves '
+            'from.': 'table',
+            'qp-hide-paramPhylogenetic tree': 'phylogeny',
+            'qp-hide-paramThe maximum rarefaction depth. Must be greater '
+            'than min_depth. (max_depth)': 'max_depth',
+            'qp-hide-paramThe metrics to be measured. By default computes '
+            'observed_features, shannon, and if phylogeny is provided, '
+            'faith_pd. (metrics)': u'metrics',
+            'qp-hide-paramThe minimum rarefaction depth. '
+            '(min_depth)': 'min_depth',
+            'qp-hide-paramThe number of rarefaction depths to include '
+            'between min_depth and max_depth. (steps)': 'steps',
+            'qp-hide-paramThe number of rarefied feature tables to compute '
+            'at each step. (iterations)': 'iterations',
+            'qp-hide-plugin': 'diversity'}
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version,
+             'Alpha rarefaction curves [alpha_rarefaction]'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        self.assertEqual(msg, '')
+        self.assertTrue(success)
+        exp = [(join(out_dir, 'alpha_rarefaction',
+               'visualization.qzv'), 'qzv')]
+        self.assertEqual(ainfo[0].files, exp)
+        self.assertEqual(ainfo[0].artifact_type, 'q2_visualization')
+
     def test_sample_classifier_split_table(self):
         # We care about the command running rather the successful creating an
         # output. Additionally, we don't have enough samples in the test
