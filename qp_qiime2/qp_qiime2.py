@@ -19,7 +19,7 @@ import qiime2
 import pandas as pd
 
 # avoid some alpha metrics within the alpha_rarefaction method
-from q2_diversity._alpha._visualizer import (
+from q2_diversity._alpha import (
     alpha_rarefaction_unsupported_metrics)
 
 
