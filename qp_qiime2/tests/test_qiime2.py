@@ -725,13 +725,16 @@ class qiime2Tests(PluginTestCase):
 
     def test_alpha(self):
         params = {
-            'The alpha diversity metric to be computed. '
+            'The alpha diversity metric to be computed. Information about '
+            'specific metrics is available at '
+            'https://data.qiime2.org/a_diversity_metrics '
             '(metric)': "Simpson's index",
             'The feature table containing the samples for which alpha '
             'diversity should be computed.': '8',
             'qp-hide-method': 'alpha',
-            'qp-hide-paramThe alpha diversity metric to be '
-            'computed. (metric)': 'metric',
+            'qp-hide-paramThe alpha diversity metric to be computed. '
+            'Information about specific metrics is available at '
+            'https://data.qiime2.org/a_diversity_metrics (metric)': 'metric',
             'qp-hide-paramThe feature table containing the samples for '
             'which alpha diversity should be computed.': 'table',
             'qp-hide-plugin': 'diversity'}
@@ -835,13 +838,16 @@ class qiime2Tests(PluginTestCase):
         # as we don't have an alpha vector available, we will calculate
         # one using a non phylogenetic metric
         params = {
-            'The alpha diversity metric to be computed. '
+            'The alpha diversity metric to be computed. Information about '
+            'specific metrics is available at '
+            'https://data.qiime2.org/a_diversity_metrics '
             '(metric)': "Simpson's index",
             'The feature table containing the samples for which alpha '
             'diversity should be computed.': '8',
             'qp-hide-method': 'alpha',
-            'qp-hide-paramThe alpha diversity metric to be '
-            'computed. (metric)': 'metric',
+            'qp-hide-paramThe alpha diversity metric to be computed. '
+            'Information about specific metrics is available at '
+            'https://data.qiime2.org/a_diversity_metrics (metric)': 'metric',
             'qp-hide-paramThe feature table containing the samples for '
             'which alpha diversity should be computed.': 'table',
             'qp-hide-plugin': 'diversity'}
