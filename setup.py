@@ -47,6 +47,10 @@ setup(name='qp-qiime2',
       packages=['qp_qiime2'],
       scripts=['scripts/configure_qiime2', 'scripts/start_qiime2'],
       extras_require={'test': ["nose >= 0.10.1", "pep8"]},
-      install_requires=['click >= 3.3', 'future'],
+      install_requires=['click >= 3.3', 'future',
+                        'qiita-files @ https://github.com/'
+                        'qiita-spots/qiita-files/archive/master.zip',
+                        'qiita_client @ https://github.com/'
+                        'qiita-spots/qiita_client/archive/master.zip'],
       dependency_links=[],
       classifiers=classifiers)
