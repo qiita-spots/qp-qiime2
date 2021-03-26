@@ -82,6 +82,9 @@ jobs:
 
           conda activate qiime2-2021.2
 
+          mkdir databases
+          wget -O "databases/gg-13-8-99-515-806-nb-classifier.qza" "https://data.qiime2.org/2020.6/common/gg-13-8-99-515-806-nb-classifier.qza"
+
           export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/server.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
           export QP_QIIME2_DBS=${PWD}/databases
