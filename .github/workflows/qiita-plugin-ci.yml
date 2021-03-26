@@ -84,9 +84,10 @@ jobs:
 
           export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/server.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
+          export QP_QIIME2_DBS=${PWD}/databases
           pip install -U pip
           pip install .
-          configure_qiime2 --env-script "source /home/runner/.profile; conda activate qiime2-2021.2" --server-cert $QIITA_SERVER_CERT
+          configure_qiime2 --env-script "source /home/runner/.profile; conda activate qiime2-2021.2; export QP_QIIME2_DBS=${PWD}/databases" --server-cert $QIITA_SERVER_CERT
 
       - name: Starting services
         shell: bash -l {0}
@@ -127,6 +128,7 @@ jobs:
           conda activate qiime2-2021.2
           export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/server.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
+          export QP_QIIME2_DBS=${PWD}/databases
 
           nosetests --with-doctest --with-coverage -v --cover-package=qp_qiime2
 
