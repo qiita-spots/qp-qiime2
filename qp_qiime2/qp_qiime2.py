@@ -390,7 +390,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                 'FeatureData[Sequence]', fna_fp)
         except (ValueError, qiime2.core.exceptions.ValidationError) as e:
             msg = str(e)
-            if '(does not match IUPAC characters for a DNA sequence)' in msg:
+            if 'DNAFASTAFormat file' in msg:
                 msg = ('Table IDs are not sequences, please confirm that this '
                        'is not a closed reference table?')
             return False, None, 'Error converting "%s": %s' % (

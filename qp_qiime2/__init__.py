@@ -133,31 +133,30 @@ for qiita_artifact, q2_artifacts in QIITA_Q2_SEMANTIC_TYPE.items():
                     outputs_params[pname] = etype
 
             if len(inputs) != 1 or not add_method:
-                # This is currently filtering out:
-                # diversity mantel
-                # diversity pcoa_biplot
-                # diversity pcoa_biplot
-                # diversity procrustes_analysis
-                # emperor procrustes_plot
-                # gneiss assign_ids
-                # gneiss assign_ids
-                # gneiss balance_taxonomy
-                # gneiss balance_taxonomy
-                # gneiss correlation_clustering
-                # gneiss dendrogram_heatmap
-                # gneiss gradient_clustering
-                # gneiss gradient_clustering
-                # gneiss ilr_hierarchical
-                # gneiss ilr_phylogenetic
-                # gneiss ilr_phylogenetic
-                # longitudinal feature_volatility
-                # longitudinal maturity_index
-                # sample-classifier classify_samples
-                # sample-classifier fit_classifier
+                # As of qiime2-2021.2 this filters out:
                 # sample-classifier fit_regressor
-                # sample-classifier predict_classification
                 # sample-classifier predict_regression
                 # sample-classifier regress_samples
+                # sample-classifier fit_classifier
+                # sample-classifier predict_classification
+                # sample-classifier classify_samples
+                # longitudinal feature_volatility
+                # longitudinal maturity_index
+                # gneiss assign_ids
+                # gneiss ilr_phylogenetic
+                # gneiss correlation_clustering
+                # gneiss dendrogram_heatmap
+                # gneiss ilr_hierarchical
+                # gneiss gradient_clustering
+                # gneiss gradient_clustering
+                # diversity pcoa_biplot
+                # diversity mantel
+                # emperor procrustes_plot
+                # diversity pcoa_biplot
+                # diversity procrustes_analysis
+                # gneiss assign_ids
+                # gneiss ilr_phylogenetic
+                # gneiss ilr_phylogenetic_differential
                 # taxa filter_seqs
                 continue
 
@@ -201,7 +200,11 @@ for qiita_artifact, q2_artifacts in QIITA_Q2_SEMANTIC_TYPE.items():
                 # however,we want to make sure that this is the only one,
                 # if not, raise an error
                 if data_type == 'choice' and default is None:
-                    if qname == 'emperor' and mid == 'plot':
+                    # these are valid optional parameters
+                    valid_none_params = [
+                        ('emperor', 'plot'),
+                        ('gneiss', 'ilr_phylogenetic_ordination')]
+                    if (qname, mid) in valid_none_params:
                         data_type = 'string'
                         default = ''
                     else:
