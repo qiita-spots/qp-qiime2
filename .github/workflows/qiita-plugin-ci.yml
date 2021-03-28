@@ -90,6 +90,7 @@ jobs:
           export QP_QIIME2_DBS=${PWD}/databases
           pip install -U pip
           pip install .
+          pip install coveralls
 
           # other qiita plugin dependencies
           pip install https://github.com/qiita-spots/qtp-diversity/archive/master.zip
@@ -135,6 +136,7 @@ jobs:
           conda activate qiime2
           start_diversity_types https://localhost:8383 register ignored
           start_visualization_types https://localhost:8383 register ignored
+          sleep 10
 
       - name: Main tests
         shell: bash -l {0}
@@ -145,6 +147,8 @@ jobs:
           export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/server.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
           export QP_QIIME2_DBS=${PWD}/databases
+
+          export PYTHONWARNINGS="ignore:Certificate for localhost has no \`subjectAltName\`"
 
           nosetests --with-doctest --with-coverage -v --cover-package=qp_qiime2
 
