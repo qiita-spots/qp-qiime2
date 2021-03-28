@@ -130,6 +130,12 @@ jobs:
           sleep 10
           cat /tmp/supervisord.log
 
+          echo "5. Starting extra plugins"
+          conda deactivate
+          conda activate qiime2
+          start_diversity_types https://localhost:8383 register ignored
+          start_visualization_types https://localhost:8383 register ignored
+
       - name: Main tests
         shell: bash -l {0}
         env:
