@@ -97,8 +97,8 @@ jobs:
           pip install https://github.com/qiita-spots/qtp-visualization/archive/master.zip
 
           configure_qiime2 --env-script "source /home/runner/.profile; conda activate qiime2; export QP_QIIME2_DBS=${PWD}/databases" --server-cert $QIITA_SERVER_CERT
-          configure_visualization_types --env-script "source /home/runner/.profile; conda activate qiime2" --server-cert $QIITA_SERVER_CERT
           configure_diversity_types --env-script "source /home/runner/.profile; conda activate qiime2" --server-cert $QIITA_SERVER_CERT
+          configure_visualization_types --env-script "source /home/runner/.profile; conda activate qiime2" --server-cert $QIITA_SERVER_CERT
 
       - name: Starting services
         shell: bash -l {0}
@@ -136,7 +136,7 @@ jobs:
           conda activate qiime2
           start_diversity_types https://localhost:8383 register ignored
           start_visualization_types https://localhost:8383 register ignored
-          sleep 10
+          start_qiime2 https://localhost:8383 register ignored
 
       - name: Main tests
         shell: bash -l {0}
