@@ -76,14 +76,14 @@ jobs:
       - name: Install plugins
         shell: bash -l {0}
         run: |
-          wget https://data.qiime2.org/distro/core/qiime2-2021.2-py36-linux-conda.yml
+          wget --quiet https://data.qiime2.org/distro/core/qiime2-2021.2-py36-linux-conda.yml
           conda env create -n qiime2 --quiet --file qiime2-2021.2-py36-linux-conda.yml
           rm qiime2-2021.2-py36-linux-conda.yml
 
           conda activate qiime2
 
           mkdir databases
-          wget -O "databases/gg-13-8-99-515-806-nb-classifier.qza" "https://data.qiime2.org/2021.2/common/gg-13-8-99-515-806-nb-classifier.qza"
+          wget --quiet -O "databases/gg-13-8-99-515-806-nb-classifier.qza" "https://data.qiime2.org/2021.2/common/gg-13-8-99-515-806-nb-classifier.qza"
 
           export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/server.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
@@ -103,7 +103,7 @@ jobs:
           echo "Available Qiita plugins"
           ls ~/.qiita_plugins/
 
-      - name: Starting services
+      - name: Starting Main Services
         shell: bash -l {0}
         run: |
           conda activate qiita
@@ -124,18 +124,18 @@ jobs:
           nginx -c ${NGINX_FILE_NEW}
 
           echo "3. Setting up qiita"
-          conda activate qiita
           qiita-env make --no-load-ontologies
-          qiita-test-install
           qiita plugins update
+          qiita-test-install
 
           echo "4. Starting supervisord => multiple qiita instances"
           supervisord -c ${PWD}/qiita-dev/qiita_pet/supervisor_example.conf
           sleep 10
           cat /tmp/supervisord.log
 
-          echo "5. Starting extra plugins"
-          conda deactivate
+      - name: Starting Extra Plugins
+        shell: bash -l {0}
+        run: |
           conda activate qiime2
           export QP_QIIME2_DBS=${PWD}/databases
 
