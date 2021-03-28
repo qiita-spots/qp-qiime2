@@ -140,7 +140,9 @@ jobs:
           export QP_QIIME2_DBS=${PWD}/databases
 
           start_diversity_types https://localhost:8383 register ignored
+          sleep 5
           start_visualization_types https://localhost:8383 register ignored
+          sleep 5
           start_qiime2 https://localhost:8383 register ignored
 
       - name: Main tests
