@@ -130,20 +130,8 @@ jobs:
 
           echo "4. Starting supervisord => multiple qiita instances"
           supervisord -c ${PWD}/qiita-dev/qiita_pet/supervisor_example.conf
-          sleep 10
+          sleep 5
           cat /tmp/supervisord.log
-
-      - name: Starting Extra Plugins
-        shell: bash -l {0}
-        run: |
-          conda activate qiime2
-          export QP_QIIME2_DBS=${PWD}/databases
-
-          start_diversity_types https://localhost:8383 register ignored
-          sleep 5
-          start_visualization_types https://localhost:8383 register ignored
-          sleep 5
-          start_qiime2 https://localhost:8383 register ignored
 
       - name: Main tests
         shell: bash -l {0}
@@ -158,11 +146,6 @@ jobs:
           export PYTHONWARNINGS="ignore:Certificate for localhost has no \`subjectAltName\`"
 
           nosetests --with-doctest --with-coverage -v --cover-package=qp_qiime2
-
-          # killing the qiita server to run the next commands
-          QIITA_PID=`cat /tmp/supervisord.pid`
-          kill $QIITA_PID
-          sleep 10
 
       - uses: codecov/codecov-action@v1
         with:

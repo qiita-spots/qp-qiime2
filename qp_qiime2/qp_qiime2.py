@@ -69,6 +69,8 @@ PRIMITIVE_TYPES = {
     'Bool': 'boolean',
 }
 
+NOT_VALID_OUTPUTS = set(['Phylogeny'])
+
 ALPHA_DIVERSITY_METRICS_PHYLOGENETIC = {
     "Faith's Phylogenetic Diversity": "faith_pd",
 }

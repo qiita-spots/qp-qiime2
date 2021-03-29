@@ -15,7 +15,7 @@ from qiita_client import QiitaPlugin, QiitaCommand
 
 from .qp_qiime2 import (
     QIITA_Q2_SEMANTIC_TYPE, Q2_QIITA_SEMANTIC_TYPE, Q2_ALLOWED_PLUGINS,
-    PRIMITIVE_TYPES, call_qiime2, RENAME_COMMANDS)
+    PRIMITIVE_TYPES, call_qiime2, RENAME_COMMANDS, NOT_VALID_OUTPUTS)
 from .util import get_qiime2_type_name_and_predicate
 from qiime2 import __version__ as qiime2_version
 from qiime2.sdk.util import actions_by_input_type
@@ -122,10 +122,12 @@ for qiita_artifact, q2_artifacts in QIITA_Q2_SEMANTIC_TYPE.items():
             for td in to_delete:
                 del inputs[td]
 
+            # skipping if we know already that we will not add this method
             for pname, element in outputs.items():
                 qt_name, predicate = get_qiime2_type_name_and_predicate(
                     element)
-                if qt_name not in Q2_QIITA_SEMANTIC_TYPE:
+                if (qt_name not in Q2_QIITA_SEMANTIC_TYPE or
+                        qt_name in NOT_VALID_OUTPUTS):
                     add_method = False
                     break
                 else:
