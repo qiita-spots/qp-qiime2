@@ -176,7 +176,7 @@ class qiime2Tests(PluginTestCase):
             [(od('classification', 'taxonomy.tsv'), 'plain_text'),
              (od('classification.qza'), 'qza')]])
         self.assertCountEqual(
-            obs_artifact_types, ['BIOM', 'FeatureData[Taxonomy]'])
+            obs_artifact_types, ['BIOM', 'FeatureData'])
         self.assertCountEqual(obs_output_names, [
             'Feature Table with Classification', 'classification'])
 

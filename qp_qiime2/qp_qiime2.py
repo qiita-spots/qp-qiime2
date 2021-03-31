@@ -25,8 +25,10 @@ from q2_diversity._alpha import (
 
 Q2_ALLOWED_PLUGINS = [
     'taxa', 'sample-classifier', 'composition', 'phylogeny', 'feature-table',
-    'gneiss', 'diversity', 'longitudinal', 'emperor'
+    'gneiss', 'diversity', 'longitudinal', 'emperor',  # 'feature-classifier'
 ]
+
+Q2_EXTRA_COMMANDS = [('feature-classifier', 'classify_sklearn')]
 
 QIITA_Q2_SEMANTIC_TYPE = {
     'BIOM': {
@@ -47,9 +49,12 @@ QIITA_Q2_SEMANTIC_TYPE = {
     'phylogeny': {
         'name': 'Phylogeny',
         'expression': ['Rooted']},
-    'FeatureData[Taxonomy]':  {
+    'FeatureData':  {
         'name': 'FeatureData',
-        'expression': ['Taxonomy']},
+        'expression': ['Taxonomy', 'Sequence']},
+    'TaxonomicClassifier':  {
+        'name': 'TaxonomicClassifier',
+        'expression': []},
 }
 
 # for simplicity we are going to invert QIITA_Q2_SEMANTIC_TYPE so we can
