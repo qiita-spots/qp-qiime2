@@ -25,9 +25,12 @@ from q2_diversity._alpha import (
 
 Q2_ALLOWED_PLUGINS = [
     'taxa', 'sample-classifier', 'composition', 'phylogeny', 'feature-table',
-    'gneiss', 'diversity', 'longitudinal', 'emperor',  # 'feature-classifier'
+    'gneiss', 'diversity', 'longitudinal', 'emperor'
 ]
 
+# Note that is not OK - not sure why - to add 'feature-classifier' in the
+# list above becuse the full qiime2 plugin halts; thus, simply adding here
+# as it works
 Q2_EXTRA_COMMANDS = [('feature-classifier', 'classify_sklearn')]
 
 QIITA_Q2_SEMANTIC_TYPE = {
