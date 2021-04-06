@@ -135,8 +135,8 @@ class qiime2Tests(PluginTestCase):
 
         # first attempt should fail as the Qiita table is close reference
         success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
-        self.assertFalse(success)
         self.assertIn('Table IDs are not sequences', msg)
+        self.assertFalse(success)
 
         # now let's replace the Qiita table with a table with sequences
         ainfo = self.qclient.get("/qiita_db/artifacts/8/")
@@ -176,7 +176,7 @@ class qiime2Tests(PluginTestCase):
             [(od('classification', 'taxonomy.tsv'), 'plain_text'),
              (od('classification.qza'), 'qza')]])
         self.assertCountEqual(
-            obs_artifact_types, ['BIOM', 'FeatureData[Taxonomy]'])
+            obs_artifact_types, ['BIOM', 'FeatureData'])
         self.assertCountEqual(obs_output_names, [
             'Feature Table with Classification', 'classification'])
 

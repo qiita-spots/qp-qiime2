@@ -28,6 +28,11 @@ Q2_ALLOWED_PLUGINS = [
     'gneiss', 'diversity', 'longitudinal', 'emperor'
 ]
 
+# Note that is not OK - not sure why - to add 'feature-classifier' in the
+# list above becuse the full qiime2 plugin halts; thus, simply adding here
+# as it works
+Q2_EXTRA_COMMANDS = [('feature-classifier', 'classify_sklearn')]
+
 QIITA_Q2_SEMANTIC_TYPE = {
     'BIOM': {
         'name': 'FeatureTable',
@@ -47,9 +52,12 @@ QIITA_Q2_SEMANTIC_TYPE = {
     'phylogeny': {
         'name': 'Phylogeny',
         'expression': ['Rooted']},
-    'FeatureData[Taxonomy]':  {
+    'FeatureData':  {
         'name': 'FeatureData',
-        'expression': ['Taxonomy']},
+        'expression': ['Taxonomy', 'Sequence']},
+    'TaxonomicClassifier':  {
+        'name': 'TaxonomicClassifier',
+        'expression': []},
 }
 
 # for simplicity we are going to invert QIITA_Q2_SEMANTIC_TYPE so we can
@@ -68,6 +76,8 @@ PRIMITIVE_TYPES = {
     'Float': 'float',
     'Bool': 'boolean',
 }
+
+NOT_VALID_OUTPUTS = set(['Phylogeny'])
 
 ALPHA_DIVERSITY_METRICS_PHYLOGENETIC = {
     "Faith's Phylogenetic Diversity": "faith_pd",
@@ -390,7 +400,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                 'FeatureData[Sequence]', fna_fp)
         except (ValueError, qiime2.core.exceptions.ValidationError) as e:
             msg = str(e)
-            if '(does not match IUPAC characters for a DNA sequence)' in msg:
+            if 'DNAFASTAFormat file' in msg:
                 msg = ('Table IDs are not sequences, please confirm that this '
                        'is not a closed reference table?')
             return False, None, 'Error converting "%s": %s' % (

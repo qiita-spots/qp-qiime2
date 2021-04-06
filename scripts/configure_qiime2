@@ -24,5 +24,6 @@ def config(env_script, server_cert):
     plugin.generate_config(env_script, 'start_qiime2',
                            server_cert=server_cert)
 
+
 if __name__ == '__main__':
     config()
