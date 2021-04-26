@@ -16,7 +16,7 @@ from qiime2 import __version__ as qiime2_version
 __version__ = qiime2_version
 
 classes = """
-    Development Status :: 3 - Alpha
+    Development Status :: 5 - Production/Stable
     License :: OSI Approved :: BSD License
     Topic :: Scientific/Engineering :: Bio-Informatics
     Topic :: Software Development :: Libraries :: Application Frameworks
