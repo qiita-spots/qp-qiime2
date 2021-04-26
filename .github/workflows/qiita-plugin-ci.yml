@@ -76,14 +76,14 @@ jobs:
       - name: Install plugins
         shell: bash -l {0}
         run: |
-          wget --quiet https://data.qiime2.org/distro/core/qiime2-2021.2-py36-linux-conda.yml
-          conda env create -n qiime2 --quiet --file qiime2-2021.2-py36-linux-conda.yml
-          rm qiime2-2021.2-py36-linux-conda.yml
+          wget --quiet https://data.qiime2.org/distro/core/qiime2-2021.4-py36-linux-conda.yml
+          conda env create -n qiime2 --quiet --file qiime2-2021.4-py36-linux-conda.yml
+          rm qiime2-2021.4-py36-linux-conda.yml
 
           conda activate qiime2
 
           mkdir databases
-          wget --quiet -O "databases/gg-13-8-99-515-806-nb-classifier.qza" "https://data.qiime2.org/2021.2/common/gg-13-8-99-515-806-nb-classifier.qza"
+          wget --quiet -O "databases/gg-13-8-99-515-806-nb-classifier.qza" "https://data.qiime2.org/2021.4/common/gg-13-8-99-515-806-nb-classifier.qza"
 
           export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/server.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
