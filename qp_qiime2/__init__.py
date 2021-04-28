@@ -160,7 +160,7 @@ for q2plugin, m in methods_to_add:
                 break
             else:
                 etype = Q2_QIITA_SEMANTIC_TYPE[qt_name]
-                outputs_params[etype] = etype
+                outputs_params[pname] = etype
 
     if len(inputs) != 1 or not add_method:
         # As of qiime2-2021.2 this filters out:
