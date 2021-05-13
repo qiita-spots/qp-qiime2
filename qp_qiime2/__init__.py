@@ -96,10 +96,13 @@ for q2plugin, m in methods_to_add:
     parameters = m.signature.parameters.copy()
     add_method = True
 
+    qname = q2plugin.name
+    mid = m.id
+
     # storing this information in req_params so we can use internally
     # while calling call_qiime2
-    req_params = {'qp-hide-plugin': ('string', q2plugin.name),
-                  'qp-hide-method': ('string', m.id)}
+    req_params = {'qp-hide-plugin': ('string', qname),
+                  'qp-hide-method': ('string', mid)}
     outputs_params = {}
     opt_params = {}
     to_delete = []
@@ -162,6 +165,11 @@ for q2plugin, m in methods_to_add:
                 etype = Q2_QIITA_SEMANTIC_TYPE[qt_name]
                 outputs_params[pname] = etype
 
+        # we need to add the extra Qiita resulting table from assigning
+        # taxonomy via classify_sklearn
+        if qname == 'feature-classifier' and mid == 'classify_sklearn':
+            outputs_params['Feature Table with Classification'] = 'BIOM'
+
     if len(inputs) != 1 or not add_method:
         # As of qiime2-2021.2 this filters out:
         # sample-classifier fit_regressor
@@ -196,7 +204,7 @@ for q2plugin, m in methods_to_add:
         if tqt not in PRIMITIVE_TYPES:
             raise ValueError(
                 'There is a new type: %s, in %s %s (%s)' % (
-                    tqt, q2plugin.name, m.id, pname))
+                    tqt, qname, mid, pname))
 
         # predicate are the options for each parameter, note that it
         # can be a Choice/List or a Range (for Int/Floats). We ignore
@@ -213,8 +221,6 @@ for q2plugin, m in methods_to_add:
             data_type = 'choice:%s' % dumps(vals)
             default = vals[0]
 
-        qname = q2plugin.name
-        mid = m.id
         # if we are in the diversity plugin, the method starts with
         # alpha/beta, and the parameter is 'metric', we might want
         # to replace the technical names for user friendly ones
@@ -266,7 +272,7 @@ for q2plugin, m in methods_to_add:
                 # can retrieve later
                 opt_params['qp-hide-param' + ename] = ('string', pname)
 
-    qiime_cmd = QiitaCommand("%s [%s]" % (m.name, m.id), m.description,
+    qiime_cmd = QiitaCommand("%s [%s]" % (m.name, mid), m.description,
                              call_qiime2, req_params, opt_params,
                              outputs_params, {'Default': {}},
                              analysis_only=True)
