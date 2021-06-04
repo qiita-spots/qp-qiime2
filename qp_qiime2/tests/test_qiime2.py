@@ -1140,7 +1140,7 @@ class qiime2Tests(PluginTestCase):
         self.assertTrue(success)
         self.assertEqual(ainfo[0].files, [
             (join(out_dir, 'embed', 'umap', 'ordination.txt'), 'plain_text'),
-            (join(out_dir, 'embed', 'umap', 'umap.qza'), 'qza')])
+            (join(out_dir, 'embed', 'umap.qza'), 'qza')])
         self.assertEqual(ainfo[0].artifact_type, 'ordination_results')
         self.assertEqual(ainfo[0].output_name, 'umap')
 
