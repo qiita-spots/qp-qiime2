@@ -1138,7 +1138,9 @@ class qiime2Tests(PluginTestCase):
         success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
         self.assertEqual(msg, '')
         self.assertTrue(success)
-        self.assertEqual(ainfo[0].files, [])
+        self.assertEqual(ainfo[0].files, [
+            (join(out_dir, 'embed', 'umap', 'ordination.txt'), 'plain_text'),
+            (join(out_dir, 'embed', 'umap', 'umap.qza'), 'qza')])
         self.assertEqual(ainfo[0].artifact_type, 'ordination_results')
         self.assertEqual(ainfo[0].output_name, 'umap')
 
