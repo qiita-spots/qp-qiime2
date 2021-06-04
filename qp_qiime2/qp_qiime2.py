@@ -25,7 +25,7 @@ from q2_diversity._alpha import (
 
 Q2_ALLOWED_PLUGINS = [
     'taxa', 'sample-classifier', 'composition', 'phylogeny', 'feature-table',
-    'gneiss', 'diversity', 'longitudinal', 'emperor'
+    'gneiss', 'diversity', 'longitudinal', 'emperor', 'umap'
 ]
 
 # Note that is not OK - not sure why - to add 'feature-classifier' in the
