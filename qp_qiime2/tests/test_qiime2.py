@@ -1032,7 +1032,7 @@ class qiime2Tests(PluginTestCase):
                 'name': "Non phylogenetic distance matrix", 'analysis': 1,
                 'data_type': '16S'}
         reply = self.qclient.post('/apitest/artifact/', data=data)
-        aid = reply['artifact']
+        dtx_aid = reply['artifact']
 
         params = {
             "Dimensions to reduce the distance matrix to. This number "
@@ -1047,7 +1047,8 @@ class qiime2Tests(PluginTestCase):
             "specified, but suffers some degree of accuracy loss, the "
             "magnitude of which varies across different datasets. "
             "(number_of_dimensions)": '',
-            'The distance matrix on which PCoA should be computed.': str(aid),
+            'The distance matrix on which PCoA should be computed.': str(
+                dtx_aid),
             'qp-hide-method': 'pcoa',
             'qp-hide-paramThe distance matrix on which PCoA should be '
             'computed.': 'distance_matrix',
@@ -1097,6 +1098,51 @@ class qiime2Tests(PluginTestCase):
             join(out_dir, 'plot', 'visualization.qzv'), 'qzv')])
         self.assertEqual(ainfo[0].artifact_type, 'q2_visualization')
         self.assertEqual(ainfo[0].output_name, 'visualization')
+
+        # while we are here we can also test umap
+        params = {
+            'qp-hide-plugin': 'umap',
+            'qp-hide-method': 'embed',
+            'qp-hide-paramThe distance matrix over which UMAP should be '
+            'computed.': 'distance_matrix',
+            'The distance matrix over which UMAP should be computed.': str(
+                dtx_aid),
+            'qp-hide-paramSeed used by the random number generator. '
+            '(random_state)': 'random_state',
+            'Seed used by the random number generator. (random_state)': '724',
+            'qp-hide-paramThe number of components to use for UMAP embeddings.'
+            ' (number_of_dimensions)': 'number_of_dimensions',
+            'The number of components to use for UMAP embeddings. '
+            '(number_of_dimensions)': '3',
+            'qp-hide-paramControls how tightly UMAP is allowed to pack points '
+            'together. (min_dist)': 'min_dist',
+            'Controls how tightly UMAP is allowed to pack points together. '
+            '(min_dist)': '1',
+            'qp-hide-paramThe local neighborhood size used for UMAP.'
+            'RECOMMENDED: Set this to the number of samples in the input '
+            'distance matrix. (n_neighbors)': 'n_neighbors',
+            'The local neighborhood size used for UMAP.RECOMMENDED: Set '
+            'this to the number of samples in the input distance matrix. '
+            '(n_neighbors)': '4'
+        }
+
+        self.data['command'] = dumps(
+            ['qiime2', qiime2_version, 'UMAP Embedding [embed]'])
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        self.assertEqual(msg, '')
+        self.assertTrue(success)
+        self.assertEqual(ainfo[0].files, [
+            (join(out_dir, 'embed', 'umap', 'ordination.txt'), 'plain_text'),
+            (join(out_dir, 'embed', 'umap.qza'), 'qza')])
+        self.assertEqual(ainfo[0].artifact_type, 'ordination_results')
+        self.assertEqual(ainfo[0].output_name, 'umap')
 
     def test_beta_group_significance(self):
         # as we don't have a distance matrix, we will process one first

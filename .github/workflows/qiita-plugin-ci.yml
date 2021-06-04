@@ -73,7 +73,7 @@ jobs:
           pip install qiita-dev/ --no-binary redbiom
           mkdir ~/.qiita_plugins
 
-      - name: Install plugins
+      - name: Install Qiita plugins
         shell: bash -l {0}
         run: |
           wget --quiet https://data.qiime2.org/distro/core/qiime2-2021.4-py38-linux-conda.yml
@@ -102,6 +102,13 @@ jobs:
 
           echo "Available Qiita plugins"
           ls ~/.qiita_plugins/
+
+      - name: Install QIIME 2 plugins
+        shell: bash -l {0}
+        run: |
+          conda activate qiime2
+          pip install q2-umap
+          qiime
 
       - name: Starting Main Services
         shell: bash -l {0}
