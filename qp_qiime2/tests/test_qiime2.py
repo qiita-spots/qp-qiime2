@@ -1103,6 +1103,8 @@ class qiime2Tests(PluginTestCase):
         params = {
             'qp-hide-plugin': 'umap',
             'qp-hide-method': 'embed',
+            'qp-hide-paramThe distance matrix over which UMAP should be '
+            'computed.': 'distance_matrix',
             'The distance matrix over which UMAP should be computed.': str(
                 dtx_aid),
             'qp-hide-paramSeed used by the random number generator. '
