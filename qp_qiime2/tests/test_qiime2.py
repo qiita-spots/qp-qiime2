@@ -1345,7 +1345,6 @@ class qiime2Tests(PluginTestCase):
             'in to be retained. (min_samples)': '100000000',
             'The minimum total frequency that a feature must have to be '
             'retained. (min_frequency)': '0',
-            'qp-hide-metadata': 'metadata',
             'qp-hide-method': 'filter_features',
             'qp-hide-paramIf true, the features selected by `metadata` or '
             '`where` parameters will be excluded from the filtered table '
