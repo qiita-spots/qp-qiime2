@@ -108,7 +108,7 @@ jobs:
 
           configure_diversity_types --env-script "source /home/runner/.profile; conda activate qiime2" --server-cert $QIITA_SERVER_CERT
           configure_visualization_types --env-script "source /home/runner/.profile; conda activate qiime2" --server-cert $QIITA_SERVER_CERT
-          configure_qiime2 --env-script "source /home/runner/.profile; conda activate qiime2; export QP_QIIME2_DBS=${PWD}/databases; QP_QIIME2_FILTER_QZA=${PWD}/filtering/" --server-cert $QIITA_SERVER_CERT
+          configure_qiime2 --env-script "source /home/runner/.profile; conda activate qiime2; export QP_QIIME2_DBS=${PWD}/databases; export QP_QIIME2_FILTER_QZA=${PWD}/filtering/" --server-cert $QIITA_SERVER_CERT
 
           echo "Available Qiita plugins"
           ls ~/.qiita_plugins/
