@@ -82,6 +82,8 @@ jobs:
 
           conda activate qiime2
 
+          # configuring the databases available for QIIME 2
+
           mkdir databases
           wget --quiet -O "databases/gg-13-8-99-515-806-nb-classifier.qza" "https://data.qiime2.org/2021.4/common/gg-13-8-99-515-806-nb-classifier.qza"
 
@@ -96,9 +98,16 @@ jobs:
           pip --quiet install https://github.com/qiita-spots/qtp-diversity/archive/master.zip
           pip --quiet install https://github.com/qiita-spots/qtp-visualization/archive/master.zip
 
+          # configuring the filtering QZAs available for QIIME 2
+
+          mkdir filtering
+          wget -O filtering/bloom-analyses.zip https://github.com/knightlab-analyses/bloom-analyses/archive/refs/heads/master.zip
+          unzip -j filtering/bloom-analyses.zip bloom-analyses-master/data/qiime2-artifacts-for-qiita/*.qza -d filtering/
+          export QP_QIIME2_FILTER_QZA=${PWD}/filtering/
+
           configure_diversity_types --env-script "source /home/runner/.profile; conda activate qiime2" --server-cert $QIITA_SERVER_CERT
           configure_visualization_types --env-script "source /home/runner/.profile; conda activate qiime2" --server-cert $QIITA_SERVER_CERT
-          configure_qiime2 --env-script "source /home/runner/.profile; conda activate qiime2; export QP_QIIME2_DBS=${PWD}/databases" --server-cert $QIITA_SERVER_CERT
+          configure_qiime2 --env-script "source /home/runner/.profile; conda activate qiime2; export QP_QIIME2_DBS=${PWD}/databases; QP_QIIME2_FILTER_QZA=${PWD}/filtering/" --server-cert $QIITA_SERVER_CERT
 
           echo "Available Qiita plugins"
           ls ~/.qiita_plugins/
@@ -149,6 +158,7 @@ jobs:
           export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/server.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
           export QP_QIIME2_DBS=${PWD}/databases
+          export QP_QIIME2_FILTER_QZA=${PWD}/filtering/
 
           export PYTHONWARNINGS="ignore:Certificate for localhost has no \`subjectAltName\`"
 

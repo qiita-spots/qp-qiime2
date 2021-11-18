@@ -35,8 +35,13 @@ def get_qiime2_type_name_and_predicate(element):
             if 'members' in f:
                 for fm in f['members']:
                     predicate.append(fm['name'])
+            elif 'mapping' in f:
+                for fm in f['mapping']:
+                    for fme in fm:
+                        predicate.append(fme['name'])
             else:
                 predicate.append(f['name'])
+        predicate = sorted(list(set(predicate)))
     else:
         predicate = element.qiime_type.predicate
     name = to_ast['name']

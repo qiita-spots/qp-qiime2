@@ -1238,6 +1238,9 @@ class qiime2Tests(PluginTestCase):
             'not provided, all features in `metadata` that are also in the '
             'feature table will be retained. (where)': '',
             'The feature table from which features should be filtered.': '8',
+            'Feature metadata used with `where` parameter when selecting '
+            'features to retain, or with `exclude_ids` when selecting '
+            'features to discard. (metadata)': '',
             'The maximum number of samples that a feature can be observed in '
             'to be retained. If no value is provided this will default to '
             'infinity (i.e., no maximum sample filter will be applied). '
@@ -1250,7 +1253,6 @@ class qiime2Tests(PluginTestCase):
             'in to be retained. (min_samples)': '2',
             'The minimum total frequency that a feature must have to be '
             'retained. (min_frequency)': '0',
-            'qp-hide-metadata': 'metadata',
             'qp-hide-method': 'filter_features',
             'qp-hide-paramIf true, the features selected by `metadata` or '
             '`where` parameters will be excluded from the filtered table '
@@ -1285,7 +1287,33 @@ class qiime2Tests(PluginTestCase):
         out_dir = mkdtemp()
         self._clean_up_files.append(out_dir)
 
-        success, ainfo, msg = call_qiime2(self.qclient, jid, params, out_dir)
+        success, ainfo, msg = call_qiime2(
+            self.qclient, jid, params.copy(), out_dir)
+        self.assertEqual(msg, '')
+        self.assertTrue(success)
+        self.assertEqual(ainfo[0].files, [
+            (join(out_dir, 'filter_features', 'filtered_table',
+                  'feature-table.biom'), 'biom'),
+            (join(out_dir, 'filter_features', 'filtered_table.qza'), 'qza')])
+        self.assertEqual(ainfo[0].artifact_type, 'BIOM')
+        self.assertEqual(ainfo[0].output_name, 'filtered_table')
+
+        # Filter using a qza file
+        qza_path = join(self.basedir, '..', '..', 'filtering', 'blooms-90.qza')
+        params.update({
+            'Feature metadata used with `where` parameter when selecting '
+            'features to retain, or with `exclude_ids` when selecting '
+            'features to discard. (metadata)': qza_path
+        })
+        self.data['parameters'] = dumps(params)
+
+        jid = self.qclient.post(
+            '/apitest/processing_job/', data=self.data)['job']
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        success, ainfo, msg = call_qiime2(
+            self.qclient, jid, params.copy(), out_dir)
         self.assertEqual(msg, '')
         self.assertTrue(success)
         self.assertEqual(ainfo[0].files, [
