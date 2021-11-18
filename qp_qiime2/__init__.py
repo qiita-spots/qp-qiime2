@@ -37,6 +37,16 @@ if len(qp_qiime2_dbs) < 1:
     raise ValueError(
         "ENV QP_QIIME2_DBS points to a folder without QZA files, please set.")
 
+# Similar to the precomputed databases, we also need a folder containing all
+# the valid per-sequence filtering artifacts
+qp_filtering_qza = environ.get('QP_QIIME2_FILTER_QZA')
+if qp_filtering_qza is None:
+    raise ValueError("Missing ENV var QP_QIIME2_FILTER_QZA, please set.")
+qp_filtering_qza = glob(join(qp_filtering_qza, '*.qza'))
+if len(qp_filtering_qza) < 1:
+    raise ValueError("ENV QP_QIIME2_FILTER_QZA points to a folder without "
+                     "QZA files, please set.")
+
 # PLEASE READ:
 # There are 2 main steps:
 # 1. We are going to loop on the Q2_EXTRA_COMMANDS to check which extra
@@ -251,7 +261,14 @@ for q2plugin, m in methods_to_add:
                 raise ValueError(error_msg)
 
         if tqt == 'Metadata':
-            opt_params['qp-hide-metadata'] = ('string', pname)
+            # for filter_features we need to list the available filter qza
+            if qname == 'feature-table' and mid == 'filter_features':
+                qfq = ', '.join('"%s"' % qza for qza in qp_filtering_qza)
+                ename = '%s (%s)' % (element.description, pname)
+                opt_params[ename] = ('choice:["", %s]' % qfq, '')
+                opt_params['qp-hide-metadata'] = ('string', pname)
+            else:
+                opt_params['qp-hide-metadata'] = ('string', pname)
         elif tqt == 'MetadataColumn':
             name = "Metadata column to use"
             opt_params[name] = ('string', '')

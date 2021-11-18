@@ -244,7 +244,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                         # simplicity using the first one [0]
                         artifact_method = '%s[%s]' % (
                             qiita_name['name'], qiita_name['expression'][0])
-                elif key == 'classifier':
+                elif key in ('classifier', 'data'):
                     fpath = val
                     artifact_method = None
                     k = key
@@ -325,10 +325,8 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
     # remove the parameter metadata
     # NOTE: AFAIK there is no way to differentiate between sample and prep
     #       metadata in Q2 so the need to remove for filter_features
-
-    if ('filter_features' == q2method or (
-            'metadata' in q2inputs and ('where' in q2params and
-                                        not q2params['where']))):
+    if ('metadata' in q2inputs and 'where' in q2params
+            and not q2params['where']):
         q2inputs.pop('metadata')
 
     # if we are here, we need to use the internal tree from the artifact
