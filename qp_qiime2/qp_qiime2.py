@@ -319,7 +319,11 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             # qp-hide-metadata and optionaly we will have
             # qp-hide-metadata-field
             key = parameters.pop(k)
-            q2inputs[key] = ('', '')
+            if key in parameters:
+                q2params['metadata'] = qiime2.Artifact.load(
+                    parameters.pop(key)).view(qiime2.Metadata)
+            else:
+                q2inputs[key] = ('', '')
 
     # if 'metadata' is in q2inputs but 'where' exist and is empty in q2params,
     # remove the parameter metadata

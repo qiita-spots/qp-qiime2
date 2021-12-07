@@ -266,7 +266,7 @@ for q2plugin, m in methods_to_add:
                 qfq = ', '.join('"%s"' % qza for qza in qp_filtering_qza)
                 ename = '%s (%s)' % (element.description, pname)
                 opt_params[ename] = ('choice:["", %s]' % qfq, '')
-                opt_params['qp-hide-metadata'] = ('string', pname)
+                opt_params['qp-hide-metadata'] = ('string', ename)
             else:
                 opt_params['qp-hide-metadata'] = ('string', pname)
         elif tqt == 'MetadataColumn':
