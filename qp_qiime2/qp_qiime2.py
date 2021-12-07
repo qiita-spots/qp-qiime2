@@ -320,7 +320,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             # qp-hide-metadata-field
             key = parameters.pop(k)
             if key in parameters:
-                q2Metadata = qiime2.Artifact.load(parameters.pop(key)).view(
+                q2params[key] = qiime2.Artifact.load(parameters.pop(key)).view(
                     qiime2.Metadata)
             else:
                 q2inputs[key] = ('', '')
