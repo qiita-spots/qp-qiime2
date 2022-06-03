@@ -122,8 +122,13 @@ for q2plugin, m in methods_to_add:
         if qt_name not in Q2_QIITA_SEMANTIC_TYPE:
             # As of qiime2-2022.2 this filters out:
             # Hierarchy
-            # ProcrustesStatistics
+            #   gneiss dendrogram_heatmap
+            #   gneiss ilr_hierarchical
             # SampleEstimator
+            #   sample-classifier predict_classification
+            #   sample-classifier predict_regression
+            # ProcrustesStatistics
+            #   emperor procrustes_plot
             add_method = False
             break
 
@@ -146,6 +151,14 @@ for q2plugin, m in methods_to_add:
                 req_params[element.description] = ('artifact', ['BIOM'])
                 to_delete.append(pname)
             else:
+                # As of qiime2-2022.2 this filters out:
+                # predicate: Importance
+                #   importance heatmap
+                #   importances plot_feature_volatility
+                # predicate: Differential
+                #   differential ilr_phylogenetic_differential
+                # predicate: AlignedSequence | Sequence
+                #   data tabulate_seqs
                 add_method = False
         elif etype == 'TaxonomicClassifier':
             default = qp_qiime2_dbs[0]
@@ -159,6 +172,10 @@ for q2plugin, m in methods_to_add:
             # this is an odd one, first encountered:
             # feature-classifier fit-classifier-naive-bayes
             if ename == element.NOVALUE:
+                # As of qiime2-2022.2 nothing is filtered here, so let's raise
+                # an error so we can catch and review if this happens in the
+                # future
+                raise ValueError(f"[REVIEW] {pname} {mid} due to {ename}")
                 add_method = False
             else:
                 req_params[ename] = ('artifact', [etype])
@@ -173,6 +190,28 @@ for q2plugin, m in methods_to_add:
             qt_name, predicate = get_qiime2_type_name_and_predicate(element)
             if (qt_name not in Q2_QIITA_SEMANTIC_TYPE or
                     qt_name in NOT_VALID_OUTPUTS):
+                # As of qiime2-2022.2 this filters out:
+                # Hierarchy
+                #   gneiss assign_ids
+                #   gneiss correlation_clustering
+                #   gneiss gradient_clustering
+                #   gneiss ilr_phylogenetic
+                # Phylogeny
+                #   gneiss ilr_phylogenetic_differential
+                #   gneiss ilr_phylogenetic_ordination
+                #   phylogeny align_to_tree_mafft_fasttree
+                #   phylogeny align_to_tree_mafft_iqtree
+                #   phylogeny align_to_tree_mafft_raxml
+                #   phylogeny filter_tree
+                # SampleEstimator
+                #   longitudinal feature_volatility
+                #   longitudinal maturity_index
+                #   sample-classifier classify_samples
+                #   sample-classifier fit_classifier
+                #   sample-classifier fit_regressor
+                #   sample-classifier regress_samples
+                # ProcrustesStatistics
+                #   diversity procrustes_analysis
                 add_method = False
                 break
             else:
@@ -184,45 +223,21 @@ for q2plugin, m in methods_to_add:
         if qname == 'feature-classifier' and mid == 'classify_sklearn':
             outputs_params['Feature Table with Classification'] = 'BIOM'
 
-    if len(inputs) != 1 or not add_method:
+    if not add_method:
+        # for details of which commands are filtered due to this flag check
+        # the code above
+        continue
+
+    total_inputs = len(inputs)
+    if total_inputs == 0:
         # As of qiime2-2022.2 this filters out:
-        # diversity mantel
-        # diversity pcoa_biplot
-        # diversity pcoa_biplot
-        # diversity procrustes_analysis
-        # emperor procrustes_plot
-        # feature-table tabulate_seqs
-        # gneiss assign_ids
-        # gneiss assign_ids
-        # gneiss correlation_clustering
-        # gneiss dendrogram_heatmap
-        # gneiss gradient_clustering
-        # gneiss gradient_clustering
-        # gneiss ilr_hierarchical
-        # gneiss ilr_phylogenetic
-        # gneiss ilr_phylogenetic
-        # gneiss ilr_phylogenetic_differential
-        # gneiss ilr_phylogenetic_ordination
-        # gneiss ilr_phylogenetic_ordination
-        # longitudinal feature_volatility
-        # longitudinal maturity_index
-        # longitudinal plot_feature_volatility
-        # phylogeny align_to_tree_mafft_fasttree
-        # phylogeny align_to_tree_mafft_iqtree
-        # phylogeny align_to_tree_mafft_raxml
-        # phylogeny filter_tree
-        # phylogeny filter_tree
-        # phylogeny filter_tree
-        # phylogeny filter_tree
-        # sample-classifier classify_samples
-        # sample-classifier fit_classifier
-        # sample-classifier fit_regressor
-        # sample-classifier heatmap
-        # sample-classifier predict_classification
-        # sample-classifier predict_regression
-        # sample-classifier regress_samples
-        # taxa filter_seqs
-        # taxa filter_seqs
+        # filtered_sequences filter_seqs
+        continue
+    elif total_inputs > 1:
+        # As of qiime2-2022.2 this filters out:
+        # 2
+        #  biplot pcoa_biplot
+        #  visualization mantel
         continue
 
     for pname, element in parameters.items():
