@@ -176,7 +176,6 @@ for q2plugin, m in methods_to_add:
                 # an error so we can catch and review if this happens in the
                 # future
                 raise ValueError(f"[REVIEW] {pname} {mid} due to {ename}")
-                add_method = False
             else:
                 req_params[ename] = ('artifact', [etype])
                 req_params['qp-hide-param' + ename] = ('string', pname)
