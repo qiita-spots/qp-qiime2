@@ -168,7 +168,8 @@ for q2plugin, m in methods_to_add:
             req_params[ename] = ('choice:[%s]' % qp_qiime2_dbs, default)
             req_params['qp-hide-param' + ename] = ('string', pname)
         else:
-            ename = element.description
+            ename = f'{element.description} [{pname}]'
+
             # this is an odd one, first encountered:
             # feature-classifier fit-classifier-naive-bayes
             if ename == element.NOVALUE:
@@ -231,12 +232,6 @@ for q2plugin, m in methods_to_add:
     if total_inputs == 0:
         # As of qiime2-2022.2 this filters out:
         # filtered_sequences filter_seqs
-        continue
-    elif total_inputs > 1:
-        # As of qiime2-2022.2 this filters out:
-        # 2
-        #  biplot pcoa_biplot
-        #  visualization mantel
         continue
 
     for pname, element in parameters.items():
@@ -307,6 +302,7 @@ for q2plugin, m in methods_to_add:
             opt_params[name] = ('string', 'qp-hide-metadata-field')
         else:
             ename = '%s (%s)' % (element.description, pname)
+
             if element.has_default():
                 opt_params[ename] = (data_type, default)
                 # we need to add the actual name of the parameter so we
