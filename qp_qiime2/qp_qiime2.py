@@ -48,13 +48,14 @@ QIITA_Q2_SEMANTIC_TYPE = {
         'expression': []},
     'alpha_vector': {
         'name': 'SampleData',
-        'expression': ['AlphaDiversity']},
+        'expression': ['AlphaDiversity', 'ClassifierPredictions',
+                       'Probabilities']},
     'phylogeny': {
         'name': 'Phylogeny',
         'expression': ['Rooted']},
     'FeatureData':  {
         'name': 'FeatureData',
-        'expression': ['Taxonomy', 'Sequence']},
+        'expression': ['Taxonomy', 'Sequence', 'Importance']},
     'TaxonomicClassifier':  {
         'name': 'TaxonomicClassifier',
         'expression': []},
@@ -310,8 +311,12 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     if mkey.view_type is set:
                         val = {val}
                 else:
-                    val = qiime2.sdk.util.parse_primitive(
-                        mkey.qiime_type.to_ast(), val)
+                    # if ast['name'] == 'List', we need to make sure to take
+                    # the user give val and make it a list
+                    ast = mkey.qiime_type.to_ast()
+                    if 'name' in ast and ast['name'] == 'List':
+                        val = [val]
+                    val = qiime2.sdk.util.parse_primitive(ast, val)
 
                 q2params[key] = val
         elif k in ('qp-hide-metadata', 'qp-hide-FeatureData[Taxonomy]'):

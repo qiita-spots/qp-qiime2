@@ -53,7 +53,7 @@ class qiime2Tests(PluginTestCase):
 
     def test_not_analysis_artifact(self):
         params = {
-            'The feature table to be rarefied.': '5',
+            'The feature table to be rarefied. [table]': '5',
             'The total frequency that each sample should be rarefied to. '
             'Samples where the sum of frequencies is less than the sampling '
             'depth will be not be included in the resulting table unless '
@@ -64,7 +64,7 @@ class qiime2Tests(PluginTestCase):
             'the sampling depth will be not be included in the resulting '
             'table unless subsampling is performed with '
             'replacement. (sampling_depth)': 'sampling_depth',
-            'qp-hide-paramThe feature table to be rarefied.': 'table',
+            'qp-hide-paramThe feature table to be rarefied. [table]': 'table',
             'qp-hide-plugin': 'feature-table'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version, 'Rarefy table [rarefy]'])
@@ -182,7 +182,7 @@ class qiime2Tests(PluginTestCase):
 
     def test_rarefy(self):
         params = {
-            'The feature table to be rarefied.': '8',
+            'The feature table to be rarefied. [table]': '8',
             'The total frequency that each sample should be rarefied to. '
             'Samples where the sum of frequencies is less than the sampling '
             'depth will be not be included in the resulting table unless '
@@ -193,7 +193,7 @@ class qiime2Tests(PluginTestCase):
             'the sampling depth will be not be included in the resulting '
             'table unless subsampling is performed with '
             'replacement. (sampling_depth)': 'sampling_depth',
-            'qp-hide-paramThe feature table to be rarefied.': 'table',
+            'qp-hide-paramThe feature table to be rarefied. [table]': 'table',
             'qp-hide-plugin': 'feature-table'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version, 'Rarefy table [rarefy]'])
@@ -224,7 +224,7 @@ class qiime2Tests(PluginTestCase):
 
     def test_rarefy_error(self):
         params = {
-            'The feature table to be rarefied.': '8',
+            'The feature table to be rarefied. [table]': '8',
             'The total frequency that each sample should be rarefied to. '
             'Samples where the sum of frequencies is less than the sampling '
             'depth will be not be included in the resulting table unless '
@@ -236,7 +236,7 @@ class qiime2Tests(PluginTestCase):
             'the sampling depth will be not be included in the resulting '
             'table unless subsampling is performed with '
             'replacement. (sampling_depth)': 'sampling_depth',
-            'qp-hide-paramThe feature table to be rarefied.': 'table',
+            'qp-hide-paramThe feature table to be rarefied. [table]': 'table',
             'qp-hide-plugin': 'feature-table'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version, 'Rarefy table [rarefy]'])
@@ -263,12 +263,12 @@ class qiime2Tests(PluginTestCase):
             'The beta diversity metric to be '
             'computed. (metric)': "Rogers-Tanimoto distance",
             'The feature table containing the samples over which beta '
-            'diversity should be computed.': '8',
+            'diversity should be computed. [table]': '8',
             'qp-hide-method': 'beta',
             'qp-hide-paramThe beta diversity metric to be computed. '
             '(metric)': 'metric',
             'qp-hide-paramThe feature table containing the samples over '
-            'which beta diversity should be computed.': 'table',
+            'which beta diversity should be computed. [table]': 'table',
             'qp-hide-plugin': 'diversity',
             'qp-hide-paramA pseudocount to handle zeros for compositional '
             'metrics.  This is ignored for other metrics. '
@@ -307,7 +307,7 @@ class qiime2Tests(PluginTestCase):
             'The beta diversity metric to be computed. '
             '(metric)': 'Unweighted UniFrac',
             'The feature table containing the samples over which beta '
-            'diversity should be computed.': '8',
+            'diversity should be computed. [table]': '8',
             "The number of CPU threads to use in performing this calculation. "
             "May not exceed the number of available physical cores. If "
             "threads = 'auto', one thread will be created for each identified "
@@ -332,7 +332,7 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-paramThe beta diversity metric to be computed. '
             '(metric)': 'metric',
             'qp-hide-paramThe feature table containing the samples over which '
-            'beta diversity should be computed.': 'table',
+            'beta diversity should be computed. [table]': 'table',
             "qp-hide-paramThe number of CPU threads to use in performing this "
             "calculation. May not exceed the number of available physical "
             "cores. If threads = 'auto', one thread will be created for each "
@@ -367,7 +367,7 @@ class qiime2Tests(PluginTestCase):
 
     def test_alpha_rarefaction(self):
         params = {
-            'Feature table to compute rarefaction curves from.': '8',
+            'Feature table to compute rarefaction curves from. [table]': '8',
             'Phylogenetic tree': join(self.basedir, 'prune_97_gg_13_8.tre'),
             'The maximum rarefaction depth. Must be greater than min_depth. '
             '(max_depth)': '1000',
@@ -382,7 +382,7 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-metadata': 'metadata',
             'qp-hide-method': 'alpha_rarefaction',
             'qp-hide-paramFeature table to compute rarefaction curves '
-            'from.': 'table',
+            'from. [table]': 'table',
             'qp-hide-paramPhylogenetic tree': 'phylogeny',
             'qp-hide-paramThe maximum rarefaction depth. Must be greater '
             'than min_depth. (max_depth)': 'max_depth',
@@ -416,7 +416,7 @@ class qiime2Tests(PluginTestCase):
 
     def test_alpha_rarefaction_non_phylogenetic_with_tree(self):
         params = {
-            'Feature table to compute rarefaction curves from.': '8',
+            'Feature table to compute rarefaction curves from. [table]': '8',
             'Phylogenetic tree': 'Artifact tree, if exists',
             'The maximum rarefaction depth. Must be greater than min_depth. '
             '(max_depth)': '1000',
@@ -431,7 +431,7 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-metadata': 'metadata',
             'qp-hide-method': 'alpha_rarefaction',
             'qp-hide-paramFeature table to compute rarefaction curves '
-            'from.': 'table',
+            'from. [table]': 'table',
             'qp-hide-paramPhylogenetic tree': 'phylogeny',
             'qp-hide-paramThe maximum rarefaction depth. Must be greater '
             'than min_depth. (max_depth)': 'max_depth',
@@ -472,7 +472,7 @@ class qiime2Tests(PluginTestCase):
             ' If True, all values in column must match at least two samples. '
             '(stratify)': True,
             'Feature table containing all features that should be used for '
-            'target prediction.': '8',
+            'target prediction. [table]': '8',
             'Fraction of input samples to exclude from training set and use '
             'for classifier testing. (test_size)': '0.2',
             'How to handle missing samples in metadata. "error" will fail if '
@@ -486,7 +486,7 @@ class qiime2Tests(PluginTestCase):
             'metadata categories. If True, all values in column must match '
             'at least two samples. (stratify)': 'stratify',
             'qp-hide-paramFeature table containing all features that should '
-            'be used for target prediction.': 'table',
+            'be used for target prediction. [table]': 'table',
             'qp-hide-paramFraction of input samples to exclude from training '
             'set and use for classifier testing. (test_size)': 'test_size',
             'qp-hide-paramHow to handle missing samples in metadata. "error" '
@@ -531,7 +531,7 @@ class qiime2Tests(PluginTestCase):
             'The beta diversity metric to be '
             'computed. (metric)': "Rogers-Tanimoto distance",
             'The feature table containing the samples over which beta '
-            'diversity should be computed.': '8',
+            'diversity should be computed. [table]': '8',
             "The number of concurrent jobs to use in performing this "
             "calculation. May not exceed the number of available physical "
             "cores. If n_jobs = 'auto', one job will be launched for each "
@@ -540,7 +540,7 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-paramThe beta diversity metric to be computed. '
             '(metric)': 'metric',
             'qp-hide-paramThe feature table containing the samples over '
-            'which beta diversity should be computed.': 'table',
+            'which beta diversity should be computed. [table]': 'table',
             'qp-hide-plugin': 'diversity',
             'qp-hide-paramA pseudocount to handle zeros for compositional '
             'metrics.  This is ignored for other metrics. '
@@ -574,7 +574,8 @@ class qiime2Tests(PluginTestCase):
             'visualization. (label1)': 'Metadata',
             'Label for `metadata_distance_matrix` in the output '
             'visualization. (label2)': 'Distance Matrix',
-            'Matrix of distances between pairs of samples.': str(aid),
+            'Matrix of distances between pairs of samples. '
+            '[distance_matrix]': str(aid),
             'Metadata column to use': '',
             'The correlation test to be applied in the Mantel '
             'test. (method)': 'Pearson',
@@ -593,7 +594,7 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-paramLabel for `metadata_distance_matrix` in the output '
             'visualization. (label2)': 'label2',
             'qp-hide-paramMatrix of distances between pairs of '
-            'samples.': 'distance_matrix',
+            'samples. [distance_matrix]': 'distance_matrix',
             'qp-hide-paramMetadata column to use': 'qp-hide-metadata-field',
             'qp-hide-paramThe correlation test to be applied in the '
             'Mantel test. (method)': 'method',
@@ -626,7 +627,7 @@ class qiime2Tests(PluginTestCase):
             'The beta diversity metric to be '
             'computed. (metric)': "Rogers-Tanimoto distance",
             'The feature table containing the samples over which beta '
-            'diversity should be computed.': '8',
+            'diversity should be computed. [table]': '8',
             "The number of concurrent jobs to use in performing this "
             "calculation. May not exceed the number of available physical "
             "cores. If n_jobs = 'auto', one job will be launched for each "
@@ -635,7 +636,7 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-paramThe beta diversity metric to be computed. '
             '(metric)': 'metric',
             'qp-hide-paramThe feature table containing the samples over '
-            'which beta diversity should be computed.': 'table',
+            'which beta diversity should be computed. [table]': 'table',
             'qp-hide-plugin': 'diversity',
             'qp-hide-paramA pseudocount to handle zeros for compositional '
             'metrics.  This is ignored for other metrics. '
@@ -669,7 +670,8 @@ class qiime2Tests(PluginTestCase):
             'visualization. (label1)': 'Metadata',
             'Label for `metadata_distance_matrix` in the output '
             'visualization. (label2)': 'Distance Matrix',
-            'Matrix of distances between pairs of samples.': str(aid),
+            'Matrix of distances between pairs of samples. '
+            '[distance_matrix]': str(aid),
             'Metadata column to use': 'taxon_id',
             'The correlation test to be applied in the Mantel '
             'test. (method)': 'Pearson',
@@ -688,7 +690,7 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-paramLabel for `metadata_distance_matrix` in the output '
             'visualization. (label2)': 'label2',
             'qp-hide-paramMatrix of distances between pairs of '
-            'samples.': 'distance_matrix',
+            'samples. [distance_matrix]': 'distance_matrix',
             'qp-hide-paramMetadata column to use': 'qp-hide-metadata-field',
             'qp-hide-paramThe correlation test to be applied in the '
             'Mantel test. (method)': 'method',
@@ -730,13 +732,13 @@ class qiime2Tests(PluginTestCase):
             'https://data.qiime2.org/a_diversity_metrics '
             '(metric)': "Simpson's index",
             'The feature table containing the samples for which alpha '
-            'diversity should be computed.': '8',
+            'diversity should be computed. [table]': '8',
             'qp-hide-method': 'alpha',
             'qp-hide-paramThe alpha diversity metric to be computed. '
             'Information about specific metrics is available at '
             'https://data.qiime2.org/a_diversity_metrics (metric)': 'metric',
             'qp-hide-paramThe feature table containing the samples for '
-            'which alpha diversity should be computed.': 'table',
+            'which alpha diversity should be computed. [table]': 'table',
             'qp-hide-plugin': 'diversity'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version, 'Alpha diversity [alpha]'])
@@ -768,13 +770,13 @@ class qiime2Tests(PluginTestCase):
             'The alpha diversity metric to be '
             'computed. (metric)': "Faith's Phylogenetic Diversity",
             'The feature table containing the samples for which alpha '
-            'diversity should be computed.': '8',
+            'diversity should be computed. [table]': '8',
             'qp-hide-method': 'alpha_phylogenetic',
             'qp-hide-paramPhylogenetic tree': 'phylogeny',
             'qp-hide-paramThe alpha diversity metric to be '
             'computed. (metric)': 'metric',
             'qp-hide-paramThe feature table containing the samples for '
-            'which alpha diversity should be computed.': 'table',
+            'which alpha diversity should be computed. [table]': 'table',
             'qp-hide-plugin': 'diversity'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version,
@@ -801,7 +803,7 @@ class qiime2Tests(PluginTestCase):
         params = {
             'qp-hide-method': 'collapse',
             'qp-hide-plugin': 'taxa',
-            'Feature table to be collapsed.': '8',
+            'Feature table to be collapsed. [table]': '8',
             'qp-hide-paramThe taxonomic level at which the features should be '
             'collapsed. All ouput features will have exactly this many levels '
             'of taxonomic annotation. (level)': 'level',
@@ -809,7 +811,7 @@ class qiime2Tests(PluginTestCase):
             'All ouput features will have exactly this many levels of '
             'taxonomic annotation. (level)': '3',
             'qp-hide-FeatureData[Taxonomy]': 'FeatureData[Taxonomy]',
-            'qp-hide-paramFeature table to be collapsed.': 'table'
+            'qp-hide-paramFeature table to be collapsed. [table]': 'table'
         }
 
         self.data['command'] = dumps(['qiime2', qiime2_version, 'Collapse '
@@ -843,13 +845,13 @@ class qiime2Tests(PluginTestCase):
             'https://data.qiime2.org/a_diversity_metrics '
             '(metric)': "Simpson's index",
             'The feature table containing the samples for which alpha '
-            'diversity should be computed.': '8',
+            'diversity should be computed. [table]': '8',
             'qp-hide-method': 'alpha',
             'qp-hide-paramThe alpha diversity metric to be computed. '
             'Information about specific metrics is available at '
             'https://data.qiime2.org/a_diversity_metrics (metric)': 'metric',
             'qp-hide-paramThe feature table containing the samples for '
-            'which alpha diversity should be computed.': 'table',
+            'which alpha diversity should be computed. [table]': 'table',
             'qp-hide-plugin': 'diversity'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version, 'Alpha diversity [alpha]'])
@@ -869,13 +871,14 @@ class qiime2Tests(PluginTestCase):
 
         params = {
             'The correlation test to be applied. (method)': 'Spearman',
-            'Vector of alpha diversity values by sample.': str(aid),
+            'Vector of alpha diversity values by sample. '
+            '[alpha_diversity]': str(aid),
             'qp-hide-metadata': 'metadata',
             'qp-hide-method': 'alpha_correlation',
             'qp-hide-paramThe correlation test to be applied. '
             '(method)': 'method',
             'qp-hide-paramVector of alpha diversity values by '
-            'sample.': 'alpha_diversity',
+            'sample. [alpha_diversity]': 'alpha_diversity',
             'qp-hide-plugin': 'diversity'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version,
@@ -900,11 +903,12 @@ class qiime2Tests(PluginTestCase):
         params = {
             'qp-hide-plugin': 'taxa',
             'qp-hide-method': 'barplot',
-            'Feature table to visualize at various taxonomic levels.': '8',
+            'Feature table to visualize at various taxonomic levels. '
+            '[table]': '8',
             'qp-hide-metadata': 'metadata',
             'qp-hide-FeatureData[Taxonomy]': 'FeatureData[Taxonomy]',
             'qp-hide-paramFeature table to visualize at various taxonomic '
-            'levels.': 'table'}
+            'levels. [table]': 'table'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version,
              'Visualize taxonomy with an interactive bar plot [barplot]'])
@@ -934,7 +938,8 @@ class qiime2Tests(PluginTestCase):
             'not provided, all samples in `metadata` that are also in the '
             'feature table will be retained. '
             '(where)': '"anonymized_name" = "SKB8"',
-            'The feature table from which samples should be filtered.': '8',
+            'The feature table from which samples should be filtered. '
+            '[table]': '8',
             'The maximum number of features that a sample can have to be '
             'retained. If no value is provided this will default to infinity '
             '(i.e., no maximum feature filter will be applied). '
@@ -950,7 +955,7 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-metadata': 'metadata',
             'qp-hide-method': 'filter_samples',
             'qp-hide-paramThe feature table from which samples should be '
-            'filtered.': 'table',
+            'filtered. [table]': 'table',
             'qp-hide-plugin': 'feature-table',
             'qp-hide-paramIf true, the samples selected by `metadata` or '
             '`where` parameters will be excluded from the filtered table '
@@ -1000,7 +1005,7 @@ class qiime2Tests(PluginTestCase):
             'The beta diversity metric to be '
             'computed. (metric)': "Rogers-Tanimoto distance",
             'The feature table containing the samples over which beta '
-            'diversity should be computed.': '8',
+            'diversity should be computed. [table]': '8',
             "The number of concurrent jobs to use in performing this "
             "calculation. May not exceed the number of available physical "
             "cores. If n_jobs = 'auto', one job will be launched for each "
@@ -1009,7 +1014,7 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-paramThe beta diversity metric to be computed. '
             '(metric)': 'metric',
             'qp-hide-paramThe feature table containing the samples over '
-            'which beta diversity should be computed.': 'table',
+            'which beta diversity should be computed. [table]': 'table',
             'qp-hide-plugin': 'diversity',
             'qp-hide-paramA pseudocount to handle zeros for compositional '
             'metrics.  This is ignored for other metrics. '
@@ -1047,11 +1052,12 @@ class qiime2Tests(PluginTestCase):
             "specified, but suffers some degree of accuracy loss, the "
             "magnitude of which varies across different datasets. "
             "(number_of_dimensions)": '',
-            'The distance matrix on which PCoA should be computed.': str(
+            'The distance matrix on which PCoA should be computed. '
+            '[distance_matrix]': str(
                 dtx_aid),
             'qp-hide-method': 'pcoa',
             'qp-hide-paramThe distance matrix on which PCoA should be '
-            'computed.': 'distance_matrix',
+            'computed. [distance_matrix]': 'distance_matrix',
             'qp-hide-plugin': 'diversity'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version, 'Principal Coordinate Analysis [pcoa]'])
@@ -1072,14 +1078,14 @@ class qiime2Tests(PluginTestCase):
         params = {
             'Numeric sample metadata columns that should be included as '
             'axes in the Emperor plot. (custom_axes)': '',
-            'The principal coordinates matrix to be plotted.': str(aid),
+            'The principal coordinates matrix to be plotted. [pcoa]': str(aid),
             'qp-hide-metadata': 'metadata',
             'qp-hide-method': 'plot',
             'qp-hide-paramNumeric sample metadata columns that should be '
             'included as axes in the Emperor plot. '
             '(custom_axes)': 'custom_axes',
             'qp-hide-paramThe principal coordinates matrix to be '
-            'plotted.': 'pcoa',
+            'plotted. [pcoa]': 'pcoa',
             'qp-hide-plugin': 'emperor'}
         self.data['command'] = dumps(
             ['qiime2', qiime2_version, 'Visualize and Interact with '
@@ -1104,9 +1110,9 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-plugin': 'umap',
             'qp-hide-method': 'embed',
             'qp-hide-paramThe distance matrix over which UMAP should be '
-            'computed.': 'distance_matrix',
-            'The distance matrix over which UMAP should be computed.': str(
-                dtx_aid),
+            'computed. [distance_matrix]': 'distance_matrix',
+            'The distance matrix over which UMAP should be computed. '
+            '[distance_matrix]': str(dtx_aid),
             'qp-hide-paramSeed used by the random number generator. '
             '(random_state)': 'random_state',
             'Seed used by the random number generator. (random_state)': '724',
@@ -1152,7 +1158,7 @@ class qiime2Tests(PluginTestCase):
             'The beta diversity metric to be '
             'computed. (metric)': "Rogers-Tanimoto distance",
             'The feature table containing the samples over which beta '
-            'diversity should be computed.': '8',
+            'diversity should be computed. [table]': '8',
             "The number of concurrent jobs to use in performing this "
             "calculation. May not exceed the number of available physical "
             "cores. If n_jobs = 'auto', one job will be launched for each "
@@ -1161,7 +1167,7 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-paramThe beta diversity metric to be computed. '
             '(metric)': 'metric',
             'qp-hide-paramThe feature table containing the samples over '
-            'which beta diversity should be computed.': 'table',
+            'which beta diversity should be computed. [table]': 'table',
             'qp-hide-plugin': 'diversity',
             'qp-hide-paramA pseudocount to handle zeros for compositional '
             'metrics.  This is ignored for other metrics. '
@@ -1189,7 +1195,8 @@ class qiime2Tests(PluginTestCase):
         params = {
             'qp-hide-plugin': 'diversity',
             'qp-hide-method': 'beta_group_significance',
-            'Matrix of distances between pairs of samples.': str(aid),
+            'Matrix of distances between pairs of samples. '
+            '[distance_matrix]': str(aid),
             'qp-hide-paramThe number of permutations to be run when computing '
             'p-values. (permutations)': 'permutations',
             'The number of permutations to be run when computing p-values. '
@@ -1207,7 +1214,7 @@ class qiime2Tests(PluginTestCase):
             'qp-hide-paramMetadata column to use': 'qp-hide-metadata-field',
             'Metadata column to use': 'description_duplicate',
             'qp-hide-paramMatrix of distances between pairs of '
-            'samples.': 'distance_matrix'}
+            'samples. [distance_matrix]': 'distance_matrix'}
 
         self.data['command'] = dumps(
             ['qiime2', qiime2_version,
@@ -1237,7 +1244,8 @@ class qiime2Tests(PluginTestCase):
             'must be met to be included in the filtered feature table. If '
             'not provided, all features in `metadata` that are also in the '
             'feature table will be retained. (where)': '',
-            'The feature table from which features should be filtered.': '8',
+            'The feature table from which features should be filtered. '
+            '[table]': '8',
             'Feature metadata used with `where` parameter when selecting '
             'features to retain, or with `exclude_ids` when selecting '
             'features to discard. (metadata)': '',
@@ -1263,7 +1271,7 @@ class qiime2Tests(PluginTestCase):
             'that are also in the feature table will be retained. '
             '(where)': 'where',
             'qp-hide-paramThe feature table from which features should be '
-            'filtered.': 'table',
+            'filtered. [table]': 'table',
             'qp-hide-paramThe maximum number of samples that a feature can '
             'be observed in to be retained. If no value is provided this will '
             'default to infinity (i.e., no maximum sample filter will be '
@@ -1332,7 +1340,8 @@ class qiime2Tests(PluginTestCase):
             'must be met to be included in the filtered feature table. If '
             'not provided, all features in `metadata` that are also in the '
             'feature table will be retained. (where)': '',
-            'The feature table from which features should be filtered.': '8',
+            'The feature table from which features should be filtered. '
+            '[table]': '8',
             'The maximum number of samples that a feature can be observed in '
             'to be retained. If no value is provided this will default to '
             'infinity (i.e., no maximum sample filter will be applied). '
@@ -1355,7 +1364,7 @@ class qiime2Tests(PluginTestCase):
             'that are also in the feature table will be retained. '
             '(where)': 'where',
             'qp-hide-paramThe feature table from which features should be '
-            'filtered.': 'table',
+            'filtered. [table]': 'table',
             'qp-hide-paramThe maximum number of samples that a feature can '
             'be observed in to be retained. If no value is provided this will '
             'default to infinity (i.e., no maximum sample filter will be '
@@ -1387,7 +1396,7 @@ class qiime2Tests(PluginTestCase):
     def test_core_diversity(self):
         params = {
             'The feature table containing the samples over which diversity '
-            'metrics should be computed.': '8',
+            'metrics should be computed. [table]': '8',
             "qp-hide-param[beta methods only] - The number of concurrent jobs "
             "to use in performing this calculation. May not exceed the number "
             "of available physical cores. If n_jobs = 'auto', one job will "
@@ -1410,7 +1419,7 @@ class qiime2Tests(PluginTestCase):
             'The total frequency that each sample should be rarefied to prior '
             'to computing diversity metrics. (sampling_depth)': '2',
             'qp-hide-paramThe feature table containing the samples over which '
-            'diversity metrics should be computed.': 'table',
+            'diversity metrics should be computed. [table]': 'table',
             'qp-hide-method': 'core_metrics',
             'qp-hide-plugin': 'diversity'}
         self.data['command'] = dumps(

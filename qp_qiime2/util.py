@@ -27,7 +27,8 @@ def get_qiime2_type_name_and_predicate(element):
         # necessary in Qiita as they are simply ignored if unchanged. Thus,
         # we loop over the members of the union and ingore `Choices`.
         to_ast = [x for x in to_ast['members']
-                  if x['predicate']['name'] != 'Choices'][0]
+                  if x['predicate'] is None or
+                  x['predicate']['name'] != 'Choices'][0]
         predicate = to_ast['predicate']
     elif to_ast['name'] == 'FeatureData':
         predicate = []
