@@ -355,7 +355,8 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             metadata_fp = join(out_dir, 'metadata.txt')
             metadata.to_csv(metadata_fp, index_label='#SampleID', na_rep='',
                             sep='\t', encoding='utf-8')
-            q2Metadata = qiime2.Metadata.load(metadata_fp)
+            q2Metadata = qiime2.Metadata.load(
+                metadata_fp, default_missing_scheme='INSDC:missing')
             if fpath:
                 q2params[k] = q2Metadata.get_column(fpath)
             else:
