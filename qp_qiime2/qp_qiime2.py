@@ -355,8 +355,13 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             metadata_fp = join(out_dir, 'metadata.txt')
             metadata.to_csv(metadata_fp, index_label='#SampleID', na_rep='',
                             sep='\t', encoding='utf-8')
+            # in 2022.8.3 qiime2 has a bug and the current solution is to load
+            # the file twice; the plan is that in the future this will not be
+            # needed
+            metadata_columns = qiime2.Metadata.load(metadata_fp).columns
             q2Metadata = qiime2.Metadata.load(
-                metadata_fp, default_missing_scheme='INSDC:missing')
+                metadata_fp, column_missing_schemes={
+                    c: 'INSDC:missing' for c in metadata_columns})
             if fpath:
                 q2params[k] = q2Metadata.get_column(fpath)
             else:
