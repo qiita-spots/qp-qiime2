@@ -82,8 +82,6 @@ jobs:
           rm qiime2-2022.8-py38-linux-conda.yml
 
           conda activate qiime2
-          pip uninstall h5py
-          pip install --no-cache-dir h5py
 
           # configuring the databases available for QIIME 2
 
