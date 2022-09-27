@@ -77,9 +77,9 @@ jobs:
       - name: Install Qiita plugins
         shell: bash -l {0}
         run: |
-          wget --quiet https://data.qiime2.org/distro/core/qiime2-2022.2-py38-linux-conda.yml
-          conda env create -n qiime2 --quiet --file qiime2-2022.2-py38-linux-conda.yml
-          rm qiime2-2022.2-py38-linux-conda.yml
+          wget --quiet https://data.qiime2.org/distro/core/qiime2-2022.8-py38-linux-conda.yml
+          conda env create -n qiime2 --quiet --file qiime2-2022.8-py38-linux-conda.yml
+          rm qiime2-2022.8-py38-linux-conda.yml
 
           conda activate qiime2
 
