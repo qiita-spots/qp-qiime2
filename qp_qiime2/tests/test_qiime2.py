@@ -1246,6 +1246,9 @@ class qiime2Tests(PluginTestCase):
             'feature table will be retained. (where)': '',
             'The feature table from which features should be filtered. '
             '[table]': '8',
+            'qp-hide-metadata': 'Feature metadata used with `where` parameter '
+            'when selecting features to retain, or with `exclude_ids` when '
+            'selecting features to discard. (metadata)',
             'Feature metadata used with `where` parameter when selecting '
             'features to retain, or with `exclude_ids` when selecting '
             'features to discard. (metadata)': '',
