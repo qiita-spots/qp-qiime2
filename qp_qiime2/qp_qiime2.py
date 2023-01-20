@@ -49,7 +49,7 @@ QIITA_Q2_SEMANTIC_TYPE = {
     'alpha_vector': {
         'name': 'SampleData',
         'expression': ['AlphaDiversity', 'ClassifierPredictions',
-                       'Probabilities']},
+                       'Probabilities', 'Mislabeled']},
     'phylogeny': {
         'name': 'Phylogeny',
         'expression': ['Rooted']},

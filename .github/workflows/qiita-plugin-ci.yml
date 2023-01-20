@@ -118,6 +118,7 @@ jobs:
         run: |
           conda activate qiime2
           pip install q2-umap
+          pip install https://github.com/biocore/q2-mislabeled/archive/refs/heads/main.zip
           qiime
 
       - name: Starting Main Services
