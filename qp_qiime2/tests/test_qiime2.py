@@ -140,7 +140,7 @@ class qiime2Tests(PluginTestCase):
 
         # now let's replace the Qiita table with a table with sequences
         ainfo = self.qclient.get("/qiita_db/artifacts/8/")
-        biom_fp_old = ainfo['files']['biom'][0]
+        biom_fp_old = ainfo['files']['biom'][0]['filepath']
         biom_fp_old_bk = biom_fp_old + '.bk'
         biom_fp_new = join(self.basedir, 'support_files', 'deblur.biom')
         copyfile(biom_fp_old, biom_fp_old_bk)
