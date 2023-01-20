@@ -266,19 +266,20 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                         # at this stage in qiita we only have 2 types of
                         # artifacts: biom / plain_text
                         if Q2_QIITA_SEMANTIC_TYPE[dt] == 'BIOM':
-                            fpath = ainfo['files']['biom'][0]
+                            fpath = ainfo['files']['biom'][0]['filepath']
                             biom_fp = fpath
                         else:
-                            fpath = ainfo['files']['plain_text'][0]
+                            fpath = ainfo['files']['plain_text'][0]['filepath']
                     else:
-                        fpath = ainfo['files']['qza'][0]
+                        fpath = ainfo['files']['qza'][0]['filepath']
                     # if it's a BIOM and there is a plain_text is the
                     # result of the archive at this stage: a tree
                     if Q2_QIITA_SEMANTIC_TYPE[dt] == 'BIOM':
                         if 'plain_text' in ainfo['files']:
-                            tree_fp = ainfo['files']['plain_text'][0]
+                            tree_fp = ainfo['files']['plain_text'][0][
+                                'filepath']
                     if biom_fp is None and 'biom' in ainfo['files']:
-                        biom_fp = ainfo['files']['biom'][0]
+                        biom_fp = ainfo['files']['biom'][0]['filepath']
 
                     q2artifact_name = Q2_QIITA_SEMANTIC_TYPE[
                         method_inputs[key].qiime_type.to_ast()['name']]
@@ -402,10 +403,10 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
     if q2plugin == 'feature-classifier' and q2method == 'classify_sklearn':
         ainfo = qclient.get("/qiita_db/artifacts/%s/" %
                             parameters['The feature data to be classified.'])
-        biom_fp = ainfo['files']['biom'][0]
+        biom_fp = ainfo['files']['biom'][0]['filepath']
         plain_text_fp = None
         if 'plain_text' in ainfo['files']:
-            plain_text_fp = ainfo['files']['plain_text'][0]
+            plain_text_fp = ainfo['files']['plain_text'][0]['filepath']
         biom_table = load_table(biom_fp)
         fna_fp = join(out_dir, 'sequences.fna')
         with open(fna_fp, 'w') as f:
@@ -455,7 +456,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             # so we don't move the original file
             bn = basename(plain_text_fp)
             new_tree_fp = join(out_dir, bn)
-            copyfile(ainfo['files']['plain_text'][0], new_tree_fp)
+            copyfile(ainfo['files']['plain_text'][0]['filepath'], new_tree_fp)
             ftc_fps.append((new_tree_fp, 'plain_text'))
         out_info.append(ArtifactInfo(
             'Feature Table with Classification', 'BIOM', ftc_fps))
