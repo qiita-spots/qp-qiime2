@@ -43,11 +43,6 @@ def get_qiime2_type_name_and_predicate(element):
             else:
                 predicate.append(f['name'])
         predicate = sorted(list(set(predicate)))
-    elif to_ast['name'] == 'List' and element.qiime_type.predicate is None:
-        # just taking the first one to keep things rolling, required by
-        # PluginManager().plugins['composition'].methods[
-        #     'ancombc'].signature.parameters['reference_levels']
-        predicate = to_ast['fields'][0]['name']
     else:
         predicate = element.qiime_type.predicate
     name = to_ast['name']

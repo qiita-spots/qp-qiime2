@@ -100,6 +100,9 @@ for qiita_artifact, q2_artifacts in QIITA_Q2_SEMANTIC_TYPE.items():
                                              ('feature-table', 'filter_seqs')]:
                 methods_to_add.append((q2plugin, m))
 
+# make sure we have seen all expected plugins
+q2_expected_plugins = Q2_ALLOWED_PLUGINS.copy()
+
 for q2plugin, m in methods_to_add:
     inputs = m.signature.inputs.copy()
     outputs = m.signature.outputs.copy()
@@ -108,6 +111,9 @@ for q2plugin, m in methods_to_add:
 
     qname = q2plugin.name
     mid = m.id
+
+    if qname in q2_expected_plugins:
+        q2_expected_plugins.remove(qname)
 
     # storing this information in req_params so we can use internally
     # while calling call_qiime2
@@ -275,7 +281,8 @@ for q2plugin, m in methods_to_add:
             # these are valid optional parameters
             valid_none_params = [
                 ('emperor', 'plot'),
-                ('gneiss', 'ilr_phylogenetic_ordination')]
+                ('gneiss', 'ilr_phylogenetic_ordination'),
+                ('composition', 'ancombc')]
             if (qname, mid) in valid_none_params:
                 data_type = 'string'
                 default = ''
@@ -324,3 +331,6 @@ for q2plugin, m in methods_to_add:
     plugin.register_command(qiime_cmd)
 
 plugin.register_command(qiime_cmd)
+
+if q2_expected_plugins:
+    raise ValueError(f'Never saw plugin(s): {q2_expected_plugins}')
