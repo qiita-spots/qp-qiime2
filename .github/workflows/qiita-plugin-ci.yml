@@ -83,6 +83,10 @@ jobs:
 
           conda activate qiime2
 
+          # Install QIIME 2 plugins
+          pip install q2-umap
+          pip install https://github.com/biocore/q2-mislabeled/archive/refs/heads/main.zip
+
           # configuring the databases available for QIIME 2
 
           mkdir databases
@@ -112,14 +116,6 @@ jobs:
 
           echo "Available Qiita plugins"
           ls ~/.qiita_plugins/
-
-      - name: Install QIIME 2 plugins
-        shell: bash -l {0}
-        run: |
-          conda activate qiime2
-          pip install q2-umap
-          pip install https://github.com/biocore/q2-mislabeled/archive/refs/heads/main.zip
-          qiime
 
       - name: Starting Main Services
         shell: bash -l {0}
