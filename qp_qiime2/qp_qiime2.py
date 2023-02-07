@@ -335,7 +335,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                 key_value = parameters.pop(key)
                 if not key_value:
                     continue
-                q2params[m_param_name] = qiime2.Artifact.load(
+                q2params['metadata'] = qiime2.Artifact.load(
                     key_value).view(qiime2.Metadata)
             else:
                 q2inputs[key] = ('', '')
