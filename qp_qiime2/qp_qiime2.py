@@ -356,7 +356,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
     qclient.update_job_step(
         job_id, "Step 2 of 4: Converting Qiita artifacts to Q2 artifact")
     for k, (fpath, dt) in q2inputs.items():
-        if k in ('metadata', 'sample_metadata'):
+        if k in ('metadata', 'sample_metadata', m_param_name):
             metadata = qclient.get(
                 "/qiita_db/analysis/%s/metadata/" % str(analysis_id))
             metadata = pd.DataFrame.from_dict(metadata, orient='index')
