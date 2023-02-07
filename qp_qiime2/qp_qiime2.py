@@ -224,6 +224,12 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
     biom_fp = None
     tree_fp = None
     tree_fp_check = False
+    # turns out that not always the metadata column is called
+    # metadata so getting its actual name
+    m_param_name = [x for x, y in method.signature.parameters.items()
+                    if y.qiime_type.name == 'MetadataColumn']
+    if m_param_name:
+        m_param_name = m_param_name[0]
     for k in list(parameters):
         if k in parameters and k.startswith(label):
             key = parameters.pop(k)
@@ -298,7 +304,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     msg = ("Error: You didn't write a metadata field in "
                            "'%s'" % k[label_len:])
                     return False, None, msg
-                q2inputs['metadata'] = (val, val)
+                q2inputs[m_param_name] = (val, val)
             else:
                 if val in ('', 'None'):
                     continue
@@ -329,7 +335,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                 key_value = parameters.pop(key)
                 if not key_value:
                     continue
-                q2params['metadata'] = qiime2.Artifact.load(
+                q2params[m_param_name] = qiime2.Artifact.load(
                     key_value).view(qiime2.Metadata)
             else:
                 q2inputs[key] = ('', '')
