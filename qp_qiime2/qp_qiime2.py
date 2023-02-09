@@ -48,8 +48,11 @@ QIITA_Q2_SEMANTIC_TYPE = {
         'expression': []},
     'alpha_vector': {
         'name': 'SampleData',
-        'expression': ['AlphaDiversity', 'ClassifierPredictions',
-                       'Probabilities', 'Mislabeled']},
+        'expression': ['AlphaDiversity']},
+    'SampleData': {
+        'name': 'SampleData',
+        'expression': ['ClassifierPredictions', 'Probabilities',
+                       'Mislabeled']},
     'phylogeny': {
         'name': 'Phylogeny',
         'expression': ['Rooted']},
@@ -63,8 +66,11 @@ QIITA_Q2_SEMANTIC_TYPE = {
 
 # for simplicity we are going to invert QIITA_Q2_SEMANTIC_TYPE so we can
 # search by key or value without having to do this operation several times
-Q2_QIITA_SEMANTIC_TYPE = {
-    y['name']: x for x, y in QIITA_Q2_SEMANTIC_TYPE.items()}
+Q2_QIITA_SEMANTIC_TYPE = dict()
+for x, y in QIITA_Q2_SEMANTIC_TYPE.items():
+    Q2_QIITA_SEMANTIC_TYPE[y['name']] = x
+    for yy in y['expression']:
+        Q2_QIITA_SEMANTIC_TYPE[f"{y['name']}[{yy}]"] = x
 
 PRIMITIVE_TYPES = {
     'Int': 'integer',
@@ -525,7 +531,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                         aname, 'BIOM', [(fp, 'biom'), (qza_fp, 'qza')])
 
             else:
-                atype = Q2_QIITA_SEMANTIC_TYPE[q2artifact.type.name]
+                atype = Q2_QIITA_SEMANTIC_TYPE[str(q2artifact.type)]
                 ai = ArtifactInfo(
                     aname, atype, [(fp, 'plain_text'), (qza_fp, 'qza')])
             out_info.append(ai)
