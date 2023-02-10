@@ -56,14 +56,13 @@ class qiime2Tests(PluginTestCase):
             'The feature table to be rarefied. [table]': '5',
             'The total frequency that each sample should be rarefied to. '
             'Samples where the sum of frequencies is less than the sampling '
-            'depth will be not be included in the resulting table unless '
-            'subsampling is performed with replacement. (sampling_depth)': '2',
+            'depth will be not be included in the resulting table. '
+            '(sampling_depth)': '2',
             'qp-hide-method': 'rarefy',
             'qp-hide-paramThe total frequency that each sample should be '
             'rarefied to. Samples where the sum of frequencies is less than '
             'the sampling depth will be not be included in the resulting '
-            'table unless subsampling is performed with '
-            'replacement. (sampling_depth)': 'sampling_depth',
+            'table. (sampling_depth)': 'sampling_depth',
             'qp-hide-paramThe feature table to be rarefied. [table]': 'table',
             'qp-hide-plugin': 'feature-table'}
         self.data['command'] = dumps(
@@ -185,14 +184,13 @@ class qiime2Tests(PluginTestCase):
             'The feature table to be rarefied. [table]': '8',
             'The total frequency that each sample should be rarefied to. '
             'Samples where the sum of frequencies is less than the sampling '
-            'depth will be not be included in the resulting table unless '
-            'subsampling is performed with replacement. (sampling_depth)': '2',
+            'depth will be not be included in the resulting table. '
+            '(sampling_depth)': '2',
             'qp-hide-method': 'rarefy',
             'qp-hide-paramThe total frequency that each sample should be '
             'rarefied to. Samples where the sum of frequencies is less than '
             'the sampling depth will be not be included in the resulting '
-            'table unless subsampling is performed with '
-            'replacement. (sampling_depth)': 'sampling_depth',
+            'table. (sampling_depth)': 'sampling_depth',
             'qp-hide-paramThe feature table to be rarefied. [table]': 'table',
             'qp-hide-plugin': 'feature-table'}
         self.data['command'] = dumps(
@@ -227,15 +225,13 @@ class qiime2Tests(PluginTestCase):
             'The feature table to be rarefied. [table]': '8',
             'The total frequency that each sample should be rarefied to. '
             'Samples where the sum of frequencies is less than the sampling '
-            'depth will be not be included in the resulting table unless '
-            'subsampling is performed with replacement. '
+            'depth will be not be included in the resulting table. '
             '(sampling_depth)': '200000',
             'qp-hide-method': 'rarefy',
             'qp-hide-paramThe total frequency that each sample should be '
             'rarefied to. Samples where the sum of frequencies is less than '
             'the sampling depth will be not be included in the resulting '
-            'table unless subsampling is performed with '
-            'replacement. (sampling_depth)': 'sampling_depth',
+            'table. (sampling_depth)': 'sampling_depth',
             'qp-hide-paramThe feature table to be rarefied. [table]': 'table',
             'qp-hide-plugin': 'feature-table'}
         self.data['command'] = dumps(

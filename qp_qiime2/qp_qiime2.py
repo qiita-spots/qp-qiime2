@@ -25,7 +25,7 @@ from q2_diversity._alpha import (
 
 Q2_ALLOWED_PLUGINS = [
     'taxa', 'sample-classifier', 'composition', 'phylogeny', 'feature-table',
-    'gneiss', 'diversity', 'longitudinal', 'emperor', 'umap'
+    'gneiss', 'diversity', 'longitudinal', 'emperor', 'umap', 'mislabeled'
 ]
 
 # Note that is not OK - not sure why - to add 'feature-classifier' in the
@@ -48,8 +48,11 @@ QIITA_Q2_SEMANTIC_TYPE = {
         'expression': []},
     'alpha_vector': {
         'name': 'SampleData',
-        'expression': ['AlphaDiversity', 'ClassifierPredictions',
-                       'Probabilities']},
+        'expression': ['AlphaDiversity']},
+    'SampleData': {
+        'name': 'SampleData',
+        'expression': ['ClassifierPredictions', 'Probabilities',
+                       'Mislabeled']},
     'phylogeny': {
         'name': 'Phylogeny',
         'expression': ['Rooted']},
@@ -63,8 +66,11 @@ QIITA_Q2_SEMANTIC_TYPE = {
 
 # for simplicity we are going to invert QIITA_Q2_SEMANTIC_TYPE so we can
 # search by key or value without having to do this operation several times
-Q2_QIITA_SEMANTIC_TYPE = {
-    y['name']: x for x, y in QIITA_Q2_SEMANTIC_TYPE.items()}
+Q2_QIITA_SEMANTIC_TYPE = dict()
+for x, y in QIITA_Q2_SEMANTIC_TYPE.items():
+    Q2_QIITA_SEMANTIC_TYPE[y['name']] = x
+    for yy in y['expression']:
+        Q2_QIITA_SEMANTIC_TYPE[f"{y['name']}[{yy}]"] = x
 
 PRIMITIVE_TYPES = {
     'Int': 'integer',
@@ -224,6 +230,12 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
     biom_fp = None
     tree_fp = None
     tree_fp_check = False
+    # turns out that not always the metadata column is called
+    # metadata so getting its actual name
+    m_param_name = [x for x, y in method.signature.parameters.items()
+                    if y.qiime_type.name == 'MetadataColumn']
+    if m_param_name:
+        m_param_name = m_param_name[0]
     for k in list(parameters):
         if k in parameters and k.startswith(label):
             key = parameters.pop(k)
@@ -298,7 +310,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     msg = ("Error: You didn't write a metadata field in "
                            "'%s'" % k[label_len:])
                     return False, None, msg
-                q2inputs['metadata'] = (val, val)
+                q2inputs[m_param_name] = (val, val)
             else:
                 if val in ('', 'None'):
                     continue
@@ -350,7 +362,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
     qclient.update_job_step(
         job_id, "Step 2 of 4: Converting Qiita artifacts to Q2 artifact")
     for k, (fpath, dt) in q2inputs.items():
-        if k in ('metadata', 'sample_metadata'):
+        if k in ('metadata', 'sample_metadata', m_param_name):
             metadata = qclient.get(
                 "/qiita_db/analysis/%s/metadata/" % str(analysis_id))
             metadata = pd.DataFrame.from_dict(metadata, orient='index')
@@ -519,7 +531,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                         aname, 'BIOM', [(fp, 'biom'), (qza_fp, 'qza')])
 
             else:
-                atype = Q2_QIITA_SEMANTIC_TYPE[q2artifact.type.name]
+                atype = Q2_QIITA_SEMANTIC_TYPE[str(q2artifact.type)]
                 ai = ArtifactInfo(
                     aname, atype, [(fp, 'plain_text'), (qza_fp, 'qza')])
             out_info.append(ai)
