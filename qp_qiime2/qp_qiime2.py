@@ -36,7 +36,8 @@ Q2_EXTRA_COMMANDS = [('feature-classifier', 'classify_sklearn')]
 QIITA_Q2_SEMANTIC_TYPE = {
     'BIOM': {
         'name': 'FeatureTable',
-        'expression': ['Frequency', 'RelativeFrequency', 'PresenceAbsence']},
+        'expression': ['Frequency', 'RelativeFrequency', 'PresenceAbsence',
+                       'Composition']},
     'distance_matrix': {
         'name': 'DistanceMatrix',
         'expression': []},
@@ -58,7 +59,8 @@ QIITA_Q2_SEMANTIC_TYPE = {
         'expression': ['Rooted']},
     'FeatureData':  {
         'name': 'FeatureData',
-        'expression': ['Taxonomy', 'Sequence', 'Importance']},
+        'expression': ['Taxonomy', 'Sequence', 'Importance',
+                       'DifferentialAbundance']},
     'TaxonomicClassifier':  {
         'name': 'TaxonomicClassifier',
         'expression': []},

@@ -85,19 +85,23 @@ for qiita_artifact, q2_artifacts in QIITA_Q2_SEMANTIC_TYPE.items():
             qiita_artifact = 'BIOM'
 
         if q2plugin.name not in Q2_ALLOWED_PLUGINS:
-            # As of qiime2-2022.2 this filters out:
+            # As of qiime2-2022.11 this filters out:
             # alignment
+            # deblur
             # diversity-lib
             # feature-classifier
             # fragment-insertion
             # quality-control
+            # sourcetracker2
             # vsearch
             continue
 
         for m in methods:
             # after review of qiime2-2019.4 we decided to not add these methods
             if (q2plugin.name, m.id) not in [('feature-table', 'group'),
-                                             ('feature-table', 'filter_seqs')]:
+                                             ('feature-table', 'filter_seqs'),
+                                             # qiime2-2022.11 we added this:
+                                             ('composition', 'ancombc')]:
                 methods_to_add.append((q2plugin, m))
 
 # make sure we have seen all expected plugins
