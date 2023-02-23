@@ -99,7 +99,9 @@ for qiita_artifact, q2_artifacts in QIITA_Q2_SEMANTIC_TYPE.items():
         for m in methods:
             # after review of qiime2-2019.4 we decided to not add these methods
             if (q2plugin.name, m.id) not in [('feature-table', 'group'),
-                                             ('feature-table', 'filter_seqs')]:
+                                             ('feature-table', 'filter_seqs'),
+                                             # qiime2-2022.11 we added this:
+                                             ('composition', 'ancombc')]:
                 methods_to_add.append((q2plugin, m))
 
 # make sure we have seen all expected plugins
