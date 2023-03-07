@@ -5,5 +5,5 @@ Note that this plugin assumes that QIIME 2 is already installed. For instruction
 
 If you want to add a new plugin, you need to:
 * Add the installation plugin in the GitHub Action yml
-* Add the new plugin into the `Q2_ALLOWED_PLUGINS` variable in `qp_qiime2.py`
+* Add the new plugin into the `Q2_ANALYSIS_PLUGINS` variable in `qp_qiime2.py`
 * Add a test to make sure that things work as expected
