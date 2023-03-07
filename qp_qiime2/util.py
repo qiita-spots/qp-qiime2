@@ -87,7 +87,8 @@ def get_extra_configuration_paths():
     return qp_qiime2_dbs, qp_filtering_qza
 
 
-def register_qiime2_commands(plugin, methods_to_add, q2_expected_plugins):
+def register_qiime2_commands(plugin, methods_to_add, q2_expected_plugins,
+                             analysis_only=True):
     qp_qiime2_dbs, qp_filtering_qza = get_extra_configuration_paths()
 
     for q2plugin, m in methods_to_add:
@@ -314,7 +315,7 @@ def register_qiime2_commands(plugin, methods_to_add, q2_expected_plugins):
         qiime_cmd = QiitaCommand("%s [%s]" % (m.name, mid), m.description,
                                  call_qiime2, req_params, opt_params,
                                  outputs_params, {'Default': {}},
-                                 analysis_only=True)
+                                 analysis_only=analysis_only)
 
         plugin.register_command(qiime_cmd)
 
