@@ -23,7 +23,7 @@ from q2_diversity._alpha import (
     alpha_rarefaction_unsupported_metrics)
 
 
-Q2_ALLOWED_PLUGINS = [
+Q2_ANALYSIS_PLUGINS = [
     'taxa', 'sample-classifier', 'composition', 'phylogeny', 'feature-table',
     'gneiss', 'diversity', 'longitudinal', 'emperor', 'umap', 'mislabeled'
 ]
