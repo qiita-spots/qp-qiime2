@@ -28,6 +28,10 @@ Q2_ANALYSIS_PLUGINS = [
     'gneiss', 'diversity', 'longitudinal', 'emperor', 'umap', 'mislabeled'
 ]
 
+Q2_PROCESSING_PLUGINS = [
+    'greengenes2'
+]
+
 # Note that is not OK - not sure why - to add 'feature-classifier' in the
 # list above becuse the full qiime2 plugin halts; thus, simply adding here
 # as it works
