@@ -537,7 +537,11 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                         aname, 'BIOM', [(fp, 'biom'), (qza_fp, 'qza')])
 
             else:
-                atype = Q2_QIITA_SEMANTIC_TYPE[str(q2artifact.type)]
+                qtype = str(q2artifact.type)
+                if qtype not in Q2_QIITA_SEMANTIC_TYPE:
+                    if "PCoAResults % Properties('biplot')" == qtype:
+                        qtype = 'PCoAResults'
+                atype = Q2_QIITA_SEMANTIC_TYPE[qtype]
                 ai = ArtifactInfo(
                     aname, atype, [(fp, 'plain_text'), (qza_fp, 'qza')])
             out_info.append(ai)
