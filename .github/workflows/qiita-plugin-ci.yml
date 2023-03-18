@@ -86,6 +86,7 @@ jobs:
           # Install QIIME 2 plugins
           pip install q2-umap
           pip install https://github.com/biocore/q2-mislabeled/archive/refs/heads/main.zip
+          pip install q2-greengenes2
 
           # configuring the databases available for QIIME 2
 

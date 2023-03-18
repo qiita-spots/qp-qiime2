@@ -13,7 +13,7 @@ from qiime2.sdk import PluginManager
 from qiime2.sdk.util import actions_by_input_type
 
 from .qp_qiime2 import (
-    QIITA_Q2_SEMANTIC_TYPE, Q2_ANALYSIS_PLUGINS,
+    QIITA_Q2_SEMANTIC_TYPE, Q2_ANALYSIS_PLUGINS, Q2_PROCESSING_PLUGINS,
     Q2_EXTRA_COMMANDS)
 from .util import register_qiime2_commands
 
@@ -83,8 +83,16 @@ for qiita_artifact, q2_artifacts in QIITA_Q2_SEMANTIC_TYPE.items():
 # make sure we have seen all expected analysis plugins
 q2_expected_plugins = register_qiime2_commands(
     plugin, methods_to_add, Q2_ANALYSIS_PLUGINS.copy())
-
 if q2_expected_plugins:
     raise ValueError(f'Never saw plugin(s): {q2_expected_plugins}')
 
-# let's now activate the data processing plugins
+# make sure we have seen all expected processing plugins
+gg2 = pm.plugins['greengenes2']
+methods = [
+    (gg2, gg2.methods['filter_features']),
+    (gg2, gg2.actions['non_v4_16s']),
+]
+q2_expected_plugins = register_qiime2_commands(
+    plugin, methods, Q2_PROCESSING_PLUGINS.copy(), False)
+if q2_expected_plugins:
+    raise ValueError(f'Never saw plugin(s): {q2_expected_plugins}')
