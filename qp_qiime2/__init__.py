@@ -43,7 +43,7 @@ pm = PluginManager()
 methods_to_add = []
 for plugin_name, method_name in Q2_EXTRA_COMMANDS:
     q2plugin = pm.plugins[plugin_name]
-    m = q2plugin.methods[method_name]
+    m = q2plugin.actions[method_name]
     methods_to_add.append((q2plugin, m))
 
 for qiita_artifact, q2_artifacts in QIITA_Q2_SEMANTIC_TYPE.items():

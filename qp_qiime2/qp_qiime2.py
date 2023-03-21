@@ -35,7 +35,10 @@ Q2_PROCESSING_PLUGINS = [
 # Note that is not OK - not sure why - to add 'feature-classifier' in the
 # list above becuse the full qiime2 plugin halts; thus, simply adding here
 # as it works
-Q2_EXTRA_COMMANDS = [('feature-classifier', 'classify_sklearn')]
+Q2_EXTRA_COMMANDS = [
+    ('feature-classifier', 'classify_sklearn'),
+    ('emperor', 'biplot')
+]
 
 QIITA_Q2_SEMANTIC_TYPE = {
     'BIOM': {
