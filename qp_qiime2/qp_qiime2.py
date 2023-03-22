@@ -216,6 +216,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
     qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
     q2plugin = parameters.pop('qp-hide-plugin')
     q2method = parameters.pop('qp-hide-method').replace('-', '_')
+    q2method_is_process = q2method in Q2_PROCESSING_PLUGINS
     pm = qiime2.sdk.PluginManager()
     method = pm.plugins[q2plugin].actions[q2method]
 
@@ -270,6 +271,12 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     fpath = val
                     artifact_method = None
                     k = key
+                elif q2method_is_process:
+                    fpath = val
+                    q2artifact_name = Q2_QIITA_SEMANTIC_TYPE[
+                        method_inputs[key].qiime_type.to_ast()['name']]
+                    artifact_method = QIITA_Q2_SEMANTIC_TYPE[
+                        q2artifact_name]['name']
                 else:
                     # this is going to be an artifact so let's collect the
                     # filepath here, this will also allow us to collect the
@@ -277,7 +284,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     artifact_id = val
                     ainfo = qclient.get(
                         "/qiita_db/artifacts/%s/" % artifact_id)
-                    if ainfo['analysis'] is None:
+                    if not q2method_is_process and ainfo['analysis'] is None:
                         msg = ('Artifact "%s" is not an analysis '
                                'artifact.' % val)
                         return False, None, msg

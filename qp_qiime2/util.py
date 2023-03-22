@@ -283,6 +283,9 @@ def register_qiime2_commands(plugin, methods_to_add, q2_expected_plugins,
                     raise ValueError(error_msg)
 
             if tqt == 'Metadata':
+                # for emperor biplot currently we need to skip feature_metadata
+                if mid == 'biplot' and pname == 'feature_metadata':
+                    continue
                 # for filter_features we need to list the available filter qza
                 if qname == 'feature-table' and mid == 'filter_features':
                     qfq = ', '.join('"%s"' % qza for qza in qp_filtering_qza)
