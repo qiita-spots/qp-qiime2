@@ -365,6 +365,12 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     key_value).view(qiime2.Metadata)
             else:
                 q2inputs[key] = ('', '')
+        elif k in ('The set of backbone sequences in Greengenes2'):
+            # this is a special case to add backbone and while we are here
+            # we can also add the sequences as input
+            q2inputs['backbone'] = (val, 'FeatureData[Sequence]')
+            q2inputs['sequences'] = (
+                q2inputs['table'][0], 'FeatureData[Sequence]')
 
     # if 'metadata' is in q2inputs but 'where' exist and is empty in q2params,
     # remove the parameter metadata
