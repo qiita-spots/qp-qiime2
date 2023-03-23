@@ -325,6 +325,10 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                         artifact_method = qiita_name['name']
 
                 q2inputs[key] = (fpath, artifact_method)
+                # forcing loading of sequences for non_v4_16s
+                if q2method == 'non_v4_16s':
+                    fps = ainfo['files']['preprocessed_fasta'][0]['filepath']
+                    q2inputs['sequences'] = (fps, 'FeatureData[Sequence]')
             elif key == 'qp-hide-metadata-field':
                 if val == '':
                     msg = ("Error: You didn't write a metadata field in "
@@ -368,9 +372,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
         elif k in ('The set of backbone sequences in Greengenes2'):
             # this is a special case to add backbone and while we are here
             # we can also add the sequences as input
-            q2inputs['backbone'] = (val, 'FeatureData[Sequence]')
-            q2inputs['sequences'] = (
-                q2inputs['table'][0], 'FeatureData[Sequence]')
+            q2inputs['backbone'] = (parameters[k], 'FeatureData[Sequence]')
 
     # if 'metadata' is in q2inputs but 'where' exist and is empty in q2params,
     # remove the parameter metadata
@@ -523,7 +525,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                 # not one of the plugin/methods that actually changes that
                 # information
                 if biom_fp is not None and (q2plugin, q2method) not in [
-                        ('taxa', 'collapse')]:
+                        ('taxa', 'collapse'), ('greengenes2', 'non_v4_16s')]:
                     fin = load_table(biom_fp)
                     fout = load_table(fp)
 
