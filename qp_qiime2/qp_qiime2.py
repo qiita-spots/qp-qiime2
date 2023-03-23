@@ -271,7 +271,11 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     fpath = val
                     artifact_method = None
                     k = key
-                elif q2plugin_is_process:
+                elif q2plugin_is_process and 'taxonomy' in val:
+                    # this section is required because gg2 (the only
+                    # processing plugin available) overwrites the
+                    # "Phylogenetic tree" value to read a tree or a taxonomy
+                    # file
                     fpath = val
                     q2artifact_name = Q2_QIITA_SEMANTIC_TYPE[
                         method_inputs[key].qiime_type.to_ast()['name']]

@@ -110,7 +110,12 @@ def register_qiime2_commands(plugin, methods_to_add, q2_expected_plugins,
         outputs_params = {}
         opt_params = {}
         to_delete = []
+        skip_values = [
+            # (qname, mid, pname)
+            ('greengenes2', 'non_v4_16s', 'sequences')]
         for pname, element in inputs.items():
+            if (qname, mid, pname) in skip_values:
+                continue
             qt_name, predicate = get_qiime2_type_name_and_predicate(element)
 
             if qt_name not in Q2_QIITA_SEMANTIC_TYPE:
