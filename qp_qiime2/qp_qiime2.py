@@ -35,7 +35,10 @@ Q2_PROCESSING_PLUGINS = [
 # Note that is not OK - not sure why - to add 'feature-classifier' in the
 # list above becuse the full qiime2 plugin halts; thus, simply adding here
 # as it works
-Q2_EXTRA_COMMANDS = [('feature-classifier', 'classify_sklearn')]
+Q2_EXTRA_COMMANDS = [
+    ('feature-classifier', 'classify_sklearn'),
+    ('emperor', 'biplot')
+]
 
 QIITA_Q2_SEMANTIC_TYPE = {
     'BIOM': {
@@ -213,6 +216,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
     qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
     q2plugin = parameters.pop('qp-hide-plugin')
     q2method = parameters.pop('qp-hide-method').replace('-', '_')
+    q2plugin_is_process = q2plugin in Q2_PROCESSING_PLUGINS
     pm = qiime2.sdk.PluginManager()
     method = pm.plugins[q2plugin].actions[q2method]
 
@@ -267,6 +271,16 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     fpath = val
                     artifact_method = None
                     k = key
+                elif q2plugin_is_process and 'taxonomy' in val:
+                    # this section is required because gg2 (the only
+                    # processing plugin available) overwrites the
+                    # "Phylogenetic tree" value to read a tree or a taxonomy
+                    # file
+                    fpath = val
+                    q2artifact_name = Q2_QIITA_SEMANTIC_TYPE[
+                        method_inputs[key].qiime_type.to_ast()['name']]
+                    artifact_method = QIITA_Q2_SEMANTIC_TYPE[
+                        q2artifact_name]['name']
                 else:
                     # this is going to be an artifact so let's collect the
                     # filepath here, this will also allow us to collect the
@@ -274,7 +288,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     artifact_id = val
                     ainfo = qclient.get(
                         "/qiita_db/artifacts/%s/" % artifact_id)
-                    if ainfo['analysis'] is None:
+                    if not q2plugin_is_process and ainfo['analysis'] is None:
                         msg = ('Artifact "%s" is not an analysis '
                                'artifact.' % val)
                         return False, None, msg
@@ -311,6 +325,10 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                         artifact_method = qiita_name['name']
 
                 q2inputs[key] = (fpath, artifact_method)
+                # forcing loading of sequences for non_v4_16s
+                if q2method == 'non_v4_16s':
+                    fps = ainfo['files']['preprocessed_fasta'][0]['filepath']
+                    q2inputs['sequences'] = (fps, 'FeatureData[Sequence]')
             elif key == 'qp-hide-metadata-field':
                 if val == '':
                     msg = ("Error: You didn't write a metadata field in "
@@ -351,6 +369,10 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     key_value).view(qiime2.Metadata)
             else:
                 q2inputs[key] = ('', '')
+        elif k in ('The set of backbone sequences in Greengenes2'):
+            # this is a special case to add backbone and while we are here
+            # we can also add the sequences as input
+            q2inputs['backbone'] = (parameters[k], 'FeatureData[Sequence]')
 
     # if 'metadata' is in q2inputs but 'where' exist and is empty in q2params,
     # remove the parameter metadata
@@ -503,7 +525,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                 # not one of the plugin/methods that actually changes that
                 # information
                 if biom_fp is not None and (q2plugin, q2method) not in [
-                        ('taxa', 'collapse')]:
+                        ('taxa', 'collapse'), ('greengenes2', 'non_v4_16s')]:
                     fin = load_table(biom_fp)
                     fout = load_table(fp)
 
