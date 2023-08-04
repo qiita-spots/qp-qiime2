@@ -545,7 +545,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
 
                 # if there is a tree, let's copy it and then add it to
                 # the new artifact
-                if tree_fp is not None:
+                if tree_fp is not None and analysis_id is not None:
                     bn = basename(tree_fp)
                     new_tree_fp = join(
                         out_dir, aout, 'from_%s_%s' % (artifact_id, bn))
