@@ -93,7 +93,7 @@ jobs:
           mkdir databases
           wget --quiet -O "databases/gg-13-8-99-515-806-nb-classifier.qza" "https://data.qiime2.org/2021.4/common/gg-13-8-99-515-806-nb-classifier.qza"
 
-          export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/server.crt
+          export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/ci_rootca.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
           export QP_QIIME2_DBS=${PWD}/databases
           pip --quiet install -U pip
@@ -122,7 +122,7 @@ jobs:
         shell: bash -l {0}
         run: |
           conda activate qiita
-          export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/server.crt
+          export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/ci_rootca.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
           sed "s#/home/runner/work/qiita/qiita#${PWD}/qiita-dev/#g" `pwd`/qiita-dev/qiita_core/support_files/config_test.cfg > ${QIITA_CONFIG_FP}
 
@@ -154,7 +154,7 @@ jobs:
           COVER_PACKAGE: ${{ matrix.cover_package }}
         run: |
           conda activate qiime2
-          export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/server.crt
+          export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/ci_rootca.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
           export QP_QIIME2_DBS=${PWD}/databases
           export QP_QIIME2_FILTER_QZA=${PWD}/filtering/
