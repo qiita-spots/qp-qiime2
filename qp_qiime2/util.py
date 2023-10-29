@@ -119,15 +119,14 @@ def register_qiime2_commands(plugin, methods_to_add, q2_expected_plugins,
             qt_name, predicate = get_qiime2_type_name_and_predicate(element)
 
             if qt_name not in Q2_QIITA_SEMANTIC_TYPE:
-                # As of qiime2-2022.2 this filters out:
-                # Hierarchy
-                #   gneiss dendrogram_heatmap
-                #   gneiss ilr_hierarchical
-                # SampleEstimator
-                #   sample-classifier predict_classification
-                #   sample-classifier predict_regression
+                # As of qiime2-2023.9 this filters out:
+                # Collection
+                #   feature-table tabulate_seqs taxonomy
                 # ProcrustesStatistics
-                #   emperor procrustes_plot
+                #   emperor procrustes_plot m2_stats
+                # SampleEstimator
+                #   sample-classifier predict_classification sample_estimator
+                #   sample-classifier predict_regression sample_estimator
                 add_method = False
                 break
 
@@ -150,14 +149,15 @@ def register_qiime2_commands(plugin, methods_to_add, q2_expected_plugins,
                     req_params[element.description] = ('artifact', ['BIOM'])
                     to_delete.append(pname)
                 else:
-                    # As of qiime2-2022.2 this filters out:
-                    # predicate: Importance
-                    #   importance heatmap
-                    #   importances plot_feature_volatility
-                    # predicate: Differential
-                    #   differential ilr_phylogenetic_differential
+                    # As of qiime2-2023.9 this filters out:
                     # predicate: AlignedSequence | Sequence
-                    #   data tabulate_seqs
+                    #   feature-table tabulate_seqs
+                    # predicate: DifferentialAbundance
+                    #   composition da_barplot
+                    #   composition tabulate
+                    # predicate: Importance
+                    #   longitudinal plot_feature_volatility
+                    #   sample-classifier heatmap
                     add_method = False
             elif etype == 'TaxonomicClassifier':
                 default = qp_qiime2_dbs[0]
@@ -190,28 +190,23 @@ def register_qiime2_commands(plugin, methods_to_add, q2_expected_plugins,
                     element)
                 if (qt_name not in Q2_QIITA_SEMANTIC_TYPE or
                         qt_name in NOT_VALID_OUTPUTS):
-                    # As of qiime2-2022.2 this filters out:
-                    # Hierarchy
-                    #   gneiss assign_ids
-                    #   gneiss correlation_clustering
-                    #   gneiss gradient_clustering
-                    #   gneiss ilr_phylogenetic
+                    # As of qiime2-2023.9 this filters out:
+                    # Collection
+                    #   feature-table split tables
                     # Phylogeny
-                    #   gneiss ilr_phylogenetic_differential
-                    #   gneiss ilr_phylogenetic_ordination
-                    #   phylogeny align_to_tree_mafft_fasttree
-                    #   phylogeny align_to_tree_mafft_iqtree
-                    #   phylogeny align_to_tree_mafft_raxml
-                    #   phylogeny filter_tree
-                    # SampleEstimator
-                    #   longitudinal feature_volatility
-                    #   longitudinal maturity_index
-                    #   sample-classifier classify_samples
-                    #   sample-classifier fit_classifier
-                    #   sample-classifier fit_regressor
-                    #   sample-classifier regress_samples
+                    #   phylogeny align_to_tree_mafft_fasttree tree
+                    #   phylogeny align_to_tree_mafft_iqtree tree
+                    #   phylogeny align_to_tree_mafft_raxml tree
+                    #   phylogeny filter_tree tree
                     # ProcrustesStatistics
-                    #   diversity procrustes_analysis
+                    #   diversity procrustes_analysis disparity_results
+                    # SampleEstimator
+                    #   longitudinal feature_volatility sample_estimator
+                    #   longitudinal maturity_index sample_estimator
+                    #   sample-classifier classify_samples sample_estimator
+                    #   sample-classifier fit_classifier sample_estimator
+                    #   sample-classifier fit_regressor sample_estimator
+                    #   sample-classifier regress_samples sample_estimator
                     add_method = False
                     break
                 else:
