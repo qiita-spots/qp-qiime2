@@ -25,7 +25,7 @@ from q2_diversity._alpha import (
 
 Q2_ANALYSIS_PLUGINS = [
     'taxa', 'sample-classifier', 'composition', 'phylogeny', 'feature-table',
-    'gneiss', 'diversity', 'longitudinal', 'emperor', 'umap', 'mislabeled'
+    'diversity', 'longitudinal', 'emperor', 'umap', 'mislabeled'
 ]
 
 Q2_PROCESSING_PLUGINS = [

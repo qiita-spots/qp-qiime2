@@ -60,13 +60,13 @@ for qiita_artifact, q2_artifacts in QIITA_Q2_SEMANTIC_TYPE.items():
             qiita_artifact = 'BIOM'
 
         if q2plugin.name not in Q2_ANALYSIS_PLUGINS:
-            # As of qiime2-2022.11 this filters out:
+            # As of qiime2-2023.9 this filters out:
             # alignment
             # deblur
             # diversity-lib
             # feature-classifier
             # fragment-insertion
-            # greengenes2
+            # greengenes2           - added as processing plugin
             # quality-control
             # sourcetracker2
             # vsearch
