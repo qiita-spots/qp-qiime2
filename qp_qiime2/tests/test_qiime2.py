@@ -7,7 +7,7 @@
 # -----------------------------------------------------------------------------
 
 from unittest import main
-from os import remove, stat
+from os import remove, stat, environ
 from shutil import rmtree, copyfile
 from tempfile import mkdtemp
 from json import dumps
@@ -79,7 +79,7 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(msg, 'Artifact "5" is not an analysis artifact.')
 
     def test_feature_classifier(self):
-        dbpath = join(self.basedir, '..', '..', 'databases',
+        dbpath = join(environ.get('QP_QIIME2_DBS'),
                       'gg-13-8-99-515-806-nb-classifier.qza')
         original_params = {
             'qp-hide-method': 'classify_sklearn',
@@ -1307,7 +1307,7 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(ainfo[0].output_name, 'filtered_table')
 
         # Filter using a qza file
-        qza_path = join(self.basedir, '..', '..', 'filtering', 'blooms-90.qza')
+        qza_path = join(environ.get('QP_QIIME2_FILTER_QZA'), 'blooms-90.qza')
         params.update({
             'Feature metadata used with `where` parameter when selecting '
             'features to retain, or with `exclude_ids` when selecting '
