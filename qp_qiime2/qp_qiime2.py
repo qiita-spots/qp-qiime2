@@ -193,6 +193,39 @@ RENAME_COMMANDS = {
     ('beta_group_significance', 'method'): BETA_GROUP_SIG_METHODS,
 }
 
+def _fetch_files(qclient, ainfo):
+    """helper method to fetch all files of an artifact from Qiita main.
+
+    Parameters
+    ----------
+    qclient : qiita_client.QiitaClient
+        The Qiita server client
+    ainfo : ArtifactInfo
+        Information about Qiita artifact
+
+    Returns
+    -------
+    Same as input BUT filepaths are adapated after downloading files from
+    Qiita main to local IF protocol coupling != filesystem. Otherwise, no
+    change occurs.
+    """
+    if qclient._plugincoupling != 'filesystem':
+        if 'files' in ainfo.keys():
+            ainfo['files'] = {
+                filetype: [
+                    {
+                        k: qclient.fetch_file_from_central(v)
+                            if k == 'filepath' else v
+                        for k, v
+                        in file.items()}
+                    for file
+                    in ainfo['files'][filetype]]
+                for filetype
+                in ainfo['files'].keys()
+            }
+        return ainfo
+    else:
+        return ainfo
 
 def call_qiime2(qclient, job_id, parameters, out_dir):
     """helper method to call Qiime2
@@ -288,6 +321,12 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     artifact_id = val
                     ainfo = qclient.get(
                         "/qiita_db/artifacts/%s/" % artifact_id)
+
+                    # If plugin coupling != 'filesystem' download all artifact
+                    # files from Qiita main to here and adapt filepaths
+                    # accordingly.
+                    ainfo = _fetch_files(qclient, ainfo)
+
                     if not q2plugin_is_process and ainfo['analysis'] is None:
                         msg = ('Artifact "%s" is not an analysis '
                                'artifact.' % val)
@@ -323,7 +362,6 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                             qiita_name['name'], qiita_name['expression'][0])
                     else:
                         artifact_method = qiita_name['name']
-
                 q2inputs[key] = (fpath, artifact_method)
                 # forcing loading of sequences for non_v4_16s
                 if q2method == 'non_v4_16s':
@@ -443,10 +481,12 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
     if q2plugin == 'feature-classifier' and q2method == 'classify_sklearn':
         ainfo = qclient.get("/qiita_db/artifacts/%s/" %
                             parameters['The feature data to be classified.'])
-        biom_fp = ainfo['files']['biom'][0]['filepath']
+        biom_fp = qclient.fetch_file_from_central(
+            ainfo['files']['biom'][0]['filepath'])
         plain_text_fp = None
         if 'plain_text' in ainfo['files']:
-            plain_text_fp = ainfo['files']['plain_text'][0]['filepath']
+            plain_text_fp = qclient.fetch_file_from_central(
+                ainfo['files']['plain_text'][0]['filepath'])
         biom_table = load_table(biom_fp)
         fna_fp = join(out_dir, 'sequences.fna')
         with open(fna_fp, 'w') as f:
@@ -489,7 +529,8 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
         qza = qiime2.Artifact.import_data(
             'FeatureTable[Frequency]', new_biom, 'BIOMV210Format')
         qza.save(new_qza)
-        ftc_fps = [(new_biom, 'biom'), (new_qza, 'qza')]
+        ftc_fps = [(qclient.push_file_to_central(new_biom), 'biom'),
+                   (qclient.push_file_to_central(new_qza), 'qza')]
         if plain_text_fp is not None:
             # if we enter here, it means that the input artifact had a tree
             # (saved as plain_text); thus, we need to make sure we make a copy
@@ -497,7 +538,8 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             bn = basename(plain_text_fp)
             new_tree_fp = join(out_dir, bn)
             copyfile(ainfo['files']['plain_text'][0]['filepath'], new_tree_fp)
-            ftc_fps.append((new_tree_fp, 'plain_text'))
+            ftc_fps.append(
+                (qclient.push_file_to_central(new_tree_fp), 'plain_text'))
         out_info.append(ArtifactInfo(
             'Feature Table with Classification', 'BIOM', ftc_fps))
 
@@ -506,7 +548,8 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
         if isinstance(q2artifact, qiime2.Visualization):
             qzv_fp = q2artifact.save(aout)
             out_info.append(
-                ArtifactInfo(aname, 'q2_visualization', [(qzv_fp, 'qzv')]))
+                ArtifactInfo(aname, 'q2_visualization',
+                             [(qclient.push_file_to_central(qzv_fp), 'qzv')]))
         else:
             qza_fp = q2artifact.save(aout + '.qza')
             q2artifact.export_data(output_dir=aout)
@@ -551,12 +594,15 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                         out_dir, aout, 'from_%s_%s' % (artifact_id, bn))
                     copyfile(tree_fp, new_tree_fp)
                     ai = ArtifactInfo(aname, 'BIOM', [
-                        (fp, 'biom'),
-                        (new_tree_fp, 'plain_text'),
-                        (qza_fp, 'qza')])
+                        (qclient.push_file_to_central(fp), 'biom'),
+                        (qclient.push_file_to_central(new_tree_fp),
+                         'plain_text'),
+                        (qclient.push_file_to_central(qza_fp), 'qza')])
                 else:
                     ai = ArtifactInfo(
-                        aname, 'BIOM', [(fp, 'biom'), (qza_fp, 'qza')])
+                        aname, 'BIOM',
+                        [(qclient.push_file_to_central(fp), 'biom'),
+                         (qclient.push_file_to_central(qza_fp), 'qza')])
 
             else:
                 qtype = str(q2artifact.type)
@@ -565,7 +611,9 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                         qtype = 'PCoAResults'
                 atype = Q2_QIITA_SEMANTIC_TYPE[qtype]
                 ai = ArtifactInfo(
-                    aname, atype, [(fp, 'plain_text'), (qza_fp, 'qza')])
+                    aname, atype, [
+                        (qclient.push_file_to_central(fp), 'plain_text'),
+                        (qclient.push_file_to_central(qza_fp), 'qza')])
             out_info.append(ai)
 
     return True, out_info, ""

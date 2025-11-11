@@ -144,6 +144,7 @@ class qiime2Tests(PluginTestCase):
         biom_fp_new = join(self.basedir, 'support_files', 'deblur.biom')
         copyfile(biom_fp_old, biom_fp_old_bk)
         copyfile(biom_fp_new, biom_fp_old)
+        self.deposite_in_qiita_basedir(biom_fp_old)
 
         self.data['command'] = dumps(
             ['qiime2', qiime2_version, 'Pre-fitted sklearn-based '
@@ -164,6 +165,7 @@ class qiime2Tests(PluginTestCase):
 
         # returning original biom
         copyfile(biom_fp_old_bk, biom_fp_old)
+        self.deposite_in_qiita_basedir(biom_fp_old)
         obs_files = [ai.files for ai in ainfo]
         obs_artifact_types = [ai.artifact_type for ai in ainfo]
         obs_output_names = [ai.output_name for ai in ainfo]
