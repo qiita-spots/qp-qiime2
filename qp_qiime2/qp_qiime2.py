@@ -193,6 +193,7 @@ RENAME_COMMANDS = {
     ('beta_group_significance', 'method'): BETA_GROUP_SIG_METHODS,
 }
 
+
 def _fetch_files(qclient, ainfo):
     """helper method to fetch all files of an artifact from Qiita main.
 
@@ -215,7 +216,7 @@ def _fetch_files(qclient, ainfo):
                 filetype: [
                     {
                         k: qclient.fetch_file_from_central(v)
-                            if k == 'filepath' else v
+                        if k == 'filepath' else v
                         for k, v
                         in file.items()}
                     for file
@@ -226,6 +227,7 @@ def _fetch_files(qclient, ainfo):
         return ainfo
     else:
         return ainfo
+
 
 def call_qiime2(qclient, job_id, parameters, out_dir):
     """helper method to call Qiime2
