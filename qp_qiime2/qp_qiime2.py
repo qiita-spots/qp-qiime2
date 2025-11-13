@@ -531,8 +531,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
         qza = qiime2.Artifact.import_data(
             'FeatureTable[Frequency]', new_biom, 'BIOMV210Format')
         qza.save(new_qza)
-        ftc_fps = [(qclient.push_file_to_central(new_biom), 'biom'),
-                   (qclient.push_file_to_central(new_qza), 'qza')]
+        ftc_fps = [(new_biom, 'biom'), (new_qza, 'qza')]
         if plain_text_fp is not None:
             # if we enter here, it means that the input artifact had a tree
             # (saved as plain_text); thus, we need to make sure we make a copy
@@ -540,8 +539,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
             bn = basename(plain_text_fp)
             new_tree_fp = join(out_dir, bn)
             copyfile(ainfo['files']['plain_text'][0]['filepath'], new_tree_fp)
-            ftc_fps.append(
-                (qclient.push_file_to_central(new_tree_fp), 'plain_text'))
+            ftc_fps.append((new_tree_fp, 'plain_text'))
         out_info.append(ArtifactInfo(
             'Feature Table with Classification', 'BIOM', ftc_fps))
 
@@ -550,8 +548,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
         if isinstance(q2artifact, qiime2.Visualization):
             qzv_fp = q2artifact.save(aout)
             out_info.append(
-                ArtifactInfo(aname, 'q2_visualization',
-                             [(qclient.push_file_to_central(qzv_fp), 'qzv')]))
+                ArtifactInfo(aname, 'q2_visualization', [(qzv_fp, 'qzv')]))
         else:
             qza_fp = q2artifact.save(aout + '.qza')
             q2artifact.export_data(output_dir=aout)
@@ -596,15 +593,12 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                         out_dir, aout, 'from_%s_%s' % (artifact_id, bn))
                     copyfile(tree_fp, new_tree_fp)
                     ai = ArtifactInfo(aname, 'BIOM', [
-                        (qclient.push_file_to_central(fp), 'biom'),
-                        (qclient.push_file_to_central(new_tree_fp),
-                         'plain_text'),
-                        (qclient.push_file_to_central(qza_fp), 'qza')])
+                        (fp, 'biom'),
+                        (new_tree_fp, 'plain_text'),
+                        (qza_fp, 'qza')])
                 else:
                     ai = ArtifactInfo(
-                        aname, 'BIOM',
-                        [(qclient.push_file_to_central(fp), 'biom'),
-                         (qclient.push_file_to_central(qza_fp), 'qza')])
+                        aname, 'BIOM', [(fp, 'biom'), (qza_fp, 'qza')])
 
             else:
                 qtype = str(q2artifact.type)
@@ -613,9 +607,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                         qtype = 'PCoAResults'
                 atype = Q2_QIITA_SEMANTIC_TYPE[qtype]
                 ai = ArtifactInfo(
-                    aname, atype, [
-                        (qclient.push_file_to_central(fp), 'plain_text'),
-                        (qclient.push_file_to_central(qza_fp), 'qza')])
+                    aname, atype, [(fp, 'plain_text'), (qza_fp, 'qza')])
             out_info.append(ai)
 
     return True, out_info, ""
