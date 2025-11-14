@@ -288,7 +288,6 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     artifact_id = val
                     ainfo = qclient.get(
                         "/qiita_db/artifacts/%s/" % artifact_id)
-
                     if not q2plugin_is_process and ainfo['analysis'] is None:
                         msg = ('Artifact "%s" is not an analysis '
                                'artifact.' % val)
