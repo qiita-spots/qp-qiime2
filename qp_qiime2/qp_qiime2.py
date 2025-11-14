@@ -364,6 +364,7 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                             qiita_name['name'], qiita_name['expression'][0])
                     else:
                         artifact_method = qiita_name['name']
+
                 q2inputs[key] = (fpath, artifact_method)
                 # forcing loading of sequences for non_v4_16s
                 if q2method == 'non_v4_16s':
