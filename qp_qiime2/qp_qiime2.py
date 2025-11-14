@@ -194,41 +194,6 @@ RENAME_COMMANDS = {
 }
 
 
-def _fetch_files(qclient, ainfo):
-    """helper method to fetch all files of an artifact from Qiita main.
-
-    Parameters
-    ----------
-    qclient : qiita_client.QiitaClient
-        The Qiita server client
-    ainfo : ArtifactInfo
-        Information about Qiita artifact
-
-    Returns
-    -------
-    Same as input BUT filepaths are adapated after downloading files from
-    Qiita main to local IF protocol coupling != filesystem. Otherwise, no
-    change occurs.
-    """
-    if qclient._plugincoupling != 'filesystem':
-        if 'files' in ainfo.keys():
-            ainfo['files'] = {
-                filetype: [
-                    {
-                        k: qclient.fetch_file_from_central(v)
-                        if k == 'filepath' else v
-                        for k, v
-                        in file.items()}
-                    for file
-                    in ainfo['files'][filetype]]
-                for filetype
-                in ainfo['files'].keys()
-            }
-        return ainfo
-    else:
-        return ainfo
-
-
 def call_qiime2(qclient, job_id, parameters, out_dir):
     """helper method to call Qiime2
 
@@ -323,12 +288,6 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
                     artifact_id = val
                     ainfo = qclient.get(
                         "/qiita_db/artifacts/%s/" % artifact_id)
-
-                    # If plugin coupling != 'filesystem' download all artifact
-                    # files from Qiita main to here and adapt filepaths
-                    # accordingly.
-                    ainfo = _fetch_files(qclient, ainfo)
-
                     if not q2plugin_is_process and ainfo['analysis'] is None:
                         msg = ('Artifact "%s" is not an analysis '
                                'artifact.' % val)
@@ -484,12 +443,10 @@ def call_qiime2(qclient, job_id, parameters, out_dir):
     if q2plugin == 'feature-classifier' and q2method == 'classify_sklearn':
         ainfo = qclient.get("/qiita_db/artifacts/%s/" %
                             parameters['The feature data to be classified.'])
-        biom_fp = qclient.fetch_file_from_central(
-            ainfo['files']['biom'][0]['filepath'])
+        biom_fp = ainfo['files']['biom'][0]['filepath']
         plain_text_fp = None
         if 'plain_text' in ainfo['files']:
-            plain_text_fp = qclient.fetch_file_from_central(
-                ainfo['files']['plain_text'][0]['filepath'])
+            plain_text_fp = ainfo['files']['plain_text'][0]['filepath']
         biom_table = load_table(biom_fp)
         fna_fp = join(out_dir, 'sequences.fna')
         with open(fna_fp, 'w') as f:
