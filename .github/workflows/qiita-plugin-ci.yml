@@ -13,7 +13,7 @@ jobs:
     services:
       postgres:
         # Docker Hub image
-        image: postgres:9.5
+        image: postgres:13.4
         env:
           POSTGRES_DB: postgres
           POSTGRES_USER: postgres
@@ -39,7 +39,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
-          python-version: 3.6
+          python-version: 3.9
 
       - name: Basic dependencies install
         env:
