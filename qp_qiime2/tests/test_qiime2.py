@@ -7,7 +7,7 @@
 # -----------------------------------------------------------------------------
 
 from unittest import main
-from os import remove, stat
+from os import remove, stat, environ
 from shutil import rmtree, copyfile
 from tempfile import mkdtemp
 from json import dumps
@@ -79,7 +79,7 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(msg, 'Artifact "5" is not an analysis artifact.')
 
     def test_feature_classifier(self):
-        dbpath = join(self.basedir, '..', '..', 'databases',
+        dbpath = join(environ.get('QP_QIIME2_DBS'),
                       'gg-13-8-99-515-806-nb-classifier.qza')
         original_params = {
             'qp-hide-method': 'classify_sklearn',
@@ -144,6 +144,7 @@ class qiime2Tests(PluginTestCase):
         biom_fp_new = join(self.basedir, 'support_files', 'deblur.biom')
         copyfile(biom_fp_old, biom_fp_old_bk)
         copyfile(biom_fp_new, biom_fp_old)
+        self.qclient.push_file_to_central(biom_fp_old)
 
         self.data['command'] = dumps(
             ['qiime2', qiime2_version, 'Pre-fitted sklearn-based '
@@ -164,6 +165,7 @@ class qiime2Tests(PluginTestCase):
 
         # returning original biom
         copyfile(biom_fp_old_bk, biom_fp_old)
+        self.qclient.push_file_to_central(biom_fp_old)
         obs_files = [ai.files for ai in ainfo]
         obs_artifact_types = [ai.artifact_type for ai in ainfo]
         obs_output_names = [ai.output_name for ai in ainfo]
@@ -1307,7 +1309,7 @@ class qiime2Tests(PluginTestCase):
         self.assertEqual(ainfo[0].output_name, 'filtered_table')
 
         # Filter using a qza file
-        qza_path = join(self.basedir, '..', '..', 'filtering', 'blooms-90.qza')
+        qza_path = join(environ.get('QP_QIIME2_FILTER_QZA'), 'blooms-90.qza')
         params.update({
             'Feature metadata used with `where` parameter when selecting '
             'features to retain, or with `exclude_ids` when selecting '

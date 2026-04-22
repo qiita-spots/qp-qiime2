@@ -17,12 +17,14 @@ from qp_qiime2 import plugin
 @click.option('--env-script', prompt='Environment script',
               default='source activate qp-qiime2')
 @click.option('--server-cert', prompt='Server certificate', default='None')
-def config(env_script, server_cert):
+@click.argument('plugincoupling', required=False, default='filesystem')
+def config(env_script, server_cert, plugincoupling):
     """Generates the Qiita configuration files"""
     if server_cert == 'None':
         server_cert = None
     plugin.generate_config(env_script, 'start_qiime2',
-                           server_cert=server_cert)
+                           server_cert=server_cert,
+                           plugin_coupling=plugincoupling)
 
 
 if __name__ == '__main__':

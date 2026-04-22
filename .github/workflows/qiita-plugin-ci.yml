@@ -39,7 +39,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
-          python-version: 3.6
+          python-version: 3.9
 
       # we need to download qiita directly so we have "easy" access to
       # all config files
